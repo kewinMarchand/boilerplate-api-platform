@@ -1,4 +1,4 @@
-# CLAUDE.md — api-platform-test-api
+# CLAUDE.md — boilerplate-api-platform
 
 API de test commune aux boilerplates front. Les conventions générales sont dans `~/.claude/CLAUDE.md` : ce fichier ne note que les choix propres au projet.
 
@@ -61,4 +61,4 @@ API de test commune aux boilerplates front. Les conventions générales sont dan
 - **Paramètre tableau documenté deux fois** : une clé `exposure[]` produit `exposure[]` et `exposure[][]` dans l'OpenAPI, une clé `exposure` produit `exposure` et `exposure[]`. La clé `exposure` avec `castToArray: true` ne documente que `exposure[]` et accepte aussi `exposure=ombre`.
 - **`parent: null` absent du JSON** : API Platform saute les valeurs nulles par défaut. `CategoryResource` force `skip_null_values: false`, sinon la racine n'a pas de clé `parent` alors que le schéma la déclare requise.
 - **`composer validate --strict`** exige `name` et `description`, même pour un projet.
-- **Port 8090 lié à `127.0.0.1`** : un front servi par Docker passe par le réseau `api-platform-test-api_default` (`http://php:8080`), pas par `localhost`.
+- **Port 8090 lié à `127.0.0.1`** : un front servi par Docker passe par le réseau `boilerplate-api-platform_default` (`http://php:8080`), pas par `localhost`.

@@ -7,7 +7,7 @@
 
 ## Contexte
 
-Les cinq fronts lisent leurs données dans cette API (ou dans `hono-mongo-test-api`, au contrat identique), choisie par `API_URL`. L'API n'expose que des lectures, plus `POST /api/contact_messages`. Le catalogue (catégories, produits), les articles du blog et les tâches viennent des fixtures Doctrine (`src/*/Infrastructure/Doctrine/Fixtures/`). Le carrousel de l'accueil et les pages légales sont écrits dans les vues des fronts.
+Les cinq fronts lisent leurs données dans cette API (ou dans `boilerplate-hono`, au contrat identique), choisie par `API_URL`. L'API n'expose que des lectures, plus `POST /api/contact_messages`. Le catalogue (catégories, produits), les articles du blog et les tâches viennent des fixtures Doctrine (`src/*/Infrastructure/Doctrine/Fixtures/`). Le carrousel de l'accueil et les pages légales sont écrits dans les vues des fronts.
 
 Pour un projet client, toute modification du catalogue ou d'un texte passe donc par un développeur : on modifie le code, on commite, on recharge les fixtures, et le rechargement vide la base. Le client ne peut rien changer lui-même.
 

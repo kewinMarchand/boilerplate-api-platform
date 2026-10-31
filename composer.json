@@ -1,5 +1,5 @@
 {
-    "name": "kewinmarchand/api-platform-test-api",
+    "name": "kewinmarchand/boilerplate-api-platform",
     "description": "API de test commune aux boilerplates front : tâches, articles, formulaire de contact et catalogue à facettes.",
     "type": "project",
     "license": "MIT",

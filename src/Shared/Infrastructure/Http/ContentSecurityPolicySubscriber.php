@@ -9,7 +9,7 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * CSP d'une API JSON : rien à charger, rien à afficher en iframe. Même en-tête que hono-mongo-test-api.
+ * CSP d'une API JSON : rien à charger, rien à afficher en iframe. Même en-tête que boilerplate-hono.
  * Les réponses HTML (documentation Swagger UI) en sont exclues : elles chargent leurs scripts et leurs styles.
  */
 final class ContentSecurityPolicySubscriber implements EventSubscriberInterface

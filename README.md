@@ -1,4 +1,4 @@
-# api-platform-test-api
+# boilerplate-api-platform
 
 API de test commune aux cinq boilerplates front (Next, Nuxt, SvelteKit, Symfony Twig, HTML vanilla). Elle sert des tâches, des articles, un formulaire de contact et un catalogue à facettes, avec des données réalistes, en JSON simple ou en JSON-LD, et sait simuler une erreur serveur ou une liste vide pour tester les trois états des fronts.
 
@@ -33,15 +33,15 @@ Tout est en lecture seule sauf le contact (un `POST` répond 405). Les collectio
 ## Démarrage
 
 ```sh
-git clone https://github.com/kewinMarchand/api-platform-test-api.git
-cd api-platform-test-api
+git clone https://github.com/kewinMarchand/boilerplate-api-platform.git
+cd boilerplate-api-platform
 make install    # image, conteneurs, dépendances Composer
 make db-reset   # base, migrations, fixtures
 ```
 
 L'API répond sur http://localhost:8090/api. La documentation interactive (Swagger UI) est sur http://localhost:8090/api/docs dans un navigateur.
 
-Le projet Compose s'appelle `api-platform-test-api` : ses conteneurs, son réseau et son volume (`api-platform-test-api_database_data`) ne touchent à aucun autre projet. Le conteneur PHP tourne avec l'UID de l'utilisateur courant, les fichiers créés dans le dépôt lui appartiennent.
+Le projet Compose s'appelle `boilerplate-api-platform` : ses conteneurs, son réseau et son volume (`boilerplate-api-platform_database_data`) ne touchent à aucun autre projet. Le conteneur PHP tourne avec l'UID de l'utilisateur courant, les fichiers créés dans le dépôt lui appartiennent.
 
 ## Commandes
 
@@ -61,7 +61,7 @@ Le projet Compose s'appelle `api-platform-test-api` : ses conteneurs, son résea
 | `make test`     | Recrée la base de test, puis PHPUnit                                      |
 | `make openapi`  | Exporte le schéma OpenAPI dans `openapi.json`                             |
 | `make logs` / `make sh` | Journaux des conteneurs, shell dans le conteneur PHP              |
-| `make docker-build-prod` | Image de production (`api-platform-test-api:prod`)               |
+| `make docker-build-prod` | Image de production (`boilerplate-api-platform:prod`)               |
 
 ## Consommer l'API depuis un front
 
@@ -168,7 +168,7 @@ Les schémas utiles côté front sont `Task`, `Article`, `ContactMessage`, `Cons
 
 ### Front dans un conteneur Docker
 
-L'API n'écoute que sur `127.0.0.1:8090`. Un front servi par Docker n'y accède pas par `localhost` : le brancher sur le réseau `api-platform-test-api_default` et viser `http://php:8080`, ou changer la publication du port dans `compose.yaml`.
+L'API n'écoute que sur `127.0.0.1:8090`. Un front servi par Docker n'y accède pas par `localhost` : le brancher sur le réseau `boilerplate-api-platform_default` et viser `http://php:8080`, ou changer la publication du port dans `compose.yaml`.
 
 ## Architecture
 
@@ -225,7 +225,7 @@ Le dépôt est un modèle (« template ») sur GitHub. Deux façons d'en partir,
 **Nouveau projet (voie recommandée)** : bouton « Use this template » sur GitHub, ou avec la CLI GitHub (`gh`, facultative) :
 
 ```sh
-gh repo create mon-projet --template kewinMarchand/api-platform-test-api --private --clone
+gh repo create mon-projet --template kewinMarchand/boilerplate-api-platform --private --clone
 ```
 
 Le nouveau dépôt contient les fichiers de la branche `main`, avec un historique vierge et sans lien avec l'original.
@@ -233,7 +233,7 @@ Le nouveau dépôt contient les fichiers de la branche `main`, avec un historiqu
 **Fork, pour suivre les évolutions de ce dépôt ou y contribuer** (bouton « Fork » sur GitHub, ou avec `gh`) :
 
 ```sh
-gh repo fork kewinMarchand/api-platform-test-api --clone
+gh repo fork kewinMarchand/boilerplate-api-platform --clone
 ```
 
 Le fork devient `origin` et le dépôt d'origine `upstream`. GitHub n'autorise pas un fork dans le compte qui possède déjà le dépôt : le propriétaire passe par le modèle ou par une organisation.
@@ -243,7 +243,7 @@ Le fork devient `origin` et le dépôt d'origine `upstream`. GitHub n'autorise p
 Avec un fork, `upstream` existe déjà. Avec un dépôt créé depuis le modèle, l'ajouter une fois :
 
 ```sh
-git remote add upstream https://github.com/kewinMarchand/api-platform-test-api.git
+git remote add upstream https://github.com/kewinMarchand/boilerplate-api-platform.git
 git fetch upstream
 ```
 
@@ -274,7 +274,7 @@ Puis, selon l'origine du dépôt :
 | Secrets | régénérer `APP_SECRET` dans `.env.dev` (valeur de développement versionnée). En production, `APP_SECRET` et `DATABASE_URL` viennent de l'environnement, rien n'est versionné |
 | PostgreSQL | utilisateur, mot de passe et base (`app`) dans `compose.yaml` et `.env`. La version (17) dans l'image et dans `serverVersion` |
 | Scénarios `X-Scenario` | `src/Shared/Infrastructure/ApiPlatform/Scenario/`. Pour s'en passer : supprimer ce dossier, `tests/Functional/ScenarioHeaderTest.php`, `tests/Integration/ScenarioRegistrationTest.php`, puis retirer `X-Scenario` de `config/packages/nelmio_cors.yaml` et de `config/packages/api_platform.yaml` |
-| Contrat OpenAPI | `openapi.json` se régénère par `make openapi` et `make qa` vérifie qu'il est à jour. La comparaison `make contract` appartient au dépôt jumeau `hono-mongo-test-api` : elle ne concerne pas un projet qui n'a pas de seconde implémentation |
+| Contrat OpenAPI | `openapi.json` se régénère par `make openapi` et `make qa` vérifie qu'il est à jour. La comparaison `make contract` appartient au dépôt jumeau `boilerplate-hono` : elle ne concerne pas un projet qui n'a pas de seconde implémentation |
 | CORS | origines locales dans `CORS_ALLOW_ORIGIN` (`.env`) |
 | CI | `.github/workflows/ci.yml` appelle `make` : les identifiants PostgreSQL et la version de PHP viennent de `compose.yaml` et du `Dockerfile` |
 | Documentation | ce README et `CLAUDE.md`, qui décrivent les modules d'exemple |

@@ -43,6 +43,6 @@ openapi: ## Exporte le schéma OpenAPI dans openapi.json
 	$(CONSOLE) api:openapi:export --output=openapi.json
 
 docker-build-prod: ## Construit l'image de production
-	docker build --target prod -t api-platform-test-api:prod .
+	docker build --target prod -t boilerplate-api-platform:prod .
 
 .PHONY: help install build up down logs sh db-reset openapi docker-build-prod
