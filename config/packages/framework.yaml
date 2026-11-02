@@ -2,7 +2,8 @@
 framework:
     secret: '%env(APP_SECRET)%'
 
-    session: false
+    # Pour l'admin seulement : la session ne démarre qu'à son premier usage, l'API n'en ouvre jamais
+    session: true
 
     #esi: true
     #fragments: true

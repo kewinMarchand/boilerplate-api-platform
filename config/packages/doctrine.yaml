@@ -10,6 +10,11 @@ doctrine:
             Doctrine\DBAL\Platforms\PostgreSQLPlatform: identity
         auto_mapping: true
         mappings:
+            Admin:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Admin/Infrastructure/Doctrine/Mapping'
+                prefix: 'App\Admin\Infrastructure\Security'
             Task:
                 type: xml
                 is_bundle: false

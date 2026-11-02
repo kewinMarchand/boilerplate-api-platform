@@ -46,10 +46,16 @@ deptrac:
           collectors:
             - type: classLike
               value: '^App\\Shared\\Infrastructure\\'
+        # Admin (ADR 0001) : adaptateur d'entrée, comme API Platform. Il écrit par les cas d'usage du catalogue
+        # et lit ses entités pour les listes ; il n'a ni domaine ni application à lui.
+        - name: AdminInfrastructure
+          collectors:
+            - type: classLike
+              value: '^App\\Admin\\Infrastructure\\'
         - name: Framework
           collectors:
             - type: classLike
-              value: '^(Symfony|Doctrine|ApiPlatform|Psr|Sentry)\\'
+              value: '^(Symfony|Doctrine|ApiPlatform|Psr|Sentry|EasyCorp)\\'
     ruleset:
         CatalogDomain: ~
         CatalogApplication: [CatalogDomain]
@@ -61,3 +67,4 @@ deptrac:
         TaskDomain: ~
         TaskInfrastructure: [TaskDomain, SharedInfrastructure, Framework]
         SharedInfrastructure: [Framework]
+        AdminInfrastructure: [CatalogDomain, CatalogApplication, SharedInfrastructure, Framework]

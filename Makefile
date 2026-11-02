@@ -39,10 +39,14 @@ db-reset: ## Recrée la base de dev, joue les migrations et charge les fixtures
 	$(CONSOLE) doctrine:migrations:migrate --no-interaction
 	$(CONSOLE) doctrine:fixtures:load --no-interaction
 
+admin: ## Crée un compte de l'admin /admin, ou change son mot de passe : make admin EMAIL=moi@exemple.fr
+	@test -n "$(EMAIL)" || { echo "Préciser l'adresse : make admin EMAIL=moi@exemple.fr"; exit 1; }
+	$(COMPOSE) exec php php bin/console app:admin:create "$(EMAIL)"
+
 openapi: ## Exporte le schéma OpenAPI dans openapi.json
 	$(CONSOLE) api:openapi:export --output=openapi.json
 
 docker-build-prod: ## Construit l'image de production
 	docker build --target prod -t boilerplate-api-platform:prod .
 
-.PHONY: help install build up down logs sh db-reset openapi docker-build-prod
+.PHONY: help install build up down logs sh db-reset admin openapi docker-build-prod

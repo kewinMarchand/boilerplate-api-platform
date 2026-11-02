@@ -1,0 +1,47 @@
+security:
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+    providers:
+        admin_users:
+            entity:
+                class: App\Admin\Infrastructure\Security\AdminUser
+                property: email
+
+    firewalls:
+        dev:
+            pattern: ^/(_profiler(/|$)|(_wdt|assets|build)/)
+            security: false
+        # Admin (ADR 0001) : session, formulaire de connexion protégé par CSRF, 5 essais par quart d'heure
+        admin:
+            pattern: ^/admin
+            lazy: true
+            provider: admin_users
+            form_login:
+                login_path: admin_login
+                check_path: admin_login
+                enable_csrf: true
+                default_target_path: admin
+            logout:
+                path: /admin/logout
+                target: admin_login
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
+        # L'API reste publique et sans session
+        main:
+            security: false
+
+    access_control:
+        - { path: ^/admin/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+
+when@test:
+    security:
+        password_hashers:
+            # Hachage au coût minimal en test, pour la vitesse
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4
+                time_cost: 3
+                memory_cost: 10

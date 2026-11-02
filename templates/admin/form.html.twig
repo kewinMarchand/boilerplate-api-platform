@@ -1,0 +1,13 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+{% form_theme form 'bootstrap_5_layout.html.twig' %}
+
+{% block content_title %}{{ title }}{% endblock %}
+
+{% block main %}
+    {{ form_start(form) }}
+        {{ form_errors(form) }}
+        {{ form_rest(form) }}
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <a href="{{ cancel_url }}" class="btn btn-secondary">Annuler</a>
+    {{ form_end(form) }}
+{% endblock %}
