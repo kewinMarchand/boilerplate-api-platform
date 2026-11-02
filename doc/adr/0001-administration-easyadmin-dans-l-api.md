@@ -3,6 +3,7 @@
 - **Statut** : Acceptée
 - **Introduite par** : commit `46df658`
 - **Décideurs** : Kewin Marchand
+- **Révisée le 02/11/2026** (réécrite en place, par exception : les outils sont encore en création et aucun code ne reposait sur la première version) : le chemin d'écriture est précisé (l'admin appelle les cas d'usage, qui enregistrent par le dépôt Doctrine) et le slug est unique dans tout le catalogue, et non dans sa branche. La décision ne change pas.
 - **Révise** : `boilerplates-commun/ARCHITECTURE-DDD.md` §2.2, §4.4.2 et §5 (« le catalogue n'a aucune écriture ») et le rôle décrit dans `CLAUDE.md` (« pas d'authentification, pas d'écriture hors contact »), une fois acceptée.
 
 ## Contexte
@@ -24,8 +25,9 @@ On rend le catalogue et les contenus administrables par **EasyAdmin, dans l'appl
 
 - **Un projet client = une API, une base PostgreSQL, une admin.** L'admin est servie par la même application, sous `/admin`, derrière une authentification Symfony Security (comptes d'administration en base, mot de passe haché).
 - **Périmètre administré** : catégories et produits ; articles du blog ; diapositives du carrousel et pages légales, qui deviennent des ressources de l'API en lecture, lues par les fronts comme le reste.
-- **Le contrat public ne gagne aucune écriture.** L'admin écrit par Doctrine, par les cas d'usage de la couche application, pas par des opérations API Platform. Les fronts et `make contract` ne voient que les nouvelles ressources en lecture, ajoutées aussi dans Hono.
-- **Le catalogue gagne des écritures, donc des agrégats.** `Category` et `Product` protègent leurs invariants à la modification : slug unique dans sa branche, parent existant, profondeur de 3 niveaux au plus, prix positif ou nul.
+- **Le contrat public ne gagne aucune écriture.** L'admin appelle les cas d'usage de la couche application (`CreateProduct`, `UpdateCategory`…), qui vérifient les règles puis enregistrent par le dépôt Doctrine. Elle n'écrit jamais par des opérations API Platform. Les fronts et `make contract` ne voient que les nouvelles ressources en lecture, ajoutées aussi dans Hono.
+- **Le catalogue gagne des écritures, donc des agrégats.** `Category` et `Product` protègent leurs invariants à la modification : slug unique dans **tout** le catalogue (les URL publiques désignent une catégorie par son slug seul, `?category=jardin`), parent existant, profondeur de 3 niveaux au plus, prix positif ou nul, visuel compris entre 1 et 12, et pas de suppression d'une catégorie qui a encore des produits ou des sous-catégories. Les règles propres à un objet sont dans l'agrégat ; celles qui consultent les autres objets (unicité, suppression) sont vérifiées par le cas d'usage à l'aide des ports.
+- **EasyAdmin sert les listes et les fiches.** Pour créer et modifier, ses formulaires portent sur des objets de saisie, pas sur les entités : les entités n'ont pas de setters.
 - **Fixtures** : elles restent la source des données de développement et de test (e2e, `X-Scenario`). En production, les données arrivent par l'admin, ou par un import initial (CSV, export d'ERP). Le schéma n'évolue plus que par migrations Doctrine.
 - **ERP** : aucun par défaut. Quand un client en a un, il fait foi pour les données qu'il possède (références, prix, stocks), et une synchronisation les importe dans l'API. L'admin garde ce que l'ERP n'a pas : photos, descriptions, SEO. Cette synchronisation fera l'objet d'une ADR propre au projet concerné.
 - **Hono** : il reste une API de contrat, sans admin. Ses données restent des fixtures.
@@ -37,6 +39,7 @@ On rend le catalogue et les contenus administrables par **EasyAdmin, dans l'appl
 - **ERP comme back-office (Dolibarr, Odoo)** : il gère des articles, mais pas les contenus du site (textes, images, SEO). Il impose aussi un outil de gestion à des clients qui n'en ont pas besoin. Il est réservé au rôle de source synchronisée.
 - **Admin dans chaque front** : à écrire cinq fois, dans cinq stacks, avec une authentification par front. Rejetée.
 - **Rester sur les fixtures** : convient à la démonstration, pas à un client qui doit modifier son site sans développeur.
+- **CRUD standard d'EasyAdmin, directement sur les entités** : moins de code (EasyAdmin fournit formulaires et enregistrement). Mais les entités doivent exposer des setters, les règles qui consultent la base deviennent des contraintes de validation Symfony hors du domaine, et un futur import ou une synchronisation devrait recopier ces règles ou passer par le validateur. Rejetée : un boilerplate sert de modèle d'architecture aux projets clients, et l'import initial comme la synchronisation ERP sont prévus.
 
 ## Conséquences
 
@@ -47,7 +50,7 @@ On rend le catalogue et les contenus administrables par **EasyAdmin, dans l'appl
   - le contrat public reste en lecture, donc la parité Hono reste simple.
 - **Négatives / coûts** :
   - dépendance `easycorp/easyadmin-bundle`, et Symfony Security à configurer (comptes, protection CSRF, limitation des tentatives de connexion) ;
-  - le domaine du catalogue se complexifie : agrégats, invariants, cas d'usage d'écriture et leurs tests. Le modèle « sans agrégat » de ARCHITECTURE-DDD est à réviser ;
+  - le domaine du catalogue se complexifie : agrégats, invariants, cas d'usage d'écriture et leurs tests ; dans l'admin, un objet de saisie et un formulaire par opération, à côté des listes d'EasyAdmin. Le modèle « sans agrégat » de ARCHITECTURE-DDD est à réviser ;
   - stockage des images envoyées par l'admin : volume persistant ou stockage objet, avec sauvegarde. À choisir avant la première mise en production ;
   - les données de production ne se rechargent plus : migrations obligatoires et sauvegardes de la base ;
   - Hono n'a pas d'admin : un projet qui part de Hono n'est pas administrable ;
