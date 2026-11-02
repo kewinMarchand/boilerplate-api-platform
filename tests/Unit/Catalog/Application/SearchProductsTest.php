@@ -7,14 +7,14 @@ namespace App\Tests\Unit\Catalog\Application;
 use App\Catalog\Application\SearchProducts;
 use App\Catalog\Domain\Category;
 use App\Catalog\Domain\CategoryNotFound;
-use App\Catalog\Domain\CategoryRepository;
 use App\Catalog\Domain\Exposure;
 use App\Catalog\Domain\Price;
 use App\Catalog\Domain\Product;
 use App\Catalog\Domain\ProductCriteria;
-use App\Catalog\Domain\ProductRepository;
 use App\Catalog\Domain\ProductSearch;
 use App\Catalog\Domain\Size;
+use App\Tests\Support\InMemoryCategoryRepository;
+use App\Tests\Support\InMemoryProductRepository;
 use PHPUnit\Framework\TestCase;
 
 final class SearchProductsTest extends TestCase
@@ -31,28 +31,8 @@ final class SearchProductsTest extends TestCase
         ];
 
         $this->searchProducts = new SearchProducts(
-            new readonly class($products) implements ProductRepository {
-                /** @param list<Product> $products */
-                public function __construct(private array $products)
-                {
-                }
-
-                public function findAll(): array
-                {
-                    return $this->products;
-                }
-            },
-            new readonly class([$palms, $ferns]) implements CategoryRepository {
-                /** @param list<Category> $categories */
-                public function __construct(private array $categories)
-                {
-                }
-
-                public function findAll(): array
-                {
-                    return $this->categories;
-                }
-            },
+            new InMemoryProductRepository($products),
+            new InMemoryCategoryRepository([$palms, $ferns]),
             new ProductSearch(),
         );
     }

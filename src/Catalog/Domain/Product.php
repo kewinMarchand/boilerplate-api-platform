@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace App\Catalog\Domain;
 
+/**
+ * Agrégat : un produit garde un prix positif ou nul (Price) et un visuel existant.
+ * L'unicité du slug se vérifie dans les cas d'usage.
+ */
 class Product
 {
+    public const int IMAGE_COUNT = 12;
+
     private ?int $id = null;
 
     /** Centimes, colonne entière : le value object est reconstruit à la lecture. */
@@ -24,7 +30,24 @@ class Product
         private bool $inStock,
         private int $image,
     ) {
+        self::guardImage($image);
         $this->price = $price->cents;
+    }
+
+    /**
+     * @throws CatalogRuleViolation
+     */
+    public function update(string $slug, string $name, Category $category, Price $price, Exposure $exposure, Size $size, bool $inStock, int $image): void
+    {
+        self::guardImage($image);
+        $this->slug = $slug;
+        $this->name = $name;
+        $this->category = $category;
+        $this->price = $price->cents;
+        $this->exposure = $exposure;
+        $this->size = $size;
+        $this->inStock = $inStock;
+        $this->image = $image;
     }
 
     public function getId(): ?int
@@ -70,5 +93,12 @@ class Product
     public function getImage(): int
     {
         return $this->image;
+    }
+
+    private static function guardImage(int $image): void
+    {
+        if ($image < 1 || $image > self::IMAGE_COUNT) {
+            throw new CatalogRuleViolation(\sprintf('Le visuel est un numéro de 1 à %d : %d.', self::IMAGE_COUNT, $image));
+        }
     }
 }

@@ -56,4 +56,17 @@ final readonly class CategoryTree
 
         return $slugs;
     }
+
+    /**
+     * Nombre de niveaux sous la catégorie (0 si elle n'a pas de sous-catégorie).
+     */
+    public function levelsBelow(Category $category): int
+    {
+        $levels = 0;
+        foreach ($this->childrenOf($category) as $child) {
+            $levels = max($levels, $this->levelsBelow($child) + 1);
+        }
+
+        return $levels;
+    }
 }
