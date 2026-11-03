@@ -11,6 +11,7 @@ api_platform:
             - '%kernel.project_dir%/src/Blog/Infrastructure/ApiPlatform/Resource'
             - '%kernel.project_dir%/src/Catalog/Infrastructure/ApiPlatform/Resource'
             - '%kernel.project_dir%/src/Contact/Infrastructure/ApiPlatform/Resource'
+            - '%kernel.project_dir%/src/Content/Infrastructure/ApiPlatform/Resource'
     formats:
         json: ['application/json']
         jsonld: ['application/ld+json']

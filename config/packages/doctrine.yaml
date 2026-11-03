@@ -30,6 +30,11 @@ doctrine:
                 is_bundle: false
                 dir: '%kernel.project_dir%/src/Catalog/Infrastructure/Doctrine/Mapping'
                 prefix: 'App\Catalog\Domain'
+            Content:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Content/Infrastructure/Doctrine/Mapping'
+                prefix: 'App\Content\Domain'
             Contact:
                 type: xml
                 is_bundle: false

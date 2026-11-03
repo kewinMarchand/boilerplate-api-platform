@@ -201,6 +201,68 @@
                 }
             }
         },
+        "/api/legal_pages/{slug}": {
+            "get": {
+                "operationId": "api_legal_pages_slug_get",
+                "tags": [
+                    "LegalPage"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "LegalPage resource",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LegalPage"
+                                }
+                            },
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LegalPage.jsonld"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves a LegalPage resource.",
+                "description": "Retrieves a LegalPage resource.",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "description": "LegalPage identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
         "/api/products": {
             "get": {
                 "operationId": "api_products_get",
@@ -387,6 +449,57 @@
                         "explode": true
                     }
                 ]
+            }
+        },
+        "/api/slides": {
+            "get": {
+                "operationId": "api_slides_get_collection",
+                "tags": [
+                    "Slide"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Slide collection",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Slide"
+                                    }
+                                }
+                            },
+                            "application/ld+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "Slide.jsonld collection.",
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/HydraCollectionBaseSchemaNoPagination"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "member"
+                                            ],
+                                            "properties": {
+                                                "member": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Slide.jsonld"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Retrieves the collection of Slide resources.",
+                "description": "Retrieves the collection of Slide resources.",
+                "parameters": []
             }
         },
         "/api/tasks": {
@@ -1156,6 +1269,101 @@
                     "@type"
                 ]
             },
+            "LegalPage": {
+                "type": "object",
+                "description": "Lit une page l\u00e9gale par son slug (mentions-legales, donnees-personnelles, accessibilite).",
+                "required": [
+                    "slug",
+                    "title",
+                    "introduction",
+                    "sections"
+                ],
+                "properties": {
+                    "slug": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "introduction": {
+                        "description": "HTML plac\u00e9 avant la premi\u00e8re section, vide s'il n'y en a pas.",
+                        "type": "string"
+                    },
+                    "sections": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/LegalSection"
+                        }
+                    }
+                }
+            },
+            "LegalPage.jsonld": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "slug",
+                            "title",
+                            "introduction",
+                            "sections"
+                        ],
+                        "properties": {
+                            "slug": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "introduction": {
+                                "description": "HTML plac\u00e9 avant la premi\u00e8re section, vide s'il n'y en a pas.",
+                                "type": "string"
+                            },
+                            "sections": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/LegalSection.jsonld"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "description": "Lit une page l\u00e9gale par son slug (mentions-legales, donnees-personnelles, accessibilite)."
+            },
+            "LegalSection": {
+                "type": "object",
+                "required": [
+                    "title",
+                    "html"
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "html": {
+                        "description": "HTML de la section, sans son titre. Le HTML saisi dans l'admin est \u00e9chapp\u00e9.",
+                        "type": "string"
+                    }
+                }
+            },
+            "LegalSection.jsonld": {
+                "type": "object",
+                "required": [
+                    "title",
+                    "html"
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "html": {
+                        "description": "HTML de la section, sans son titre. Le HTML saisi dans l'admin est \u00e9chapp\u00e9.",
+                        "type": "string"
+                    }
+                }
+            },
             "ProductFacets": {
                 "type": "object",
                 "required": [
@@ -1409,6 +1617,71 @@
                 ],
                 "description": "Liste les produits du catalogue. Les filtres se combinent en ET, les valeurs d'une m\u00eame facette en OU. Une valeur invalide (inconnue, non num\u00e9rique, hors bornes) est ignor\u00e9e et remplac\u00e9e par la valeur par d\u00e9faut."
             },
+            "Slide": {
+                "type": "object",
+                "description": "Liste les diapositives dans l'ordre du carrousel, sans pagination.",
+                "required": [
+                    "id",
+                    "slug",
+                    "title",
+                    "text",
+                    "image"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "text": {
+                        "type": "string"
+                    },
+                    "image": {
+                        "description": "Num\u00e9ro du visuel livr\u00e9 avec les fronts, de 1 \u00e0 5.",
+                        "type": "integer"
+                    }
+                }
+            },
+            "Slide.jsonld": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "id",
+                            "slug",
+                            "title",
+                            "text",
+                            "image"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "slug": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "text": {
+                                "type": "string"
+                            },
+                            "image": {
+                                "description": "Num\u00e9ro du visuel livr\u00e9 avec les fronts, de 1 \u00e0 5.",
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "description": "Liste les diapositives dans l'ordre du carrousel, sans pagination."
+            },
             "Task": {
                 "type": "object",
                 "description": "Liste toutes les t\u00e2ches, sans pagination.",
@@ -1481,6 +1754,14 @@
         {
             "name": "ContactMessage",
             "description": "Message envoy\u00e9 depuis le formulaire de contact."
+        },
+        {
+            "name": "LegalPage",
+            "description": "Page l\u00e9gale : mentions l\u00e9gales, donn\u00e9es personnelles, d\u00e9claration d'accessibilit\u00e9."
+        },
+        {
+            "name": "Slide",
+            "description": "Diapositive du carrousel de la page d'accueil."
         },
         {
             "name": "Task",

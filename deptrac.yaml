@@ -30,6 +30,18 @@ deptrac:
           collectors:
             - type: classLike
               value: '^App\\Blog\\Infrastructure\\'
+        - name: ContentDomain
+          collectors:
+            - type: classLike
+              value: '^App\\Content\\Domain\\'
+        - name: ContentApplication
+          collectors:
+            - type: classLike
+              value: '^App\\Content\\Application\\'
+        - name: ContentInfrastructure
+          collectors:
+            - type: classLike
+              value: '^App\\Content\\Infrastructure\\'
         - name: ContactDomain
           collectors:
             - type: classLike
@@ -59,7 +71,7 @@ deptrac:
         - name: Framework
           collectors:
             - type: classLike
-              value: '^(Symfony|Doctrine|ApiPlatform|Psr|Sentry|EasyCorp)\\'
+              value: '^(Symfony|Doctrine|ApiPlatform|Psr|Sentry|EasyCorp|League\\CommonMark)\\'
     ruleset:
         CatalogDomain: ~
         CatalogApplication: [CatalogDomain]
@@ -67,6 +79,9 @@ deptrac:
         BlogDomain: ~
         BlogApplication: [BlogDomain]
         BlogInfrastructure: [BlogDomain, SharedInfrastructure, Framework]
+        ContentDomain: ~
+        ContentApplication: [ContentDomain]
+        ContentInfrastructure: [ContentDomain, SharedInfrastructure, Framework]
         ContactDomain: ~
         ContactInfrastructure: [ContactDomain, SharedInfrastructure, Framework]
         TaskDomain: ~
