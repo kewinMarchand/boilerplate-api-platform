@@ -22,7 +22,7 @@ Tout est en lecture seule sauf le contact (un `POST` répond 405). Les collectio
 | Symfony 8.1                         | Framework                                             |
 | API Platform 5.0                    | Ressources, formats, OpenAPI, erreurs `problem+json`  |
 | Doctrine ORM 3, Migrations, Fixtures | Persistance, schéma versionné, données de démonstration |
-| PostgreSQL 17                       | Base de données, non exposée sur la machine           |
+| PostgreSQL 18                       | Base de données, non exposée sur la machine           |
 | nelmio/cors-bundle                  | CORS pour les origines locales des fronts             |
 | PHPUnit 13 + ApiTestCase            | Tests fonctionnels de chaque endpoint                 |
 | PHPStan 2 (niveau max), PHP-CS-Fixer | Analyse statique et format                            |
@@ -274,7 +274,7 @@ Puis, selon l'origine du dépôt :
 | Ports | port publié `API_PORT` (8090 par défaut) dans `compose.yaml`, et la mention du port dans la cible `up` du `Makefile`. Le conteneur écoute sur 8080, PostgreSQL n'est pas publié |
 | Variables d'environnement | `.env` (`DATABASE_URL`, `CORS_ALLOW_ORIGIN`, `DEFAULT_URI`), `.env.test`. Les surcharges locales vont dans `.env.local`, jamais versionné |
 | Secrets | régénérer `APP_SECRET` dans `.env.dev` (valeur de développement versionnée). En production, `APP_SECRET` et `DATABASE_URL` viennent de l'environnement, rien n'est versionné |
-| PostgreSQL | utilisateur, mot de passe et base (`app`) dans `compose.yaml` et `.env`. La version (17) dans l'image et dans `serverVersion` |
+| PostgreSQL | utilisateur, mot de passe et base (`app`) dans `compose.yaml` et `.env`. La version (18) dans l'image et dans `serverVersion` |
 | Scénarios `X-Scenario` | `src/Shared/Infrastructure/ApiPlatform/Scenario/`. Pour s'en passer : supprimer ce dossier, `tests/Functional/ScenarioHeaderTest.php`, `tests/Integration/ScenarioRegistrationTest.php`, puis retirer `X-Scenario` de `config/packages/nelmio_cors.yaml` et de `config/packages/api_platform.yaml` |
 | Contrat OpenAPI | `openapi.json` se régénère par `make openapi` et `make qa` vérifie qu'il est à jour. La comparaison `make contract` appartient au dépôt jumeau `boilerplate-hono` : elle ne concerne pas un projet qui n'a pas de seconde implémentation |
 | CORS | origines locales dans `CORS_ALLOW_ORIGIN` (`.env`) |

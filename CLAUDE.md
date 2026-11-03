@@ -31,7 +31,7 @@ API de test commune aux boilerplates front. Les conventions générales sont dan
 | Symfony            | 8.1.*     | Dernière version. Pas une LTS : maintenue jusqu'en janvier 2027       |
 | API Platform       | ^5 (5.0.5) | Dernière version (la 4 était demandée à l'origine)                    |
 | Doctrine ORM / DBAL | 3.7 / 4.5 | Versions résolues par Composer                                        |
-| PostgreSQL         | 17-alpine | Demandé, image déjà présente                                           |
+| PostgreSQL         | 18-alpine | Dernière version majeure. Volume monté sur `/var/lib/postgresql` (données en `18/docker`) |
 | PHPUnit            | 13.4      | Version installée par la recette Flex                                  |
 | PHPStan            | 2.3, niveau `max` | Projet neuf, sans dette : le niveau le plus strict ne coûte rien à tenir |
 

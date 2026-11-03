@@ -11,14 +11,14 @@ services:
       database:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://app:app@database:5432/app?serverVersion=17&charset=utf8
+      DATABASE_URL: postgresql://app:app@database:5432/app?serverVersion=18&charset=utf8
     volumes:
       - ./:/app
     ports:
       - '127.0.0.1:${API_PORT:-8090}:8080'
 
   database:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_DB: app
       POSTGRES_USER: app
@@ -29,7 +29,7 @@ services:
       timeout: 5s
       retries: 20
     volumes:
-      - database_data:/var/lib/postgresql/data
+      - database_data:/var/lib/postgresql
 
 volumes:
   database_data:
