@@ -29,7 +29,7 @@ API de test commune aux boilerplates front. Les conventions générales sont dan
 | ------------------ | --------- | ---------------------------------------------------------------------- |
 | PHP                | 8.5       | Dernière version, image `dunglas/frankenphp:1-php8.5-bookworm`         |
 | Symfony            | 8.1.*     | Dernière version. Pas une LTS : maintenue jusqu'en janvier 2027       |
-| API Platform       | ^4 (4.4.6) | Version 4 demandée                                                    |
+| API Platform       | ^5 (5.0.5) | Dernière version (la 4 était demandée à l'origine)                    |
 | Doctrine ORM / DBAL | 3.7 / 4.5 | Versions résolues par Composer                                        |
 | PostgreSQL         | 17-alpine | Demandé, image déjà présente                                           |
 | PHPUnit            | 13.4      | Version installée par la recette Flex                                  |
@@ -47,6 +47,7 @@ API de test commune aux boilerplates front. Les conventions générales sont dan
 - `league/commonmark` (2.10) : conversion du Markdown des pages légales. Environ 1,8 Mo, plus `nette/utils`, `nette/schema`, `league/config` et `dflydev/dot-access-data` (2,4 Mo en tout).
 - `symfony/css-selector` (dev) : `assertSelectorTextContains` et les filtres CSS du navigateur de test, dans `AdminTest`.
 - `symfony/browser-kit`, `symfony/http-client` (dev) : requis par `ApiTestCase`.
+- `api-platform/test` (dev) : `ApiTestCase` et son client, sortis d'`api-platform/symfony` en 5.0. L'ancienne classe `ApiPlatform\Symfony\Bundle\Test\ApiTestCase` n'est plus qu'un alias déprécié, qui ferait échouer la suite (`failOnDeprecation`).
 - Extensions PHPStan incluses à la main dans `phpstan.dist.neon`, sans `phpstan/extension-installer`.
 - Recette Flex de `symfony/framework-bundle` 8.1 appliquée sauf `AGENTS.md` : ses consignes génériques contredisent ce fichier (bundles déclarés à la main, par exemple). `Kernel::getAllowedEnvs()` limite `APP_ENV` à `prod`, `dev` et `test`.
 
@@ -59,11 +60,11 @@ API de test commune aux boilerplates front. Les conventions générales sont dan
 - **`ApiTestCase` et `$alwaysBootKernel`** : sans `protected static ?bool $alwaysBootKernel = false;`, API Platform émet une dépréciation et `failOnDeprecation` fait échouer la suite.
 - **Journaux dans PHPUnit** : sans Monolog, le logger par défaut écrit les 422 et 500 provoquées par les tests sur la sortie d'erreur. En test, `logger` est un `NullLogger` (`config/services.yaml`).
 - **`Location` du 201** : API Platform renvoie `/api/contact_messages/{id}`, qui répond 404 (opération non exposée, ajoutée seulement pour générer l'IRI). À ne pas suivre côté front.
-- **OpenAPI 3.2.0** : API Platform 4.4 exporte en 3.2. `openapi-typescript` 7.13 (version des boilerplates) le génère sans erreur, vérifié.
+- **OpenAPI 3.2.0** : API Platform 4.4 et 5.0 exportent en 3.2. `openapi-typescript` 7.13 (version des boilerplates) le génère sans erreur, vérifié.
 - **Unicode échappé en JSON simple** : `application/json` renvoie `é`, le JSON-LD non. Les deux sont du JSON valide.
 - **PHPStan sur `public/index.php`** : `$context` est `mixed` au niveau max, et PHP-CS-Fixer transforme le `@var` en commentaire simple. PHPStan analyse `src/` et `tests/` seulement, les points d'entrée du squelette restent tels quels.
 - **Validation implicite des `QueryParameter`** : API Platform 4.4 déduit des contraintes du `schema` (`minimum`, `maximum`, `enum` sur un scalaire) et répond 422 en anglais. L'`enum` des éléments d'un tableau n'est pas validé. Les bornes sont donc dans la description, pas dans le schéma.
-- **Paramètre tableau et notation `[]`** : API Platform 4.4.3 documentait une clé tableau en double (`exposure` et `exposure[]`, ou `exposure[]` et `exposure[][]`), `castToArray: true` n'en gardant que `exposure[]`. 4.4.4 a retiré cette notation (api-platform/core#8637) : la clé `exposure` seule est documentée en `style: form`, soit `exposure=a&exposure=b`, que PHP réduit à la dernière valeur. D'où le `openApi: new Parameter(name: 'exposure[]', style: 'deepObject', explode: true)` explicite sur `exposure` et `size`, qui garde le contrat. `castToArray: true` accepte aussi `exposure=ombre`.
+- **Paramètre tableau documenté deux fois** : une clé `exposure[]` produit `exposure[]` et `exposure[][]` dans l'OpenAPI, une clé `exposure` produit `exposure` et `exposure[]`. La clé `exposure` avec `castToArray: true` ne documente que `exposure[]` et accepte aussi `exposure=ombre`. API Platform 4.4.4 à 4.4.6 avait retiré cette notation (api-platform/core#8637), la 5.0 la documente de nouveau.
 - **`parent: null` absent du JSON** : API Platform saute les valeurs nulles par défaut. `CategoryResource` force `skip_null_values: false`, sinon la racine n'a pas de clé `parent` alors que le schéma la déclare requise.
 - **`composer validate --strict`** exige `name` et `description`, même pour un projet.
 - **Port 8090 lié à `127.0.0.1`** : un front servi par Docker passe par le réseau `boilerplate-api-platform_default` (`http://php:8080`), pas par `localhost`.

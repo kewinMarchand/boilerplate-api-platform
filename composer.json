@@ -10,8 +10,8 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-intl": "*",
-        "api-platform/doctrine-orm": "^4.4.6",
-        "api-platform/symfony": "^4.4.6",
+        "api-platform/doctrine-orm": "^5.0.5",
+        "api-platform/symfony": "^5.0.5",
         "doctrine/doctrine-bundle": "^3.3.4",
         "doctrine/doctrine-migrations-bundle": "^4.0",
         "doctrine/orm": "^3.7.6",
@@ -87,6 +87,7 @@
         }
     },
     "require-dev": {
+        "api-platform/test": "^5.0.5",
         "deptrac/deptrac": "^4.7",
         "doctrine/doctrine-fixtures-bundle": "^4.3",
         "friendsofphp/php-cs-fixer": "^3.95",

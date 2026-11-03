@@ -20,7 +20,7 @@ Tout est en lecture seule sauf le contact (un `POST` répond 405). Les collectio
 | ----------------------------------- | ----------------------------------------------------- |
 | PHP 8.5, FrankenPHP 1 (Caddy)       | Serveur HTTP et PHP dans un seul conteneur            |
 | Symfony 8.1                         | Framework                                             |
-| API Platform 4.4                    | Ressources, formats, OpenAPI, erreurs `problem+json`  |
+| API Platform 5.0                    | Ressources, formats, OpenAPI, erreurs `problem+json`  |
 | Doctrine ORM 3, Migrations, Fixtures | Persistance, schéma versionné, données de démonstration |
 | PostgreSQL 17                       | Base de données, non exposée sur la machine           |
 | nelmio/cors-bundle                  | CORS pour les origines locales des fronts             |
