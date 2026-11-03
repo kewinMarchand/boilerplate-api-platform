@@ -62,8 +62,8 @@ deptrac:
           collectors:
             - type: classLike
               value: '^App\\Shared\\Infrastructure\\'
-        # Admin (ADR 0001) : adaptateur d'entrée, comme API Platform. Il écrit par les cas d'usage du catalogue
-        # et lit ses entités pour les listes ; il n'a ni domaine ni application à lui.
+        # Admin (ADR 0001) : adaptateur d'entrée, comme API Platform. Il écrit par les cas d'usage des modules
+        # administrés et lit leurs entités pour les listes ; il n'a ni domaine ni application à lui.
         - name: AdminInfrastructure
           collectors:
             - type: classLike
@@ -87,4 +87,4 @@ deptrac:
         TaskDomain: ~
         TaskInfrastructure: [TaskDomain, SharedInfrastructure, Framework]
         SharedInfrastructure: [Framework]
-        AdminInfrastructure: [CatalogDomain, CatalogApplication, SharedInfrastructure, Framework]
+        AdminInfrastructure: [CatalogDomain, CatalogApplication, BlogDomain, BlogApplication, ContentDomain, ContentApplication, SharedInfrastructure, Framework]

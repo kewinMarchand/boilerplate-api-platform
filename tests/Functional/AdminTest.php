@@ -7,6 +7,7 @@ namespace App\Tests\Functional;
 use App\Admin\Infrastructure\Security\AdminUser;
 use App\Catalog\Domain\Category;
 use App\Catalog\Domain\Product;
+use App\Content\Domain\LegalPage;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -41,6 +42,17 @@ final class AdminTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'Produits');
+    }
+
+    public function testShowsTheListsAndRecordsOfEachSection(): void
+    {
+        $client = $this->loggedIn('admin-pages@example.fr');
+        foreach (['category', 'product', 'article', 'slide', 'legal-page'] as $section) {
+            $crawler = $client->request('GET', \sprintf('/admin/%s', $section));
+            self::assertResponseIsSuccessful($section);
+            $client->click($crawler->filter('a.action-detail')->first()->link());
+            self::assertResponseIsSuccessful($section);
+        }
     }
 
     public function testCreatesAProductThroughTheForm(): void
@@ -80,6 +92,30 @@ final class AdminTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(422);
         self::assertSelectorTextContains('#main form .alert-danger', \sprintf('Le slug « %s » est déjà pris par une autre catégorie.', $taken->getSlug()));
+    }
+
+    public function testEditsALegalPageReadByTheApi(): void
+    {
+        $client = $this->loggedIn('admin-page@example.fr');
+        $page = $this->entityManager()->getRepository(LegalPage::class)->findOneBy(['slug' => 'mentions-legales']);
+        self::assertInstanceOf(LegalPage::class, $page);
+        $body = $page->getBody();
+
+        $client->request('GET', \sprintf('/admin/legal-page/%d/edit', $page->getId()));
+        $client->submitForm('Enregistrer', ['legal_page[title]' => 'Mentions légales', 'legal_page[body]' => "## Éditeur\n\nNouvel éditeur."]);
+        self::assertResponseRedirects();
+
+        $client->request('GET', '/api/legal_pages/mentions-legales', [], [], ['HTTP_ACCEPT' => 'application/json']);
+        self::assertJsonStringEqualsJsonString(
+            (string) json_encode(['slug' => 'mentions-legales', 'title' => 'Mentions légales', 'introduction' => '', 'sections' => [['title' => 'Éditeur', 'html' => '<p>Nouvel éditeur.</p>']]]),
+            (string) $client->getResponse()->getContent(),
+        );
+
+        // La base de test est partagée : les tests de l'API lisent le texte des fixtures
+        $saved = $this->entityManager()->getRepository(LegalPage::class)->findOneBy(['slug' => 'mentions-legales']);
+        self::assertInstanceOf(LegalPage::class, $saved);
+        $saved->update('Mentions légales', $body);
+        $this->entityManager()->flush();
     }
 
     public function testThrottlesRepeatedFailedLogins(): void
