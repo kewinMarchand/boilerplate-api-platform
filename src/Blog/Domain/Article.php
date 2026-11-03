@@ -16,6 +16,14 @@ class Article
     ) {
     }
 
+    public function update(string $slug, string $title, string $excerpt, \DateTimeImmutable $publishedAt): void
+    {
+        $this->slug = $slug;
+        $this->title = $title;
+        $this->excerpt = $excerpt;
+        $this->publishedAt = $publishedAt;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

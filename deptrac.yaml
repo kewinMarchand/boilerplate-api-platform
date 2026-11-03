@@ -22,6 +22,10 @@ deptrac:
           collectors:
             - type: classLike
               value: '^App\\Blog\\Domain\\'
+        - name: BlogApplication
+          collectors:
+            - type: classLike
+              value: '^App\\Blog\\Application\\'
         - name: BlogInfrastructure
           collectors:
             - type: classLike
@@ -61,6 +65,7 @@ deptrac:
         CatalogApplication: [CatalogDomain]
         CatalogInfrastructure: [CatalogDomain, CatalogApplication, SharedInfrastructure, Framework]
         BlogDomain: ~
+        BlogApplication: [BlogDomain]
         BlogInfrastructure: [BlogDomain, SharedInfrastructure, Framework]
         ContactDomain: ~
         ContactInfrastructure: [ContactDomain, SharedInfrastructure, Framework]
