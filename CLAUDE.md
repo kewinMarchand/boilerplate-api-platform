@@ -27,7 +27,7 @@ API de test commune aux boilerplates front. Les conventions générales sont dan
 
 | Brique             | Version   | Raison                                                                 |
 | ------------------ | --------- | ---------------------------------------------------------------------- |
-| PHP                | 8.4       | Image `dunglas/frankenphp:1-php8.4-bookworm` déjà présente localement  |
+| PHP                | 8.5       | Dernière version, image `dunglas/frankenphp:1-php8.5-bookworm`         |
 | Symfony            | 7.4.*     | LTS. 8.x n'a pas été essayé                                            |
 | API Platform       | ^4 (4.4.6) | Version 4 demandée                                                    |
 | Doctrine ORM / DBAL | 3.7 / 4.5 | Versions résolues par Composer                                        |

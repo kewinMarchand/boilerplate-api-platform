@@ -18,7 +18,7 @@ Tout est en lecture seule sauf le contact (un `POST` répond 405). Les collectio
 
 | Brique                              | Rôle                                                  |
 | ----------------------------------- | ----------------------------------------------------- |
-| PHP 8.4, FrankenPHP 1 (Caddy)       | Serveur HTTP et PHP dans un seul conteneur            |
+| PHP 8.5, FrankenPHP 1 (Caddy)       | Serveur HTTP et PHP dans un seul conteneur            |
 | Symfony 7.4 (LTS)                   | Framework                                             |
 | API Platform 4.4                    | Ressources, formats, OpenAPI, erreurs `problem+json`  |
 | Doctrine ORM 3, Migrations, Fixtures | Persistance, schéma versionné, données de démonstration |
