@@ -15,7 +15,7 @@
         "doctrine/doctrine-bundle": "^3.3.4",
         "doctrine/doctrine-migrations-bundle": "^4.0",
         "doctrine/orm": "^3.7.6",
-        "easycorp/easyadmin-bundle": "^4",
+        "easycorp/easyadmin-bundle": "^5.8",
         "league/commonmark": "^2.7",
         "nelmio/cors-bundle": "^2.6",
         "phpdocumentor/type-resolver": "^2.1",
