@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\QueryParameter;
+use ApiPlatform\OpenApi\Model\Parameter;
 use App\Catalog\Domain\Exposure;
 use App\Catalog\Domain\ProductCriteria;
 use App\Catalog\Domain\Size;
@@ -35,11 +36,13 @@ use App\Shared\Infrastructure\ApiPlatform\Scenario\EmptyScenarioResult;
                     description: 'Expositions acceptées, clé répétée : exposure[]=soleil&exposure[]=ombre.',
                     castToArray: true,
                     schema: ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['soleil', 'mi-ombre', 'ombre']]],
+                    openApi: new Parameter(name: 'exposure[]', in: 'query', style: 'deepObject', explode: true),
                 ),
                 'size' => new QueryParameter(
                     description: 'Tailles acceptées, clé répétée : size[]=S&size[]=M.',
                     castToArray: true,
                     schema: ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['S', 'M', 'L']]],
+                    openApi: new Parameter(name: 'size[]', in: 'query', style: 'deepObject', explode: true),
                 ),
                 'priceMin' => new QueryParameter(
                     description: 'Prix minimum inclus, en centimes.',
