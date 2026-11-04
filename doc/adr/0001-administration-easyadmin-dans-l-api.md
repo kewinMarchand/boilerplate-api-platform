@@ -3,6 +3,7 @@
 - **Statut** : Acceptée
 - **Introduite par** : commit `46df658`
 - **Décideurs** : Kewin Marchand
+- **Point « Hono » remplacé** le 04/11/2026 par l'[ADR 0001 de boilerplate-hono](https://github.com/kewinMarchand/boilerplate-hono/blob/main/doc/adr/0001-administration-ecrite-en-hono.md) : Hono gagne une admin écrite en Hono. Le reste de cette décision ne change pas.
 - **Révisée le 02/11/2026** (réécrite en place, par exception : les outils sont encore en création et aucun code ne reposait sur la première version) : le chemin d'écriture est précisé (l'admin appelle les cas d'usage, qui enregistrent par le dépôt Doctrine) et le slug est unique dans tout le catalogue, et non dans sa branche. La décision ne change pas.
 - **Révise** : `boilerplates-commun/ARCHITECTURE-DDD.md` §2.2, §4.4.2 et §5 (« le catalogue n'a aucune écriture ») et le rôle décrit dans `CLAUDE.md` (« pas d'authentification, pas d'écriture hors contact »), une fois acceptée.
 
