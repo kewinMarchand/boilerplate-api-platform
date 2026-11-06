@@ -1,6 +1,6 @@
 # 0002 — Images envoyées par l'admin : volume de l'API, variantes générées à l'envoi
 
-- **Statut** : Proposée
+- **Statut** : Acceptée
 - **Date** : 2026-11-06
 - **Décideurs** : Kewin Marchand
 - **Complète** : l'[ADR 0001](0001-administration-easyadmin-dans-l-api.md), qui laisse ouvert le « stockage des images envoyées par l'admin », et le même point de l'[ADR 0001 de boilerplate-hono](https://github.com/kewinMarchand/boilerplate-hono/blob/main/doc/adr/0001-administration-ecrite-en-hono.md).
