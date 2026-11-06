@@ -7,6 +7,7 @@ namespace App\Catalog\Application;
 use App\Catalog\Domain\Exposure;
 use App\Catalog\Domain\Product;
 use App\Catalog\Domain\Size;
+use App\Media\Domain\Image;
 
 /**
  * Saisie d'un produit, remplie par l'admin. La forme (slug, longueurs) est validée à la frontière.
@@ -21,7 +22,12 @@ final class ProductData
     public Exposure $exposure = Exposure::Sun;
     public Size $size = Size::Medium;
     public bool $inStock = true;
-    public int $image = 1;
+    /** Contenu du fichier envoyé, null pour garder l'image actuelle. */
+    public ?string $imageContent = null;
+    /** Vide (et non décorative) : le nom du produit. */
+    public string $imageAlt = '';
+    public bool $imageDecorative = false;
+    public ?Image $currentImage = null;
 
     public static function fromProduct(Product $product): self
     {
@@ -33,7 +39,9 @@ final class ProductData
         $data->exposure = $product->getExposure();
         $data->size = $product->getSize();
         $data->inStock = $product->isInStock();
-        $data->image = $product->getImage();
+        $data->currentImage = $product->getImage();
+        $data->imageAlt = $data->currentImage->alt ?? '';
+        $data->imageDecorative = $data->currentImage?->isDecorative() ?? false;
 
         return $data;
     }

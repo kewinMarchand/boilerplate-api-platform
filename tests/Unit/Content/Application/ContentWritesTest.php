@@ -16,6 +16,7 @@ use App\Content\Domain\LegalPageRepository;
 use App\Content\Domain\Slide;
 use App\Tests\Support\Identity;
 use App\Tests\Support\InMemorySlideRepository;
+use App\Tests\Support\TestImages;
 use PHPUnit\Framework\TestCase;
 
 final class ContentWritesTest extends TestCase
@@ -25,13 +26,13 @@ final class ContentWritesTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->first = new Slide('heliconia', 'Heliconia', 'Texte.', 1, 1);
-        $this->slides = new InMemorySlideRepository([$this->first, new Slide('anthurium', 'Anthurium', 'Texte.', 2, 2)]);
+        $this->first = new Slide('heliconia', 'Heliconia', 'Texte.', TestImages::image('Heliconia en fleur'), 1);
+        $this->slides = new InMemorySlideRepository([$this->first, new Slide('anthurium', 'Anthurium', 'Texte.', TestImages::image(), 2)]);
     }
 
     public function testCreatesASlide(): void
     {
-        $created = new CreateSlide($this->slides)($this->slideData('strelitzia', 0));
+        $created = new CreateSlide($this->slides, TestImages::changeImage())($this->slideData('strelitzia', 0));
 
         self::assertSame([$created, $this->first], \array_slice($this->slides->findInOrder(), 0, 2));
     }
@@ -39,20 +40,52 @@ final class ContentWritesTest extends TestCase
     public function testRefusesATakenSlugOnCreation(): void
     {
         $this->expectExceptionObject(new ContentRuleViolation('Le slug « heliconia » est déjà pris par une autre diapositive.'));
-        new CreateSlide($this->slides)($this->slideData('heliconia', 3));
+        new CreateSlide($this->slides, TestImages::changeImage())($this->slideData('heliconia', 3));
     }
 
     public function testRefusesTheSlugOfAnotherSlideOnUpdate(): void
     {
         $this->expectException(ContentRuleViolation::class);
-        new UpdateSlide($this->slides)((int) $this->first->getId(), $this->slideData('anthurium', 1));
+        new UpdateSlide($this->slides, TestImages::changeImage())((int) $this->first->getId(), $this->slideData('anthurium', 1));
     }
 
     public function testUpdatesASlideAndKeepsItsOwnSlug(): void
     {
-        new UpdateSlide($this->slides)((int) $this->first->getId(), $this->slideData('heliconia', 5));
+        new UpdateSlide($this->slides, TestImages::changeImage())((int) $this->first->getId(), $this->slideData('heliconia', 5));
 
         self::assertSame(5, $this->first->getPosition());
+    }
+
+    public function testCreatingASlideStoresItsImage(): void
+    {
+        $data = $this->slideData('strelitzia', 3);
+        $data->imageContent = TestImages::PHOTO;
+        $data->imageAlt = 'Fleur orange et bleue';
+
+        $created = new CreateSlide($this->slides, TestImages::changeImage())($data);
+
+        self::assertSame('Fleur orange et bleue', $created->getImage()?->alt);
+    }
+
+    public function testRefusesASlideWithoutImage(): void
+    {
+        $data = $this->slideData('strelitzia', 3);
+        $data->imageContent = null;
+
+        $this->expectExceptionObject(new ContentRuleViolation('Une diapositive a besoin d\'une image.'));
+        new CreateSlide($this->slides, TestImages::changeImage())($data);
+    }
+
+    public function testUpdateWithoutFileKeepsTheImageAndChangesItsAlt(): void
+    {
+        $key = $this->first->getImage()?->key;
+        $data = $this->slideData('heliconia', 1);
+        $data->imageContent = null;
+        $data->imageAlt = 'Bractées rouges';
+
+        new UpdateSlide($this->slides, TestImages::changeImage())((int) $this->first->getId(), $data);
+
+        self::assertSame([$key, 'Bractées rouges'], [$this->first->getImage()?->key, $this->first->getImage()?->alt]);
     }
 
     public function testDeletesASlide(): void
@@ -87,8 +120,9 @@ final class ContentWritesTest extends TestCase
         $data->slug = $slug;
         $data->title = 'Titre';
         $data->text = 'Texte.';
-        $data->image = 3;
+        $data->imageAlt = 'Photo';
         $data->position = $position;
+        $data->imageContent = TestImages::PHOTO;
 
         return $data;
     }

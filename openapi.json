@@ -564,7 +564,8 @@
                     "slug",
                     "title",
                     "excerpt",
-                    "publishedAt"
+                    "publishedAt",
+                    "image"
                 ],
                 "properties": {
                     "id": {
@@ -582,6 +583,17 @@
                     "publishedAt": {
                         "type": "string",
                         "format": "date"
+                    },
+                    "image": {
+                        "description": "Image de l'article (16:9), null tant que l'admin n'en a pas envoy\u00e9.",
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ImageView"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     }
                 }
             },
@@ -597,7 +609,8 @@
                             "slug",
                             "title",
                             "excerpt",
-                            "publishedAt"
+                            "publishedAt",
+                            "image"
                         ],
                         "properties": {
                             "id": {
@@ -615,6 +628,17 @@
                             "publishedAt": {
                                 "type": "string",
                                 "format": "date"
+                            },
+                            "image": {
+                                "description": "Image de l'article (16:9), null tant que l'admin n'en a pas envoy\u00e9.",
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/ImageView.jsonld"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
                             }
                         }
                     }
@@ -1269,6 +1293,116 @@
                     "@type"
                 ]
             },
+            "ImageSource": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "srcset"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "image/avif",
+                            "image/webp"
+                        ]
+                    },
+                    "srcset": {
+                        "description": "Valeur de l'attribut srcset : adresses absolues et largeurs, de la plus petite \u00e0 la plus grande.",
+                        "type": "string"
+                    }
+                }
+            },
+            "ImageSource.jsonld": {
+                "type": "object",
+                "required": [
+                    "type",
+                    "srcset"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "image/avif",
+                            "image/webp"
+                        ]
+                    },
+                    "srcset": {
+                        "description": "Valeur de l'attribut srcset : adresses absolues et largeurs, de la plus petite \u00e0 la plus grande.",
+                        "type": "string"
+                    }
+                }
+            },
+            "ImageView": {
+                "type": "object",
+                "required": [
+                    "alt",
+                    "width",
+                    "height",
+                    "sources",
+                    "src"
+                ],
+                "properties": {
+                    "alt": {
+                        "description": "Texte de remplacement. Vide : image d\u00e9corative.",
+                        "type": "string"
+                    },
+                    "width": {
+                        "description": "Largeur de la plus grande variante, en pixels (attribut width).",
+                        "type": "integer"
+                    },
+                    "height": {
+                        "description": "Hauteur de la plus grande variante, en pixels (attribut height).",
+                        "type": "integer"
+                    },
+                    "sources": {
+                        "description": "Sources du <picture>, AVIF puis WebP.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ImageSource"
+                        }
+                    },
+                    "src": {
+                        "description": "Adresse absolue de la plus petite variante WebP (attribut src de l'<img>).",
+                        "type": "string"
+                    }
+                }
+            },
+            "ImageView.jsonld": {
+                "type": "object",
+                "required": [
+                    "alt",
+                    "width",
+                    "height",
+                    "sources",
+                    "src"
+                ],
+                "properties": {
+                    "alt": {
+                        "description": "Texte de remplacement. Vide : image d\u00e9corative.",
+                        "type": "string"
+                    },
+                    "width": {
+                        "description": "Largeur de la plus grande variante, en pixels (attribut width).",
+                        "type": "integer"
+                    },
+                    "height": {
+                        "description": "Hauteur de la plus grande variante, en pixels (attribut height).",
+                        "type": "integer"
+                    },
+                    "sources": {
+                        "description": "Sources du <picture>, AVIF puis WebP.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ImageSource.jsonld"
+                        }
+                    },
+                    "src": {
+                        "description": "Adresse absolue de la plus petite variante WebP (attribut src de l'<img>).",
+                        "type": "string"
+                    }
+                }
+            },
             "LegalPage": {
                 "type": "object",
                 "description": "Lit une page l\u00e9gale par son slug (mentions-legales, donnees-personnelles, accessibilite).",
@@ -1476,8 +1610,15 @@
                         "type": "boolean"
                     },
                     "image": {
-                        "description": "Index du visuel partag\u00e9, de 1 \u00e0 12.",
-                        "type": "integer"
+                        "description": "Image du produit (carr\u00e9e), null tant que l'admin n'en a pas envoy\u00e9.",
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ImageView"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     }
                 }
             },
@@ -1531,8 +1672,15 @@
                         "type": "boolean"
                     },
                     "image": {
-                        "description": "Index du visuel partag\u00e9, de 1 \u00e0 12.",
-                        "type": "integer"
+                        "description": "Image du produit (carr\u00e9e), null tant que l'admin n'en a pas envoy\u00e9.",
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ImageView.jsonld"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     }
                 }
             },
@@ -1641,8 +1789,15 @@
                         "type": "string"
                     },
                     "image": {
-                        "description": "Num\u00e9ro du visuel livr\u00e9 avec les fronts, de 1 \u00e0 5.",
-                        "type": "integer"
+                        "description": "Image de la diapositive (16:9), null tant que l'admin n'en a pas envoy\u00e9.",
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ImageView"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     }
                 }
             },
@@ -1674,8 +1829,15 @@
                                 "type": "string"
                             },
                             "image": {
-                                "description": "Num\u00e9ro du visuel livr\u00e9 avec les fronts, de 1 \u00e0 5.",
-                                "type": "integer"
+                                "description": "Image de la diapositive (16:9), null tant que l'admin n'en a pas envoy\u00e9.",
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/ImageView.jsonld"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
                             }
                         }
                     }

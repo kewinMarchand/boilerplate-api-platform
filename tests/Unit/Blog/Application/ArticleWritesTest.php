@@ -11,6 +11,7 @@ use App\Blog\Application\UpdateArticle;
 use App\Blog\Domain\Article;
 use App\Blog\Domain\BlogRuleViolation;
 use App\Tests\Support\InMemoryArticleRepository;
+use App\Tests\Support\TestImages;
 use PHPUnit\Framework\TestCase;
 
 final class ArticleWritesTest extends TestCase
@@ -20,13 +21,13 @@ final class ArticleWritesTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->first = new Article('premier', 'Premier', 'Résumé.', new \DateTimeImmutable('2026-09-15'));
-        $this->articles = new InMemoryArticleRepository([$this->first, new Article('second', 'Second', 'Résumé.', new \DateTimeImmutable('2026-09-22'))]);
+        $this->first = new Article('premier', 'Premier', 'Résumé.', new \DateTimeImmutable('2026-09-15'), TestImages::image());
+        $this->articles = new InMemoryArticleRepository([$this->first, new Article('second', 'Second', 'Résumé.', new \DateTimeImmutable('2026-09-22'), TestImages::image())]);
     }
 
     public function testCreatesAnArticle(): void
     {
-        $created = new CreateArticle($this->articles)($this->data('nouveau'));
+        $created = new CreateArticle($this->articles, TestImages::changeImage())($this->data('nouveau'));
 
         self::assertSame($created, $this->articles->findBySlug('nouveau'));
         self::assertSame('2026-10-01', $created->getPublishedAt()->format('Y-m-d'));
@@ -35,14 +36,14 @@ final class ArticleWritesTest extends TestCase
     public function testRefusesATakenSlugOnCreation(): void
     {
         $this->expectExceptionObject(new BlogRuleViolation('Le slug « premier » est déjà pris par un autre article.'));
-        new CreateArticle($this->articles)($this->data('premier'));
+        new CreateArticle($this->articles, TestImages::changeImage())($this->data('premier'));
     }
 
     public function testUpdatesAnArticleAndKeepsItsOwnSlug(): void
     {
         $data = $this->data('premier');
         $data->title = 'Premier, revu';
-        new UpdateArticle($this->articles)((int) $this->first->getId(), $data);
+        new UpdateArticle($this->articles, TestImages::changeImage())((int) $this->first->getId(), $data);
 
         self::assertSame('Premier, revu', $this->first->getTitle());
     }
@@ -50,7 +51,7 @@ final class ArticleWritesTest extends TestCase
     public function testRefusesTheSlugOfAnotherArticleOnUpdate(): void
     {
         $this->expectException(BlogRuleViolation::class);
-        new UpdateArticle($this->articles)((int) $this->first->getId(), $this->data('second'));
+        new UpdateArticle($this->articles, TestImages::changeImage())((int) $this->first->getId(), $this->data('second'));
     }
 
     public function testDeletesAnArticle(): void
@@ -73,6 +74,8 @@ final class ArticleWritesTest extends TestCase
         $data->title = 'Titre';
         $data->excerpt = 'Résumé.';
         $data->publishedAt = new \DateTimeImmutable('2026-10-01');
+        $data->imageContent = TestImages::PHOTO;
+        $data->imageDecorative = true;
 
         return $data;
     }

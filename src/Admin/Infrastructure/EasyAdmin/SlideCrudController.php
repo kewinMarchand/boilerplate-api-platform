@@ -11,6 +11,7 @@ use App\Content\Application\SlideData;
 use App\Content\Application\UpdateSlide;
 use App\Content\Domain\ContentRuleViolation;
 use App\Content\Domain\Slide;
+use App\Media\Domain\MediaRuleViolation;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -61,7 +62,7 @@ final class SlideCrudController extends AbstractCrudController
         yield IntegerField::new('position', 'Position');
         yield TextField::new('title', 'Titre');
         yield TextField::new('slug', 'Slug');
-        yield IntegerField::new('image', 'Visuel');
+        yield TextField::new('imageAlt', 'Texte de remplacement')->hideOnIndex();
         yield TextField::new('text', 'Texte')->hideOnIndex();
     }
 
@@ -101,7 +102,7 @@ final class SlideCrudController extends AbstractCrudController
                 $this->addFlash('success', \sprintf('Diapositive « %s » enregistrée.', $data->title));
 
                 return $this->redirect($this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl());
-            } catch (ContentRuleViolation $violation) {
+            } catch (ContentRuleViolation|MediaRuleViolation $violation) {
                 $form->addError(new FormError($violation->getMessage()));
             }
         }

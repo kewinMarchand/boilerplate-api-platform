@@ -15,6 +15,7 @@ use App\Catalog\Domain\ProductSearch;
 use App\Catalog\Domain\Size;
 use App\Tests\Support\InMemoryCategoryRepository;
 use App\Tests\Support\InMemoryProductRepository;
+use App\Tests\Support\TestImages;
 use PHPUnit\Framework\TestCase;
 
 final class SearchProductsTest extends TestCase
@@ -26,8 +27,8 @@ final class SearchProductsTest extends TestCase
         $palms = new Category('palmiers', 'Palmiers', 1);
         $ferns = new Category('fougeres', 'Fougères', 2);
         $products = [
-            new Product('palmier-nain', 'Palmier nain', $palms, Price::fromCents(4490), Exposure::Sun, Size::Medium, false, 1),
-            new Product('fougere-de-boston', 'Fougère de Boston', $ferns, Price::fromCents(1590), Exposure::Shade, Size::Medium, true, 2),
+            new Product('palmier-nain', 'Palmier nain', $palms, Price::fromCents(4490), Exposure::Sun, Size::Medium, false, TestImages::image()),
+            new Product('fougere-de-boston', 'Fougère de Boston', $ferns, Price::fromCents(1590), Exposure::Shade, Size::Medium, true, TestImages::image()),
         ];
 
         $this->searchProducts = new SearchProducts(

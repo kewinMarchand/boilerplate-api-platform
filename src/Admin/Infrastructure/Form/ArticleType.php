@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Admin\Infrastructure\Form;
 
 use App\Blog\Application\ArticleData;
+use App\Media\Domain\ImageUsage;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -30,6 +31,7 @@ final class ArticleType extends AbstractType
             ])
             ->add('excerpt', TextareaType::class, ['label' => 'Résumé', 'empty_data' => '', 'required' => false])
             ->add('publishedAt', DateType::class, ['label' => 'Date de publication', 'input' => 'datetime_immutable', 'widget' => 'single_text']);
+        ImageFields::add($builder, ImageUsage::Article, 'Ce que montre l\'image, si elle apporte une information. Une illustration d\'ambiance est décorative.');
     }
 
     public function configureOptions(OptionsResolver $resolver): void

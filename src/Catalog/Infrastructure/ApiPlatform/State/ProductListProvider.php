@@ -11,6 +11,7 @@ use ApiPlatform\State\ProviderInterface;
 use App\Catalog\Application\SearchProducts;
 use App\Catalog\Domain\Exposure;
 use App\Catalog\Domain\Price;
+use App\Catalog\Domain\Product;
 use App\Catalog\Domain\ProductCriteria;
 use App\Catalog\Domain\ProductSort;
 use App\Catalog\Domain\Size;
@@ -19,6 +20,7 @@ use App\Catalog\Infrastructure\ApiPlatform\Resource\FacetValue;
 use App\Catalog\Infrastructure\ApiPlatform\Resource\ProductFacets;
 use App\Catalog\Infrastructure\ApiPlatform\Resource\ProductItem;
 use App\Catalog\Infrastructure\ApiPlatform\Resource\ProductListResource;
+use App\Media\Infrastructure\ApiPlatform\ImageViews;
 
 /**
  * @implements ProviderInterface<ProductListResource>
@@ -29,8 +31,10 @@ final readonly class ProductListProvider implements ProviderInterface
     /** Borne qui garde le calcul de l'offset dans les entiers : au-delà, la page est simplement vide. */
     public const int MAX_PAGE = 1_000_000;
 
-    public function __construct(private SearchProducts $searchProducts)
-    {
+    public function __construct(
+        private SearchProducts $searchProducts,
+        private ImageViews $images,
+    ) {
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): ProductListResource
@@ -39,7 +43,7 @@ final readonly class ProductListProvider implements ProviderInterface
         $result = ($this->searchProducts)($criteria);
 
         return new ProductListResource(
-            array_map(ProductItem::fromModel(...), $result->items),
+            array_map(fn (Product $product): ProductItem => ProductItem::fromModel($product, $this->images), $result->items),
             $result->totalItems,
             $criteria->page,
             $criteria->itemsPerPage,

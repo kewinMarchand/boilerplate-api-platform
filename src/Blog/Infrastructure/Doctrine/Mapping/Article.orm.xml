@@ -10,5 +10,7 @@
         <field name="title" type="string" length="255"/>
         <field name="excerpt" type="text"/>
         <field name="publishedAt" type="date_immutable"/>
+        <field name="imageKey" column="image_key" type="string" length="32" nullable="true"/>
+        <field name="imageAlt" column="image_alt" type="string" length="255"/>
     </entity>
 </doctrine-mapping>

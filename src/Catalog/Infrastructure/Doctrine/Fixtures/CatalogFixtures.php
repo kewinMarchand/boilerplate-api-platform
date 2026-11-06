@@ -9,6 +9,8 @@ use App\Catalog\Domain\Exposure;
 use App\Catalog\Domain\Price;
 use App\Catalog\Domain\Product;
 use App\Catalog\Domain\Size;
+use App\Media\Domain\ImageUsage;
+use App\Media\Infrastructure\Fixtures\DemoImages;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -17,6 +19,10 @@ use Doctrine\Persistence\ObjectManager;
  */
 final class CatalogFixtures extends Fixture
 {
+    public function __construct(private readonly DemoImages $images)
+    {
+    }
+
     /**
      * slug => [nom, slug du parent].
      */
@@ -86,7 +92,7 @@ final class CatalogFixtures extends Fixture
                 Exposure::from($exposure),
                 Size::from($size),
                 $inStock,
-                $index % 12 + 1,
+                $this->images->import('product-'.($index % 12 + 1), ImageUsage::Product, $name),
             ));
         }
 

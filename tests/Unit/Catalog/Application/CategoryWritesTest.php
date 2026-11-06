@@ -16,6 +16,7 @@ use App\Catalog\Domain\Product;
 use App\Catalog\Domain\Size;
 use App\Tests\Support\InMemoryCategoryRepository;
 use App\Tests\Support\InMemoryProductRepository;
+use App\Tests\Support\TestImages;
 use PHPUnit\Framework\TestCase;
 
 final class CategoryWritesTest extends TestCase
@@ -86,7 +87,7 @@ final class CategoryWritesTest extends TestCase
 
     public function testRefusesToDeleteACategoryWithProducts(): void
     {
-        $this->products->save(new Product('palmier-nain', 'Palmier nain', $this->palms, Price::fromCents(4490), Exposure::Sun, Size::Medium, true, 1));
+        $this->products->save(new Product('palmier-nain', 'Palmier nain', $this->palms, Price::fromCents(4490), Exposure::Sun, Size::Medium, true, TestImages::image()));
 
         $this->expectExceptionObject(new CatalogRuleViolation('« Palmiers » contient 1 produit(s) : les déplacer ou les supprimer d\'abord.'));
         new DeleteCategory($this->categories, $this->products)((int) $this->palms->getId());

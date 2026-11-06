@@ -8,17 +8,22 @@ use App\Catalog\Domain\CatalogRuleViolation;
 use App\Catalog\Domain\CategoryRepository;
 use App\Catalog\Domain\Price;
 use App\Catalog\Domain\ProductRepository;
+use App\Media\Application\ChangeImage;
+use App\Media\Domain\ImageUsage;
+use App\Media\Domain\MediaRuleViolation;
 
 final readonly class UpdateProduct
 {
     public function __construct(
         private ProductRepository $products,
         private CategoryRepository $categories,
+        private ChangeImage $changeImage,
     ) {
     }
 
     /**
-     * @throws CatalogRuleViolation      produit ou catégorie introuvable, slug déjà pris, visuel inconnu
+     * @throws CatalogRuleViolation      produit ou catégorie introuvable, slug déjà pris, image absente
+     * @throws MediaRuleViolation        image refusée
      * @throws \InvalidArgumentException prix négatif
      */
     public function __invoke(int $id, ProductData $data): void
@@ -30,8 +35,11 @@ final readonly class UpdateProduct
         }
         $category = (null === $data->categoryId ? null : $this->categories->find($data->categoryId))
             ?? throw new CatalogRuleViolation('La catégorie du produit n\'existe pas.');
+        $alt = '' === trim($data->imageAlt) ? $data->name : $data->imageAlt;
+        $image = ($this->changeImage)($product->getImage(), $data->imageContent, $alt, $data->imageDecorative, ImageUsage::Product)
+            ?? throw new CatalogRuleViolation('Un produit a besoin d\'une image.');
 
-        $product->update($data->slug, $data->name, $category, Price::fromCents($data->price), $data->exposure, $data->size, $data->inStock, $data->image);
+        $product->update($data->slug, $data->name, $category, Price::fromCents($data->price), $data->exposure, $data->size, $data->inStock, $image);
         $this->products->save($product);
     }
 }

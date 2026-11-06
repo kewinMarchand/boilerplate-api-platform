@@ -4,39 +4,36 @@ declare(strict_types=1);
 
 namespace App\Content\Domain;
 
+use App\Media\Domain\Image;
+
 /**
- * Diapositive du carrousel de l'accueil. Son visuel est un des visuels livrés avec les fronts.
+ * Diapositive du carrousel de l'accueil, avec son image envoyée par l'admin (ADR 0002).
  * L'unicité du slug se vérifie dans les cas d'usage.
  */
 class Slide
 {
-    public const int IMAGE_COUNT = 5;
-
     private ?int $id = null;
+    private ?string $imageKey;
+    private string $imageAlt;
 
-    /**
-     * @param int $image index du visuel partagé, de 1 à 5
-     */
     public function __construct(
         private string $slug,
         private string $title,
         private string $text,
-        private int $image,
+        Image $image,
         private int $position,
     ) {
-        self::guardImage($image);
+        $this->imageKey = $image->key;
+        $this->imageAlt = $image->alt;
     }
 
-    /**
-     * @throws ContentRuleViolation
-     */
-    public function update(string $slug, string $title, string $text, int $image, int $position): void
+    public function update(string $slug, string $title, string $text, Image $image, int $position): void
     {
-        self::guardImage($image);
         $this->slug = $slug;
         $this->title = $title;
         $this->text = $text;
-        $this->image = $image;
+        $this->imageKey = $image->key;
+        $this->imageAlt = $image->alt;
         $this->position = $position;
     }
 
@@ -60,20 +57,16 @@ class Slide
         return $this->text;
     }
 
-    public function getImage(): int
+    /**
+     * Null pour une diapositive d'avant l'envoi des images (ligne migrée), jusqu'à ce que l'admin lui en donne une.
+     */
+    public function getImage(): ?Image
     {
-        return $this->image;
+        return null === $this->imageKey ? null : new Image($this->imageKey, $this->imageAlt);
     }
 
     public function getPosition(): int
     {
         return $this->position;
-    }
-
-    private static function guardImage(int $image): void
-    {
-        if ($image < 1 || $image > self::IMAGE_COUNT) {
-            throw new ContentRuleViolation(\sprintf('Le visuel est un numéro de 1 à %d : %d.', self::IMAGE_COUNT, $image));
-        }
     }
 }

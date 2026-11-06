@@ -16,6 +16,7 @@ use App\Catalog\Domain\Product;
 use App\Catalog\Domain\Size;
 use App\Tests\Support\InMemoryCategoryRepository;
 use App\Tests\Support\InMemoryProductRepository;
+use App\Tests\Support\TestImages;
 use PHPUnit\Framework\TestCase;
 
 final class ProductWritesTest extends TestCase
@@ -29,13 +30,13 @@ final class ProductWritesTest extends TestCase
     {
         $this->palms = new Category('palmiers', 'Palmiers', 1);
         $this->categories = new InMemoryCategoryRepository([$this->palms]);
-        $this->dwarfPalm = new Product('palmier-nain', 'Palmier nain', $this->palms, Price::fromCents(4490), Exposure::Sun, Size::Medium, true, 1);
+        $this->dwarfPalm = new Product('palmier-nain', 'Palmier nain', $this->palms, Price::fromCents(4490), Exposure::Sun, Size::Medium, true, TestImages::image());
         $this->products = new InMemoryProductRepository([$this->dwarfPalm]);
     }
 
     public function testCreatesAProduct(): void
     {
-        $created = new CreateProduct($this->products, $this->categories)($this->data('palmier-geant', $this->palms->getId(), 9900));
+        $created = new CreateProduct($this->products, $this->categories, TestImages::changeImage())($this->data('palmier-geant', $this->palms->getId(), 9900));
 
         self::assertSame(9900, $created->getPrice()->cents);
         self::assertSame($created, $this->products->findBySlug('palmier-geant'));
@@ -44,26 +45,36 @@ final class ProductWritesTest extends TestCase
     public function testRefusesATakenSlug(): void
     {
         $this->expectException(CatalogRuleViolation::class);
-        new CreateProduct($this->products, $this->categories)($this->data('palmier-nain', $this->palms->getId(), 100));
+        new CreateProduct($this->products, $this->categories, TestImages::changeImage())($this->data('palmier-nain', $this->palms->getId(), 100));
     }
 
     public function testRefusesAMissingCategory(): void
     {
         $this->expectExceptionObject(new CatalogRuleViolation('La catégorie du produit n\'existe pas.'));
-        new CreateProduct($this->products, $this->categories)($this->data('sans-categorie', null, 100));
+        new CreateProduct($this->products, $this->categories, TestImages::changeImage())($this->data('sans-categorie', null, 100));
     }
 
     public function testRefusesANegativePrice(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        new CreateProduct($this->products, $this->categories)($this->data('negatif', $this->palms->getId(), -1));
+        new CreateProduct($this->products, $this->categories, TestImages::changeImage())($this->data('negatif', $this->palms->getId(), -1));
     }
 
     public function testUpdatesAProductAndKeepsItsSlug(): void
     {
-        new UpdateProduct($this->products, $this->categories)((int) $this->dwarfPalm->getId(), $this->data('palmier-nain', $this->palms->getId(), 0));
+        new UpdateProduct($this->products, $this->categories, TestImages::changeImage())((int) $this->dwarfPalm->getId(), $this->data('palmier-nain', $this->palms->getId(), 0));
 
         self::assertSame(0, $this->dwarfPalm->getPrice()->cents);
+    }
+
+    public function testAProductWithoutAltTakesItsName(): void
+    {
+        $data = $this->data('palmier-geant', $this->palms->getId(), 9900);
+        $data->imageAlt = '';
+
+        $created = new CreateProduct($this->products, $this->categories, TestImages::changeImage())($data);
+
+        self::assertSame('Palmier geant', $created->getImage()?->alt);
     }
 
     public function testDeletesAProduct(): void
@@ -79,6 +90,7 @@ final class ProductWritesTest extends TestCase
         $data->slug = $slug;
         $data->name = ucfirst(str_replace('-', ' ', $slug));
         $data->categoryId = $categoryId;
+        $data->imageContent = TestImages::PHOTO;
         $data->price = $price;
 
         return $data;

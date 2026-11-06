@@ -6,6 +6,9 @@ namespace App\Catalog\Infrastructure\ApiPlatform\Resource;
 
 use ApiPlatform\Metadata\ApiProperty;
 use App\Catalog\Domain\Product;
+use App\Media\Domain\ImageUsage;
+use App\Media\Infrastructure\ApiPlatform\ImageView;
+use App\Media\Infrastructure\ApiPlatform\ImageViews;
 
 final readonly class ProductItem
 {
@@ -26,12 +29,12 @@ final readonly class ProductItem
         public string $size,
         #[ApiProperty(required: true)]
         public bool $inStock,
-        #[ApiProperty(description: 'Index du visuel partagé, de 1 à 12.', required: true)]
-        public int $image,
+        #[ApiProperty(description: 'Image du produit (carrée), null tant que l\'admin n\'en a pas envoyé.', required: true)]
+        public ?ImageView $image,
     ) {
     }
 
-    public static function fromModel(Product $product): self
+    public static function fromModel(Product $product, ImageViews $images): self
     {
         return new self(
             (int) $product->getId(),
@@ -42,7 +45,7 @@ final readonly class ProductItem
             $product->getExposure()->value,
             $product->getSize()->value,
             $product->isInStock(),
-            $product->getImage(),
+            $images->view($product->getImage(), ImageUsage::Product),
         );
     }
 }

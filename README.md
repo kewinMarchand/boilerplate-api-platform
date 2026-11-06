@@ -166,7 +166,26 @@ Les origines autorisées sont une expression régulière dans `CORS_ALLOW_ORIGIN
 
 Le schéma OpenAPI est servi à **`http://localhost:8090/api/docs.jsonopenapi`** (OpenAPI 3.2, `application/vnd.openapi+json`). Il est aussi versionné dans **`openapi.json`** à la racine, pour générer les types sans lancer l'API. Côté front, `make api-types` génère les types depuis le schéma désigné par `API_SCHEMA_URL` (voir le README du front).
 
-Les schémas utiles côté front sont `Task`, `Article`, `ContactMessage`, `ConstraintViolation`, `Category`, `ProductList`, `ProductItem`, `ProductFacets`, `FacetValue` et `CategoryFacetValue` (les variantes `.jsonld` concernent le JSON-LD). `make qa` échoue si `openapi.json` est périmé : relancer `make openapi` après toute modification d'une ressource.
+Les schémas utiles côté front sont `Task`, `Article`, `ContactMessage`, `ConstraintViolation`, `Category`, `ProductList`, `ProductItem`, `ProductFacets`, `FacetValue`, `CategoryFacetValue`, `Slide`, `LegalPage`, `ImageView` et `ImageSource` (les variantes `.jsonld` concernent le JSON-LD). `make qa` échoue si `openapi.json` est périmé : relancer `make openapi` après toute modification d'une ressource.
+
+### Images
+
+Diapositives, produits et articles portent une image envoyée par l'admin ([ADR 0002](doc/adr/0002-images-envoyees-par-l-admin.md)). Le champ `image` vaut un objet, ou `null` pour une ligne d'avant l'envoi des images :
+
+```json
+{
+  "alt": "Monstera deliciosa",
+  "width": 800,
+  "height": 800,
+  "sources": [
+    { "type": "image/avif", "srcset": "http://localhost:8090/media/<empreinte>-400.avif 400w, http://localhost:8090/media/<empreinte>-800.avif 800w" },
+    { "type": "image/webp", "srcset": "http://localhost:8090/media/<empreinte>-400.webp 400w, http://localhost:8090/media/<empreinte>-800.webp 800w" }
+  ],
+  "src": "http://localhost:8090/media/<empreinte>-400.webp"
+}
+```
+
+Le front pose `sources` dans un `<picture>`, `src`, `alt`, `width` et `height` sur l'`<img>`, et n'ajoute que `sizes`. `alt` vide : image décorative. Largeurs : diapositive 640 et 1280 (16:9), article 480 et 960 (16:9), produit 400 et 800 (carré). Les adresses sont absolues, préfixées par `MEDIA_BASE_URL` (origine publique de l'API, `http://localhost:8090` par défaut) : la CSP du front doit autoriser cette origine dans `img-src`. Les fichiers ne changent jamais (leur nom porte l'empreinte du contenu) et sont servis en `Cache-Control: immutable`.
 
 ### Front dans un conteneur Docker
 
@@ -212,7 +231,9 @@ Les erreurs inattendues (5xx réelles, exceptions non gérées) partent vers Gli
 
 ## Production
 
-`make docker-build-prod` construit une image multi-étapes : dépendances sans `require-dev`, `.env` compilé (`composer dump-env prod`), cache préchauffé, utilisateur `www-data`, port 8080. Elle attend `APP_SECRET` et `DATABASE_URL` en variables d'environnement. Les migrations se lancent à part (`bin/console doctrine:migrations:migrate`).
+`make docker-build-prod` construit une image multi-étapes : dépendances sans `require-dev`, `.env` compilé (`composer dump-env prod`), cache préchauffé, utilisateur `www-data`, port 8080. Elle attend `APP_SECRET`, `DATABASE_URL` et `MEDIA_BASE_URL` (origine publique de l'API) en variables d'environnement. Les migrations se lancent à part (`bin/console doctrine:migrations:migrate`).
+
+**Images** : les variantes envoyées par l'admin sont écrites dans `/app/var/media`, à monter sur un volume persistant (propriétaire `www-data`). Ce volume fait partie des données du projet : il se sauvegarde et se restaure avec la base. Caddy le sert sous `/media/` (`docker/media.caddy`). L'image accepte des envois de 10 Mo (`docker/uploads.ini`).
 
 ## Intégration continue
 

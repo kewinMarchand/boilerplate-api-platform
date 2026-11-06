@@ -6,13 +6,12 @@ namespace App\Admin\Infrastructure\Form;
 
 use App\Catalog\Application\ProductData;
 use App\Catalog\Domain\Exposure;
-use App\Catalog\Domain\Product;
 use App\Catalog\Domain\Size;
+use App\Media\Domain\ImageUsage;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -57,12 +56,8 @@ final class ProductType extends AbstractType
                 'class' => Size::class,
                 'choice_label' => static fn (Size $size): string => $size->value,
             ])
-            ->add('inStock', CheckboxType::class, ['label' => 'En stock', 'required' => false])
-            ->add('image', IntegerType::class, [
-                'label' => 'Visuel',
-                'help' => \sprintf('Numéro du visuel partagé, de 1 à %d.', Product::IMAGE_COUNT),
-                'constraints' => [new Assert\Range(min: 1, max: Product::IMAGE_COUNT)],
-            ]);
+            ->add('inStock', CheckboxType::class, ['label' => 'En stock', 'required' => false]);
+        ImageFields::add($builder, ImageUsage::Product, 'Vide : le nom du produit, qui suffit le plus souvent.');
     }
 
     public function configureOptions(OptionsResolver $resolver): void

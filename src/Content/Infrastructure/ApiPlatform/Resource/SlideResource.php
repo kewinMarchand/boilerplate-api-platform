@@ -9,10 +9,15 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use App\Content\Domain\Slide;
 use App\Content\Infrastructure\ApiPlatform\State\SlideCollectionProvider;
+use App\Media\Domain\ImageUsage;
+use App\Media\Infrastructure\ApiPlatform\ImageView;
+use App\Media\Infrastructure\ApiPlatform\ImageViews;
 
 #[ApiResource(
     shortName: 'Slide',
     description: 'Diapositive du carrousel de la page d\'accueil.',
+    // image peut valoir null : sans cela, API Platform retire la clé alors que le schéma la déclare requise
+    normalizationContext: ['skip_null_values' => false],
     operations: [
         new GetCollection(
             description: 'Liste les diapositives dans l\'ordre du carrousel, sans pagination.',
@@ -31,13 +36,13 @@ final readonly class SlideResource
         public string $title,
         #[ApiProperty(required: true)]
         public string $text,
-        #[ApiProperty(description: 'Numéro du visuel livré avec les fronts, de 1 à 5.', required: true)]
-        public int $image,
+        #[ApiProperty(description: 'Image de la diapositive (16:9), null tant que l\'admin n\'en a pas envoyé.', required: true)]
+        public ?ImageView $image,
     ) {
     }
 
-    public static function fromModel(Slide $slide): self
+    public static function fromModel(Slide $slide, ImageViews $images): self
     {
-        return new self((int) $slide->getId(), $slide->getSlug(), $slide->getTitle(), $slide->getText(), $slide->getImage());
+        return new self((int) $slide->getId(), $slide->getSlug(), $slide->getTitle(), $slide->getText(), $images->view($slide->getImage(), ImageUsage::Slide));
     }
 }

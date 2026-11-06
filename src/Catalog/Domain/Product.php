@@ -4,22 +4,21 @@ declare(strict_types=1);
 
 namespace App\Catalog\Domain;
 
+use App\Media\Domain\Image;
+
 /**
- * Agrégat : un produit garde un prix positif ou nul (Price) et un visuel existant.
+ * Agrégat : un produit garde un prix positif ou nul (Price) et une image envoyée par l'admin (ADR 0002).
  * L'unicité du slug se vérifie dans les cas d'usage.
  */
 class Product
 {
-    public const int IMAGE_COUNT = 12;
-
     private ?int $id = null;
+    private ?string $imageKey;
+    private string $imageAlt;
 
     /** Centimes, colonne entière : le value object est reconstruit à la lecture. */
     private int $price;
 
-    /**
-     * @param int $image index du visuel partagé, de 1 à 12
-     */
     public function __construct(
         private string $slug,
         private string $name,
@@ -28,18 +27,15 @@ class Product
         private Exposure $exposure,
         private Size $size,
         private bool $inStock,
-        private int $image,
+        Image $image,
     ) {
-        self::guardImage($image);
         $this->price = $price->cents;
+        $this->imageKey = $image->key;
+        $this->imageAlt = $image->alt;
     }
 
-    /**
-     * @throws CatalogRuleViolation
-     */
-    public function update(string $slug, string $name, Category $category, Price $price, Exposure $exposure, Size $size, bool $inStock, int $image): void
+    public function update(string $slug, string $name, Category $category, Price $price, Exposure $exposure, Size $size, bool $inStock, Image $image): void
     {
-        self::guardImage($image);
         $this->slug = $slug;
         $this->name = $name;
         $this->category = $category;
@@ -47,7 +43,8 @@ class Product
         $this->exposure = $exposure;
         $this->size = $size;
         $this->inStock = $inStock;
-        $this->image = $image;
+        $this->imageKey = $image->key;
+        $this->imageAlt = $image->alt;
     }
 
     public function getId(): ?int
@@ -90,15 +87,11 @@ class Product
         return $this->inStock;
     }
 
-    public function getImage(): int
+    /**
+     * Null pour un produit d'avant l'envoi des images (ligne migrée), jusqu'à ce que l'admin lui en donne une.
+     */
+    public function getImage(): ?Image
     {
-        return $this->image;
-    }
-
-    private static function guardImage(int $image): void
-    {
-        if ($image < 1 || $image > self::IMAGE_COUNT) {
-            throw new CatalogRuleViolation(\sprintf('Le visuel est un numéro de 1 à %d : %d.', self::IMAGE_COUNT, $image));
-        }
+        return null === $this->imageKey ? null : new Image($this->imageKey, $this->imageAlt);
     }
 }

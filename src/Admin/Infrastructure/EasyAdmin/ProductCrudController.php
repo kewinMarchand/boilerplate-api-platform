@@ -12,6 +12,7 @@ use App\Catalog\Application\UpdateProduct;
 use App\Catalog\Domain\CatalogRuleViolation;
 use App\Catalog\Domain\CategoryRepository;
 use App\Catalog\Domain\Product;
+use App\Media\Domain\MediaRuleViolation;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -19,7 +20,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Form\FormError;
@@ -78,7 +78,7 @@ final class ProductCrudController extends AbstractCrudController
             ->formatValue(static fn (mixed $value, Product $product): string => $product->getSize()->value);
         // renderAsSwitch(false) : l'interrupteur d'EasyAdmin écrirait directement dans l'entité, sans le cas d'usage
         yield BooleanField::new('inStock', 'En stock')->renderAsSwitch(false);
-        yield IntegerField::new('image', 'Visuel');
+        yield TextField::new('imageAlt', 'Texte de remplacement')->hideOnIndex();
     }
 
     public function new(AdminContext $context): Response
@@ -121,7 +121,7 @@ final class ProductCrudController extends AbstractCrudController
                 $this->addFlash('success', \sprintf('Produit « %s » enregistré.', $data->name));
 
                 return $this->redirect($this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl());
-            } catch (CatalogRuleViolation|\InvalidArgumentException $violation) {
+            } catch (CatalogRuleViolation|MediaRuleViolation|\InvalidArgumentException $violation) {
                 $form->addError(new FormError($violation->getMessage()));
             }
         }

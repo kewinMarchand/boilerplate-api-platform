@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Functional;
 
 use ApiPlatform\Test\ApiTestCase;
+use App\Media\Domain\ImageUsage;
+use App\Tests\Support\TestImages;
 
 final class SlideApiTest extends ApiTestCase
 {
@@ -22,7 +24,7 @@ final class SlideApiTest extends ApiTestCase
             'slug' => 'heliconia',
             'title' => 'Heliconia',
             'text' => 'Des bractées rouges et jaunes en pinces de homard, qui tiennent des semaines au jardin.',
-            'image' => 1,
+            'image' => TestImages::demoView('slide-1', ImageUsage::Slide, 'Bractées rouges et jaunes d’un heliconia, en gros plan'),
         ]]);
     }
 

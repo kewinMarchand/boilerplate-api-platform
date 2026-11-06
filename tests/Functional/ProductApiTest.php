@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Functional;
 
 use ApiPlatform\Test\ApiTestCase;
+use App\Media\Domain\ImageUsage;
+use App\Tests\Support\TestImages;
 
 /**
  * Valeurs attendues calculées à la main sur les 24 produits de CatalogFixtures.
@@ -19,7 +21,7 @@ final class ProductApiTest extends ApiTestCase
 
         self::assertCount(12, $body['items']);
         self::assertSame(['totalItems' => 24, 'page' => 1, 'itemsPerPage' => 12, 'totalPages' => 2], self::pagination($body));
-        self::assertSame(['id' => 1, 'slug' => 'monstera-deliciosa', 'name' => 'Monstera deliciosa', 'categorySlug' => 'monstera', 'price' => 3490, 'exposure' => 'mi-ombre', 'size' => 'M', 'inStock' => true, 'image' => 1], $body['items'][0]);
+        self::assertSame(['id' => 1, 'slug' => 'monstera-deliciosa', 'name' => 'Monstera deliciosa', 'categorySlug' => 'monstera', 'price' => 3490, 'exposure' => 'mi-ombre', 'size' => 'M', 'inStock' => true, 'image' => TestImages::demoView('product-1', ImageUsage::Product, 'Monstera deliciosa')], $body['items'][0]);
         self::assertSame(['soleil' => 14, 'mi-ombre' => 7, 'ombre' => 3], self::counts($body, 'exposure'));
         self::assertSame(['S' => 6, 'M' => 9, 'L' => 9], self::counts($body, 'size'));
         self::assertSame(['plantes-interieur' => 12, 'plantes-exterieur' => 9, 'plantes-aquatiques' => 3], self::categoryCounts($body));

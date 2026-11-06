@@ -11,6 +11,7 @@ use App\Blog\Application\DeleteArticle;
 use App\Blog\Application\UpdateArticle;
 use App\Blog\Domain\Article;
 use App\Blog\Domain\BlogRuleViolation;
+use App\Media\Domain\MediaRuleViolation;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -100,7 +101,7 @@ final class ArticleCrudController extends AbstractCrudController
                 $this->addFlash('success', \sprintf('Article « %s » enregistré.', $data->title));
 
                 return $this->redirect($this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl());
-            } catch (BlogRuleViolation $violation) {
+            } catch (BlogRuleViolation|MediaRuleViolation $violation) {
                 $form->addError(new FormError($violation->getMessage()));
             }
         }

@@ -9,7 +9,8 @@
         <field name="slug" type="string" length="255" unique="true"/>
         <field name="title" type="string" length="255"/>
         <field name="text" type="text"/>
-        <field name="image" type="smallint"/>
+        <field name="imageKey" column="image_key" type="string" length="32" nullable="true"/>
+        <field name="imageAlt" column="image_alt" type="string" length="255"/>
         <field name="position" type="integer"/>
     </entity>
 </doctrine-mapping>

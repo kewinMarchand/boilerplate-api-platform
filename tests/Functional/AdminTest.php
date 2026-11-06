@@ -68,17 +68,41 @@ final class AdminTest extends WebTestCase
             'product[slug]' => 'palmier-de-test',
             'product[categoryId]' => (string) $category->getId(),
             'product[price]' => '12,50',
-            'product[image]' => '3',
+            'product[imageContent]' => \dirname(__DIR__, 2).'/fixtures/images/product-2.webp',
         ]);
 
         self::assertResponseRedirects();
         $saved = $this->entityManager()->getRepository(Product::class)->findOneBy(['slug' => 'palmier-de-test']);
         self::assertInstanceOf(Product::class, $saved);
         self::assertSame(1250, $saved->getPrice()->cents);
+        self::assertSame('Palmier de test', $saved->getImage()?->alt);
+        self::assertFileExists(\dirname(__DIR__, 2).'/var/test-media/'.$saved->getImage()->key.'-800.avif');
 
         // La base de test est partagée : les tests de l'API comptent les 24 produits des fixtures
         $this->entityManager()->remove($saved);
         $this->entityManager()->flush();
+    }
+
+    public function testRefusesAnImageTooSmallForASlide(): void
+    {
+        $client = $this->loggedIn('admin-image@example.fr');
+        $small = imagecreatetruecolor(640, 360);
+        self::assertNotFalse($small);
+        $path = sys_get_temp_dir().'/petite-diapositive.png';
+        imagepng($small, $path);
+
+        $client->request('GET', '/admin/slide/new');
+        $client->submitForm('Enregistrer', [
+            'slide[title]' => 'Trop petite',
+            'slide[slug]' => 'trop-petite',
+            'slide[position]' => '9',
+            'slide[imageContent]' => $path,
+            'slide[imageAlt]' => 'Une photo',
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#main form .alert-danger', 'Recadrée au format 16:9, l\'image doit faire au moins 1280 × 720 px : elle fait 640 × 360 px.');
+        unlink($path);
     }
 
     public function testShowsACatalogRuleViolationOnTheForm(): void
