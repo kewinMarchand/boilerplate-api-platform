@@ -3,6 +3,7 @@
 - **Statut** : Acceptée
 - **Date** : 2026-11-06
 - **Décideurs** : Kewin Marchand
+- **Révisée le 06/11/2026** (en place, par exception : aucun code ne reposait encore sur elle) : les diapositives ont deux largeurs, 640 et 1280, et non trois. Les photos de démonstration des diapositives font 1280 px et le contrôle de largeur minimale les aurait refusées ; seul le hero existe en 1920, et il reste dans les fronts. La décision ne change pas.
 - **Complète** : l'[ADR 0001](0001-administration-easyadmin-dans-l-api.md), qui laisse ouvert le « stockage des images envoyées par l'admin », et le même point de l'[ADR 0001 de boilerplate-hono](https://github.com/kewinMarchand/boilerplate-hono/blob/main/doc/adr/0001-administration-ecrite-en-hono.md).
 
 ## Contexte
@@ -22,7 +23,7 @@ Forces en présence :
 **On stocke les images dans un volume persistant de l'API, et l'API les sert elle-même. Les variantes sont générées une fois, à l'envoi.**
 
 - **Stockage** : un port `MediaStorage` (domaine partagé), avec un adaptateur fichiers sur un volume Docker monté dans l'API (`var/media/`). L'API sert ces fichiers sous `/media/`, en `Cache-Control: public, max-age=31536000, immutable`. Le volume est sauvegardé avec la base : les deux forment les données du projet.
-- **Variantes à l'envoi** : AVIF et WebP, aux largeurs de chaque usage, recadrées au ratio de l'usage : hero et diapositive 16:9 (640, 1280, 1920), article 16:9 (480, 960), produit 1:1 (400, 800). Nom des fichiers : `<empreinte du contenu>-<largeur>.<format>`. L'empreinte change avec le fichier : aucun cache à purger. L'original n'est pas gardé.
+- **Variantes à l'envoi** : AVIF et WebP, aux largeurs de chaque usage, recadrées au ratio de l'usage : diapositive 16:9 (640, 1280), article 16:9 (480, 960), produit 1:1 (400, 800). Nom des fichiers : `<empreinte du contenu>-<largeur>.<format>`. L'empreinte change avec le fichier : aucun cache à purger. L'original n'est pas gardé.
 - **Contrôles à l'envoi** : JPEG, PNG, WebP ou AVIF seulement, type vérifié sur le contenu et non sur l'extension ; 10 Mo au plus ; largeur au moins égale à la plus grande variante de l'usage ; métadonnées (EXIF, GPS, profil) retirées.
 - **Contrat** : `image` devient un objet, identique dans les deux API : `{ "alt": string, "width": int, "height": int, "sources": [{ "type": "image/avif" | "image/webp", "srcset": string }], "src": string }`. `src` est la variante WebP la plus petite, adresse absolue. Les fronts ne construisent plus aucun chemin : ils posent `sources` dans un `<picture>`.
 - **Texte de remplacement** : saisi dans l'admin avec l'image, obligatoire sauf pour une image décorative (case « décorative », `alt` vide). Un produit propose son nom par défaut.
