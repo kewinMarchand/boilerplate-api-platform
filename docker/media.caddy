@@ -1,0 +1,8 @@
+# Variantes des images envoyées par l'admin (ADR 0002) : fichiers de var/media, nommés par l'empreinte de leur
+# contenu, donc jamais modifiés en place.
+handle_path /media/* {
+	root * /app/var/media
+	header Cache-Control "public, max-age=31536000, immutable"
+	header X-Content-Type-Options nosniff
+	file_server
+}

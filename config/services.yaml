@@ -7,6 +7,8 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    # Variantes des images envoyées par l'admin (ADR 0002), servies sous /media/ par Caddy (docker/media.caddy)
+    app.media_dir: '%kernel.project_dir%/var/media'
 
 services:
     # default configuration for services in *this* file
@@ -23,6 +25,8 @@ services:
     # please note that last definitions always *replace* previous ones
 
 when@test:
+    parameters:
+        app.media_dir: '%kernel.project_dir%/var/test-media'
     services:
         # Les tests provoquent volontairement des 422 et des 500 : leurs journaux noieraient la sortie de PHPUnit.
         logger:

@@ -8,6 +8,8 @@
     "require": {
         "php": ">=8.5",
         "ext-ctype": "*",
+        "ext-exif": "*",
+        "ext-gd": "*",
         "ext-iconv": "*",
         "ext-intl": "*",
         "api-platform/doctrine-orm": "^5.0.5",

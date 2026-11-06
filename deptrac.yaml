@@ -58,6 +58,18 @@ deptrac:
           collectors:
             - type: classLike
               value: '^App\\Task\\Infrastructure\\'
+        - name: MediaDomain
+          collectors:
+            - type: classLike
+              value: '^App\\Media\\Domain\\'
+        - name: MediaApplication
+          collectors:
+            - type: classLike
+              value: '^App\\Media\\Application\\'
+        - name: MediaInfrastructure
+          collectors:
+            - type: classLike
+              value: '^App\\Media\\Infrastructure\\'
         - name: SharedInfrastructure
           collectors:
             - type: classLike
@@ -73,18 +85,21 @@ deptrac:
             - type: classLike
               value: '^(Symfony|Doctrine|ApiPlatform|Psr|Sentry|EasyCorp|League\\CommonMark)\\'
     ruleset:
-        CatalogDomain: ~
-        CatalogApplication: [CatalogDomain]
-        CatalogInfrastructure: [CatalogDomain, CatalogApplication, SharedInfrastructure, Framework]
-        BlogDomain: ~
-        BlogApplication: [BlogDomain]
-        BlogInfrastructure: [BlogDomain, SharedInfrastructure, Framework]
-        ContentDomain: ~
-        ContentApplication: [ContentDomain]
-        ContentInfrastructure: [ContentDomain, SharedInfrastructure, Framework]
+        CatalogDomain: [MediaDomain]
+        CatalogApplication: [CatalogDomain, MediaDomain, MediaApplication]
+        CatalogInfrastructure: [CatalogDomain, CatalogApplication, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
+        BlogDomain: [MediaDomain]
+        BlogApplication: [BlogDomain, MediaDomain, MediaApplication]
+        BlogInfrastructure: [BlogDomain, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
+        ContentDomain: [MediaDomain]
+        ContentApplication: [ContentDomain, MediaDomain, MediaApplication]
+        ContentInfrastructure: [ContentDomain, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
         ContactDomain: ~
         ContactInfrastructure: [ContactDomain, SharedInfrastructure, Framework]
         TaskDomain: ~
         TaskInfrastructure: [TaskDomain, SharedInfrastructure, Framework]
+        MediaDomain: ~
+        MediaApplication: [MediaDomain]
+        MediaInfrastructure: [MediaDomain, MediaApplication, SharedInfrastructure, Framework]
         SharedInfrastructure: [Framework]
-        AdminInfrastructure: [CatalogDomain, CatalogApplication, BlogDomain, BlogApplication, ContentDomain, ContentApplication, SharedInfrastructure, Framework]
+        AdminInfrastructure: [CatalogDomain, CatalogApplication, BlogDomain, BlogApplication, ContentDomain, ContentApplication, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]

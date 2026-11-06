@@ -11,3 +11,4 @@ tests
 .env.dev
 .env.test
 .deptrac.cache
+fixtures

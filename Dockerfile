@@ -1,8 +1,11 @@
 FROM dunglas/frankenphp:1-php8.5-bookworm AS base
 WORKDIR /app
-RUN install-php-extensions apcu intl opcache pdo_pgsql zip \
+RUN install-php-extensions apcu exif gd intl opcache pdo_pgsql zip \
     && chmod -R a+rwX /data/caddy /config/caddy
 COPY --from=composer/composer:2-bin /composer /usr/bin/composer
+COPY docker/uploads.ini $PHP_INI_DIR/conf.d/uploads.ini
+# Images envoyées par l'admin, servies sous /media/ depuis var/media (ADR 0002)
+ENV CADDY_SERVER_EXTRA_DIRECTIVES="import /app/docker/media.caddy"
 ENV SERVER_NAME=:8080 \
     COMPOSER_HOME=/tmp/composer \
     HOME=/tmp
