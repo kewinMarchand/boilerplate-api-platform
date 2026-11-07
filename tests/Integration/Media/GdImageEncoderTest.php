@@ -44,13 +44,13 @@ final class GdImageEncoderTest extends TestCase
         }
     }
 
-    public function testASlideIsCroppedToSixteenByNine(): void
+    public function testAnArticleImageIsCroppedToSixteenByNine(): void
     {
-        $variants = iterator_to_array(new GdImageEncoder()->variants($this->jpegWithExif(2000, 2000), str_repeat('e', 32), ImageUsage::Slide));
+        $variants = iterator_to_array(new GdImageEncoder()->variants($this->jpegWithExif(2000, 2000), str_repeat('e', 32), ImageUsage::Article));
 
-        $size = getimagesizefromstring($variants[str_repeat('e', 32).'-1280.webp']);
+        $size = getimagesizefromstring($variants[str_repeat('e', 32).'-960.webp']);
         self::assertNotFalse($size);
-        self::assertSame([1280, 720], [$size[0], $size[1]]);
+        self::assertSame([960, 540], [$size[0], $size[1]]);
     }
 
     /**

@@ -40,6 +40,6 @@ final class ImageViewsTest extends TestCase
 
     public function testNoImageGivesNull(): void
     {
-        self::assertNull(new ImageViews('http://localhost:8090')->view(null, ImageUsage::Slide));
+        self::assertNull(new ImageViews('http://localhost:8090')->view(null, ImageUsage::Article));
     }
 }

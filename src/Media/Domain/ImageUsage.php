@@ -9,7 +9,6 @@ namespace App\Media\Domain;
  */
 enum ImageUsage: string
 {
-    case Slide = 'slide';
     case Article = 'article';
     case Product = 'product';
 
@@ -19,7 +18,6 @@ enum ImageUsage: string
     public function widths(): array
     {
         return match ($this) {
-            self::Slide => [640, 1280],
             self::Article => [480, 960],
             self::Product => [400, 640, 800],
         };
@@ -31,7 +29,7 @@ enum ImageUsage: string
     public function ratio(): array
     {
         return match ($this) {
-            self::Slide, self::Article => [16, 9],
+            self::Article => [16, 9],
             self::Product => [1, 1],
         };
     }

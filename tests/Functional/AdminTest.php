@@ -8,7 +8,6 @@ use App\Admin\Infrastructure\Security\AdminUser;
 use App\Catalog\Domain\Category;
 use App\Catalog\Domain\Product;
 use App\Content\Domain\LegalPage;
-use App\Content\Domain\Slide;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -48,7 +47,7 @@ final class AdminTest extends WebTestCase
     public function testShowsTheListsAndRecordsOfEachSection(): void
     {
         $client = $this->loggedIn('admin-pages@example.fr');
-        foreach (['category', 'product', 'article', 'slide', 'legal-page'] as $section) {
+        foreach (['category', 'product', 'article', 'legal-page'] as $section) {
             $crawler = $client->request('GET', \sprintf('/admin/%s', $section));
             self::assertResponseIsSuccessful($section);
             $client->click($crawler->filter('a.action-detail')->first()->link());
@@ -71,20 +70,20 @@ final class AdminTest extends WebTestCase
     public function testShowsTheCurrentImageInTheListsAndTheForm(): void
     {
         $client = $this->loggedIn('admin-apercu@example.fr');
-        $slide = $this->entityManager()->getRepository(Slide::class)->findOneBy([], ['position' => 'ASC']);
-        self::assertInstanceOf(Slide::class, $slide);
-        $image = $slide->getImage();
+        $product = $this->entityManager()->getRepository(Product::class)->findOneBy([], ['id' => 'ASC']);
+        self::assertInstanceOf(Product::class, $product);
+        $image = $product->getImage();
         self::assertNotNull($image);
-        $preview = \sprintf('/media/%s-640.webp', $image->key);
+        $preview = \sprintf('/media/%s-400.webp', $image->key);
 
-        $client->request('GET', '/admin/slide');
+        $client->request('GET', '/admin/product');
         self::assertSelectorExists(\sprintf('img[src="%s"]', $preview));
 
-        $client->request('GET', \sprintf('/admin/slide/%d/edit', $slide->getId()));
+        $client->request('GET', \sprintf('/admin/product/%d/edit', $product->getId()));
         self::assertSelectorExists(\sprintf('[data-image-preview] img[src="%s"]', $preview));
         self::assertSelectorTextContains('[data-image-preview] figcaption', 'Image actuelle');
 
-        $client->request('GET', '/admin/slide/new');
+        $client->request('GET', '/admin/product/new');
         self::assertSelectorExists('[data-image-preview][hidden]');
     }
 
@@ -118,25 +117,25 @@ final class AdminTest extends WebTestCase
         $this->entityManager()->flush();
     }
 
-    public function testRefusesAnImageTooSmallForASlide(): void
+    public function testRefusesAnImageTooSmallForAnArticle(): void
     {
         $client = $this->loggedIn('admin-image@example.fr');
         $small = imagecreatetruecolor(640, 360);
         self::assertNotFalse($small);
-        $path = sys_get_temp_dir().'/petite-diapositive.png';
+        $path = sys_get_temp_dir().'/petite-illustration.png';
         imagepng($small, $path);
 
-        $client->request('GET', '/admin/slide/new');
+        $client->request('GET', '/admin/article/new');
         $client->submitForm('Enregistrer', [
-            'slide[title]' => 'Trop petite',
-            'slide[slug]' => 'trop-petite',
-            'slide[position]' => '9',
-            'slide[imageContent]' => $path,
-            'slide[imageAlt]' => 'Une photo',
+            'article[title]' => 'Trop petite',
+            'article[slug]' => 'trop-petite',
+            'article[publishedAt]' => '2026-11-07',
+            'article[imageContent]' => $path,
+            'article[imageAlt]' => 'Une photo',
         ]);
 
         self::assertResponseStatusCodeSame(422);
-        self::assertSelectorTextContains('#main form .alert-danger', 'Recadrée au format 16:9, l\'image doit faire au moins 1280 × 720 px : elle fait 640 × 360 px.');
+        self::assertSelectorTextContains('#main form .alert-danger', 'Recadrée au format 16:9, l\'image doit faire au moins 960 × 540 px : elle fait 640 × 360 px.');
         unlink($path);
     }
 

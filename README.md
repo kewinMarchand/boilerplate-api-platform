@@ -1,6 +1,6 @@
 # boilerplate-api-platform
 
-API de test commune aux cinq boilerplates front (Next, Nuxt, SvelteKit, Symfony Twig, HTML vanilla). Elle sert des tâches, des articles, un formulaire de contact, un catalogue à facettes, le carrousel de l'accueil et les pages légales, avec des données réalistes, en JSON simple ou en JSON-LD, et sait simuler une erreur serveur ou une liste vide pour tester les trois états des fronts.
+API de test commune aux cinq boilerplates front (Next, Nuxt, SvelteKit, Symfony Twig, HTML vanilla). Elle sert des tâches, des articles, un formulaire de contact, un catalogue à facettes avec ses fiches produit et ses produits à la une (le carrousel de l'accueil, [ADR 0004](doc/adr/0004-carrousel-de-produits-a-la-une.md)) et les pages légales, avec des données réalistes, en JSON simple ou en JSON-LD, et sait simuler une erreur serveur ou une liste vide pour tester les trois états des fronts.
 
 | Ressource        | Opération                    | Ce qu'elle renvoie                                                 |
 | ---------------- | ---------------------------- | ------------------------------------------------------------------ |
@@ -12,7 +12,6 @@ API de test commune aux cinq boilerplates front (Next, Nuxt, SvelteKit, Symfony 
 | `ProductList`    | `GET /api/products`          | Une page des 24 produits, filtrée et triée, avec le total et les compteurs de facettes |
 | `ProductDetail`  | `GET /api/products/{slug}`   | fiche d'un produit : les champs de la liste, plus `categoryPath` (catégories de la racine à la sienne, `slug` et `name`) ; 404 sinon |
 | `FeaturedProduct` | `GET /api/featured-products` | Les produits « À la une » (case de l'admin), par nom, sous la forme des éléments de la liste : le carrousel de l'accueil |
-| `Slide`          | `GET /api/slides`            | Les 5 diapositives du carrousel (`id`, `slug`, `title`, `text`, `image`), dans l'ordre |
 | `LegalPage`      | `GET /api/legal_pages/{slug}` | `mentions-legales`, `donnees-personnelles` ou `accessibilite` : `title`, `introduction` et `sections` (`title`, `html`) ; 404 sinon |
 
 Tout est en lecture seule sauf le contact (un `POST` répond 405). Les collections ne sont pas paginées, sauf les produits qui ont leur propre pagination.
@@ -169,7 +168,7 @@ Les origines autorisées sont une expression régulière dans `CORS_ALLOW_ORIGIN
 
 Le schéma OpenAPI est servi à **`http://localhost:8090/api/docs.jsonopenapi`** (OpenAPI 3.2, `application/vnd.openapi+json`). Il est aussi versionné dans **`openapi.json`** à la racine, pour générer les types sans lancer l'API. Côté front, `make api-types` génère les types depuis le schéma désigné par `API_SCHEMA_URL` (voir le README du front).
 
-Les schémas utiles côté front sont `Task`, `Article`, `ContactMessage`, `ConstraintViolation`, `Category`, `ProductList`, `ProductItem`, `ProductFacets`, `FacetValue`, `CategoryFacetValue`, `Slide`, `LegalPage`, `ImageView` et `ImageSource` (les variantes `.jsonld` concernent le JSON-LD). `make qa` échoue si `openapi.json` est périmé : relancer `make openapi` après toute modification d'une ressource.
+Les schémas utiles côté front sont `Task`, `Article`, `ContactMessage`, `ConstraintViolation`, `Category`, `ProductList`, `ProductItem`, `ProductFacets`, `FacetValue`, `CategoryFacetValue`, `ProductDetail`, `CategoryLink`, `FeaturedProduct.ProductItem`, `LegalPage`, `ImageView` et `ImageSource` (les variantes `.jsonld` concernent le JSON-LD). `make qa` échoue si `openapi.json` est périmé : relancer `make openapi` après toute modification d'une ressource.
 
 ### Images
 
@@ -188,7 +187,7 @@ Diapositives, produits et articles portent une image envoyée par l'admin ([ADR 
 }
 ```
 
-Le front pose `sources` dans un `<picture>`, `src`, `alt`, `width` et `height` sur l'`<img>`, et n'ajoute que `sizes`. `alt` vide : image décorative. Largeurs : diapositive 640 et 1280 (16:9), article 480 et 960 (16:9), produit 400, 640 et 800 (carré, ADR 0003). Les adresses sont absolues, préfixées par `MEDIA_BASE_URL` (origine publique de l'API, `http://localhost:8090` par défaut) : la CSP du front doit autoriser cette origine dans `img-src`. Les fichiers ne changent jamais (leur nom porte l'empreinte du contenu) et sont servis en `Cache-Control: immutable`.
+Le front pose `sources` dans un `<picture>`, `src`, `alt`, `width` et `height` sur l'`<img>`, et n'ajoute que `sizes`. `alt` vide : image décorative. Largeurs : article 480 et 960 (16:9), produit 400, 640 et 800 (carré, ADR 0003). Les adresses sont absolues, préfixées par `MEDIA_BASE_URL` (origine publique de l'API, `http://localhost:8090` par défaut) : la CSP du front doit autoriser cette origine dans `img-src`. Les fichiers ne changent jamais (leur nom porte l'empreinte du contenu) et sont servis en `Cache-Control: immutable`.
 
 ### Front dans un conteneur Docker
 

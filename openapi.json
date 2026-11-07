@@ -626,57 +626,6 @@
                 ]
             }
         },
-        "/api/slides": {
-            "get": {
-                "operationId": "api_slides_get_collection",
-                "tags": [
-                    "Slide"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Slide collection",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/Slide"
-                                    }
-                                }
-                            },
-                            "application/ld+json": {
-                                "schema": {
-                                    "type": "object",
-                                    "description": "Slide.jsonld collection.",
-                                    "allOf": [
-                                        {
-                                            "$ref": "#/components/schemas/HydraCollectionBaseSchemaNoPagination"
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "member"
-                                            ],
-                                            "properties": {
-                                                "member": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "$ref": "#/components/schemas/Slide.jsonld"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "Retrieves the collection of Slide resources.",
-                "description": "Retrieves the collection of Slide resources.",
-                "parameters": []
-            }
-        },
         "/api/tasks": {
             "get": {
                 "operationId": "api_tasks_get_collection",
@@ -2351,85 +2300,6 @@
                 ],
                 "description": "Liste les produits du catalogue. Les filtres se combinent en ET, les valeurs d'une m\u00eame facette en OU. Une valeur invalide (inconnue, non num\u00e9rique, hors bornes) est ignor\u00e9e et remplac\u00e9e par la valeur par d\u00e9faut."
             },
-            "Slide": {
-                "type": "object",
-                "description": "Liste les diapositives dans l'ordre du carrousel, sans pagination.",
-                "required": [
-                    "id",
-                    "slug",
-                    "title",
-                    "text",
-                    "image"
-                ],
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "slug": {
-                        "type": "string"
-                    },
-                    "title": {
-                        "type": "string"
-                    },
-                    "text": {
-                        "type": "string"
-                    },
-                    "image": {
-                        "description": "Image de la diapositive (16:9), null tant que l'admin n'en a pas envoy\u00e9.",
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/ImageView"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ]
-                    }
-                }
-            },
-            "Slide.jsonld": {
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/HydraItemBaseSchema"
-                    },
-                    {
-                        "type": "object",
-                        "required": [
-                            "id",
-                            "slug",
-                            "title",
-                            "text",
-                            "image"
-                        ],
-                        "properties": {
-                            "id": {
-                                "type": "integer"
-                            },
-                            "slug": {
-                                "type": "string"
-                            },
-                            "title": {
-                                "type": "string"
-                            },
-                            "text": {
-                                "type": "string"
-                            },
-                            "image": {
-                                "description": "Image de la diapositive (16:9), null tant que l'admin n'en a pas envoy\u00e9.",
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/components/schemas/ImageView.jsonld"
-                                    },
-                                    {
-                                        "type": "null"
-                                    }
-                                ]
-                            }
-                        }
-                    }
-                ],
-                "description": "Liste les diapositives dans l'ordre du carrousel, sans pagination."
-            },
             "Task": {
                 "type": "object",
                 "description": "Liste toutes les t\u00e2ches, sans pagination.",
@@ -2518,10 +2388,6 @@
         {
             "name": "LegalPage",
             "description": "Page l\u00e9gale : mentions l\u00e9gales, donn\u00e9es personnelles, d\u00e9claration d'accessibilit\u00e9."
-        },
-        {
-            "name": "Slide",
-            "description": "Diapositive du carrousel de la page d'accueil."
         },
         {
             "name": "Task",
