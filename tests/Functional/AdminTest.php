@@ -56,6 +56,18 @@ final class AdminTest extends WebTestCase
         }
     }
 
+    public function testShowsTheFormattedColumnsOfTheCatalog(): void
+    {
+        $client = $this->loggedIn('admin-colonnes@example.fr');
+        foreach (['category', 'product'] as $section) {
+            $crawler = $client->request('GET', \sprintf('/admin/%s', $section));
+            self::assertStringNotContainsString('Inaccessible', $crawler->filter('body')->text(), $section);
+            $crawler = $client->click($crawler->filter('a.action-detail')->first()->link());
+            self::assertStringNotContainsString('Inaccessible', $crawler->filter('body')->text(), $section);
+        }
+        self::assertSelectorTextContains('body', '€');
+    }
+
     public function testShowsTheCurrentImageInTheListsAndTheForm(): void
     {
         $client = $this->loggedIn('admin-apercu@example.fr');

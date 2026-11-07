@@ -43,6 +43,9 @@ final class ProductCrudController extends AbstractCrudController
     ) {
     }
 
+    /** Modèle texte imposé aux champs virtuels : sans lui, EasyAdmin les affiche « Inaccessible », avant même formatValue. */
+    private const TEXT_TEMPLATE = '@EasyAdmin/crud/field/text.html.twig';
+
     public static function getEntityFqcn(): string
     {
         return Product::class;
@@ -69,15 +72,19 @@ final class ProductCrudController extends AbstractCrudController
         // Champs virtuels formatés depuis l'entité : sur une colonne liée, EasyAdmin devinerait un type et perdrait la mise en forme
         yield TextField::new('categoryName', 'Catégorie')
             ->setVirtual(true)
+            ->setTemplatePath(self::TEXT_TEMPLATE)
             ->formatValue(static fn (mixed $value, Product $product): string => $product->getCategory()->getName());
         yield TextField::new('priceLabel', 'Prix')
             ->setVirtual(true)
+            ->setTemplatePath(self::TEXT_TEMPLATE)
             ->formatValue(static fn (mixed $value, Product $product): string => number_format($product->getPrice()->cents / 100, 2, ',', ' ').' €');
         yield TextField::new('exposureLabel', 'Exposition')
             ->setVirtual(true)
+            ->setTemplatePath(self::TEXT_TEMPLATE)
             ->formatValue(static fn (mixed $value, Product $product): string => $product->getExposure()->value);
         yield TextField::new('sizeLabel', 'Taille')
             ->setVirtual(true)
+            ->setTemplatePath(self::TEXT_TEMPLATE)
             ->formatValue(static fn (mixed $value, Product $product): string => $product->getSize()->value);
         // renderAsSwitch(false) : l'interrupteur d'EasyAdmin écrirait directement dans l'entité, sans le cas d'usage
         yield BooleanField::new('inStock', 'En stock')->renderAsSwitch(false);

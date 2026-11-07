@@ -40,6 +40,9 @@ final class CategoryCrudController extends AbstractCrudController
     ) {
     }
 
+    /** Modèle texte imposé aux champs virtuels : sans lui, EasyAdmin les affiche « Inaccessible », avant même formatValue. */
+    private const TEXT_TEMPLATE = '@EasyAdmin/crud/field/text.html.twig';
+
     public static function getEntityFqcn(): string
     {
         return Category::class;
@@ -66,6 +69,7 @@ final class CategoryCrudController extends AbstractCrudController
         // Champ virtuel formaté depuis l'entité : sur une colonne liée, EasyAdmin devinerait un type et perdrait la mise en forme
         yield TextField::new('parentName', 'Parent')
             ->setVirtual(true)
+            ->setTemplatePath(self::TEXT_TEMPLATE)
             ->formatValue(static fn (mixed $value, Category $category): string => $category->getParent()?->getName() ?? '—');
     }
 
