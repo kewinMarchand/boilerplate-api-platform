@@ -27,6 +27,19 @@ final readonly class DoctrineProductRepository implements ProductRepository
             ->getResult();
     }
 
+    public function findFeatured(): array
+    {
+        /* @var list<Product> */
+        return $this->entityManager->createQueryBuilder()
+            ->select('product', 'category')
+            ->from(Product::class, 'product')
+            ->join('product.category', 'category')
+            ->where('product.featured = true')
+            ->orderBy('product.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function find(int $id): ?Product
     {
         return $this->entityManager->find(Product::class, $id);

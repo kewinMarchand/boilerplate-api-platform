@@ -28,6 +28,14 @@ final class InMemoryProductRepository implements ProductRepository
         return $this->products;
     }
 
+    public function findFeatured(): array
+    {
+        $featured = array_values(array_filter($this->products, static fn (Product $product): bool => $product->isFeatured()));
+        usort($featured, static fn (Product $a, Product $b): int => $a->getName() <=> $b->getName());
+
+        return $featured;
+    }
+
     public function find(int $id): ?Product
     {
         foreach ($this->products as $product) {

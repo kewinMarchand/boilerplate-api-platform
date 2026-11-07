@@ -20,11 +20,11 @@ final class ProductTest extends TestCase
         $other = new Category('d', 'D', 2);
 
         $image = TestImages::image('Q', str_repeat('c', 32));
-        $product->update('q', 'Q', $other, Price::fromCents(0), Exposure::Shade, Size::Large, false, $image);
+        $product->update('q', 'Q', $other, Price::fromCents(0), Exposure::Shade, Size::Large, false, $image, true);
 
         self::assertEquals(
-            ['q', 'Q', $other, 0, Exposure::Shade, Size::Large, false, $image],
-            [$product->getSlug(), $product->getName(), $product->getCategory(), $product->getPrice()->cents, $product->getExposure(), $product->getSize(), $product->isInStock(), $product->getImage()],
+            ['q', 'Q', $other, 0, Exposure::Shade, Size::Large, false, $image, true],
+            [$product->getSlug(), $product->getName(), $product->getCategory(), $product->getPrice()->cents, $product->getExposure(), $product->getSize(), $product->isInStock(), $product->getImage(), $product->isFeatured()],
         );
     }
 }

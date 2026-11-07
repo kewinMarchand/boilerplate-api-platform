@@ -12,6 +12,7 @@
         <field name="exposure" type="string" length="16" enum-type="App\Catalog\Domain\Exposure"/>
         <field name="size" type="string" length="1" enum-type="App\Catalog\Domain\Size"/>
         <field name="inStock" type="boolean"/>
+        <field name="featured" type="boolean"/>
         <field name="imageKey" column="image_key" type="string" length="32" nullable="true"/>
         <field name="imageAlt" column="image_alt" type="string" length="255"/>
         <many-to-one field="category" target-entity="App\Catalog\Domain\Category">

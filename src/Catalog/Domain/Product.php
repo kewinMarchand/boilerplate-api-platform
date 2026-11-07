@@ -8,6 +8,7 @@ use App\Media\Domain\Image;
 
 /**
  * Agrégat : un produit garde un prix positif ou nul (Price) et une image envoyée par l'admin (ADR 0002).
+ * « À la une » : montré dans le carrousel de la page d'accueil.
  * L'unicité du slug se vérifie dans les cas d'usage.
  */
 class Product
@@ -28,13 +29,14 @@ class Product
         private Size $size,
         private bool $inStock,
         Image $image,
+        private bool $featured = false,
     ) {
         $this->price = $price->cents;
         $this->imageKey = $image->key;
         $this->imageAlt = $image->alt;
     }
 
-    public function update(string $slug, string $name, Category $category, Price $price, Exposure $exposure, Size $size, bool $inStock, Image $image): void
+    public function update(string $slug, string $name, Category $category, Price $price, Exposure $exposure, Size $size, bool $inStock, Image $image, bool $featured): void
     {
         $this->slug = $slug;
         $this->name = $name;
@@ -45,6 +47,7 @@ class Product
         $this->inStock = $inStock;
         $this->imageKey = $image->key;
         $this->imageAlt = $image->alt;
+        $this->featured = $featured;
     }
 
     public function getId(): ?int
@@ -85,6 +88,11 @@ class Product
     public function isInStock(): bool
     {
         return $this->inStock;
+    }
+
+    public function isFeatured(): bool
+    {
+        return $this->featured;
     }
 
     /**

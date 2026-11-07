@@ -56,7 +56,8 @@ final class ProductType extends AbstractType
                 'class' => Size::class,
                 'choice_label' => static fn (Size $size): string => $size->value,
             ])
-            ->add('inStock', CheckboxType::class, ['label' => 'En stock', 'required' => false]);
+            ->add('inStock', CheckboxType::class, ['label' => 'En stock', 'required' => false])
+            ->add('featured', CheckboxType::class, ['label' => 'À la une', 'help' => 'Montré dans le carrousel de la page d\'accueil, par ordre alphabétique.', 'required' => false]);
         ImageFields::add($builder, ImageUsage::Product, 'Vide : le nom du produit, qui suffit le plus souvent.');
     }
 

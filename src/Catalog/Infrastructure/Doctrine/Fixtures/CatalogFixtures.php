@@ -73,6 +73,9 @@ final class CatalogFixtures extends Fixture
         ['lotus-sacre', 'Lotus sacré (Nelumbo nucifera)', 'nenuphars', 3990, 'soleil', 'L', false],
     ];
 
+    /** Produits du carrousel de la page d'accueil. */
+    private const array FEATURED = ['heliconia-rostrata', 'anthurium-andreanum-rouge', 'calliandra-haematocephala', 'strelitzia-reginae', 'nenuphar-bleu-du-nil'];
+
     public function load(ObjectManager $manager): void
     {
         /** @var array<string, Category> $categories */
@@ -93,6 +96,7 @@ final class CatalogFixtures extends Fixture
                 Size::from($size),
                 $inStock,
                 $this->images->import('product-'.($index % 12 + 1), ImageUsage::Product, $name),
+                \in_array($slug, self::FEATURED, true),
             ));
         }
 

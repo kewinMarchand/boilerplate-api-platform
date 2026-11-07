@@ -11,6 +11,11 @@ interface ProductRepository
      */
     public function findAll(): array;
 
+    /**
+     * @return list<Product> produits à la une, par nom
+     */
+    public function findFeatured(): array;
+
     public function find(int $id): ?Product;
 
     public function findBySlug(string $slug): ?Product;

@@ -88,6 +88,7 @@ final class ProductCrudController extends AbstractCrudController
             ->formatValue(static fn (mixed $value, Product $product): string => $product->getSize()->value);
         // renderAsSwitch(false) : l'interrupteur d'EasyAdmin écrirait directement dans l'entité, sans le cas d'usage
         yield BooleanField::new('inStock', 'En stock')->renderAsSwitch(false);
+        yield BooleanField::new('featured', 'À la une')->renderAsSwitch(false);
         yield TextField::new('imageAlt', 'Texte de remplacement')->hideOnIndex();
     }
 
