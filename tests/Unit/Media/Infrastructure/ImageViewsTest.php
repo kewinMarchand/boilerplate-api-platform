@@ -24,8 +24,8 @@ final class ImageViewsTest extends TestCase
             800,
             800,
             [
-                new ImageSource('image/avif', $media.'-400.avif 400w, '.$media.'-800.avif 800w'),
-                new ImageSource('image/webp', $media.'-400.webp 400w, '.$media.'-800.webp 800w'),
+                new ImageSource('image/avif', $media.'-400.avif 400w, '.$media.'-640.avif 640w, '.$media.'-800.avif 800w'),
+                new ImageSource('image/webp', $media.'-400.webp 400w, '.$media.'-640.webp 640w, '.$media.'-800.webp 800w'),
             ],
             $media.'-400.webp',
         ), $view);

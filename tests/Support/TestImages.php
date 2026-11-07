@@ -28,8 +28,10 @@ final class TestImages
     {
         $content = (string) file_get_contents(\dirname(__DIR__, 2).'/fixtures/images/'.$name.'.webp');
         $media = 'http://localhost:8090/media/'.substr(hash('sha256', $usage->value."\n".$content), 0, 32);
-        [$small, $large] = $usage->widths();
-        $srcset = static fn (string $format): string => \sprintf('%1$s-%2$d.%3$s %2$dw, %1$s-%4$d.%3$s %4$dw', $media, $small, $format, $large);
+        $widths = $usage->widths();
+        $small = $widths[0];
+        $large = $widths[\count($widths) - 1];
+        $srcset = static fn (string $format): string => implode(', ', array_map(static fn (int $width): string => \sprintf('%s-%d.%s %dw', $media, $width, $format, $width), $widths));
 
         return [
             'alt' => $alt,

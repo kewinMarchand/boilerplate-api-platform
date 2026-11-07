@@ -185,7 +185,7 @@ Diapositives, produits et articles portent une image envoyée par l'admin ([ADR 
 }
 ```
 
-Le front pose `sources` dans un `<picture>`, `src`, `alt`, `width` et `height` sur l'`<img>`, et n'ajoute que `sizes`. `alt` vide : image décorative. Largeurs : diapositive 640 et 1280 (16:9), article 480 et 960 (16:9), produit 400 et 800 (carré). Les adresses sont absolues, préfixées par `MEDIA_BASE_URL` (origine publique de l'API, `http://localhost:8090` par défaut) : la CSP du front doit autoriser cette origine dans `img-src`. Les fichiers ne changent jamais (leur nom porte l'empreinte du contenu) et sont servis en `Cache-Control: immutable`.
+Le front pose `sources` dans un `<picture>`, `src`, `alt`, `width` et `height` sur l'`<img>`, et n'ajoute que `sizes`. `alt` vide : image décorative. Largeurs : diapositive 640 et 1280 (16:9), article 480 et 960 (16:9), produit 400, 640 et 800 (carré, ADR 0003). Les adresses sont absolues, préfixées par `MEDIA_BASE_URL` (origine publique de l'API, `http://localhost:8090` par défaut) : la CSP du front doit autoriser cette origine dans `img-src`. Les fichiers ne changent jamais (leur nom porte l'empreinte du contenu) et sont servis en `Cache-Control: immutable`.
 
 ### Front dans un conteneur Docker
 

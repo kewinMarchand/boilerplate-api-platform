@@ -21,7 +21,7 @@ enum ImageUsage: string
         return match ($this) {
             self::Slide => [640, 1280],
             self::Article => [480, 960],
-            self::Product => [400, 800],
+            self::Product => [400, 640, 800],
         };
     }
 

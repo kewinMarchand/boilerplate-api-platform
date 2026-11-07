@@ -32,10 +32,10 @@ final class GdImageEncoderTest extends TestCase
         $key = str_repeat('f', 32);
         $variants = iterator_to_array(new GdImageEncoder()->variants($this->jpegWithExif(1600, 900, orientation: 6), $key, ImageUsage::Product));
 
-        self::assertSame([$key.'-400.avif', $key.'-400.webp', $key.'-800.avif', $key.'-800.webp'], array_keys($variants));
+        self::assertSame([$key.'-400.avif', $key.'-400.webp', $key.'-640.avif', $key.'-640.webp', $key.'-800.avif', $key.'-800.webp'], array_keys($variants));
         foreach ($variants as $name => $content) {
             $size = getimagesizefromstring($content);
-            $width = str_contains($name, '-400.') ? 400 : 800;
+            $width = (int) preg_replace('/^.*-(\d+)\..*$/', '$1', $name);
             self::assertNotFalse($size);
             self::assertSame([$width, $width], [$size[0], $size[1]], $name);
             self::assertSame(str_ends_with($name, '.avif') ? 'image/avif' : 'image/webp', $size['mime'], $name);
