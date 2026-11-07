@@ -30,6 +30,13 @@ final class ArticleType extends AbstractType
                 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 255), new Assert\Regex(CategoryType::SLUG_PATTERN, 'Minuscules, chiffres et tirets seulement.')],
             ])
             ->add('excerpt', TextareaType::class, ['label' => 'Résumé', 'empty_data' => '', 'required' => false])
+            ->add('body', TextareaType::class, [
+                'label' => 'Texte',
+                'empty_data' => '',
+                'required' => false,
+                'attr' => ['rows' => 16],
+                'help' => 'Markdown : paragraphes séparés par une ligne vide, ## pour un intertitre, - pour une liste, [texte](adresse) pour un lien. Le HTML saisi est affiché tel quel, sans être interprété.',
+            ])
             ->add('publishedAt', DateType::class, ['label' => 'Date de publication', 'input' => 'datetime_immutable', 'widget' => 'single_text']);
         ImageFields::add($builder, ImageUsage::Article, 'Ce que montre l\'image, si elle apporte une information. Une illustration d\'ambiance est décorative.');
     }

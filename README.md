@@ -5,7 +5,8 @@ API de test commune aux cinq boilerplates front (Next, Nuxt, SvelteKit, Symfony 
 | Ressource        | Opération                    | Ce qu'elle renvoie                                                 |
 | ---------------- | ---------------------------- | ------------------------------------------------------------------ |
 | `Task`           | `GET /api/tasks`             | Les 3 tâches de démonstration (`id`, `title`, `done`)              |
-| `Article`        | `GET /api/articles`          | 3 articles (`id`, `slug`, `title`, `excerpt`, `publishedAt`), du plus récent au plus ancien |
+| `Article`        | `GET /api/articles`          | 3 articles (`id`, `slug`, `title`, `excerpt`, `publishedAt`, `image`), du plus récent au plus ancien |
+| `ArticleDetail`  | `GET /api/articles/{slug}`   | fiche d'un article : les mêmes champs, plus `html` (texte saisi en Markdown dans l'admin, converti en HTML) ; 404 sinon |
 | `ContactMessage` | `POST /api/contact_messages` | 201 et le message enregistré, ou 422 avec les violations en français |
 | `Category`       | `GET /api/categories`        | L'arbre des 14 catégories du catalogue (`slug`, `name`, `parent`, `children`) |
 | `ProductList`    | `GET /api/products`          | Une page des 24 produits, filtrée et triée, avec le total et les compteurs de facettes |

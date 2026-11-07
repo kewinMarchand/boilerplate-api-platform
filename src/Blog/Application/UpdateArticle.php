@@ -33,7 +33,7 @@ final readonly class UpdateArticle
         $image = ($this->changeImage)($article->getImage(), $data->imageContent, $data->imageAlt, $data->imageDecorative, ImageUsage::Article)
             ?? throw new BlogRuleViolation('Un article a besoin d\'une image.');
 
-        $article->update($data->slug, $data->title, $data->excerpt, $data->publishedAt, $image);
+        $article->update($data->slug, $data->title, $data->excerpt, $data->publishedAt, $image, $data->body);
         $this->articles->save($article);
     }
 }

@@ -21,6 +21,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Form\FormError;
@@ -66,6 +67,7 @@ final class ArticleCrudController extends AbstractCrudController
         yield TextField::new('slug', 'Slug');
         yield DateField::new('publishedAt', 'Publication');
         yield TextField::new('excerpt', 'Résumé')->hideOnIndex();
+        yield TextareaField::new('body', 'Texte (Markdown)')->onlyOnDetail();
     }
 
     public function new(AdminContext $context): Response

@@ -21,13 +21,15 @@ class Article
         private string $excerpt,
         private \DateTimeImmutable $publishedAt,
         Image $image,
+        private string $body = '',
     ) {
         $this->imageKey = $image->key;
         $this->imageAlt = $image->alt;
     }
 
-    public function update(string $slug, string $title, string $excerpt, \DateTimeImmutable $publishedAt, Image $image): void
+    public function update(string $slug, string $title, string $excerpt, \DateTimeImmutable $publishedAt, Image $image, string $body): void
     {
+        $this->body = $body;
         $this->slug = $slug;
         $this->title = $title;
         $this->excerpt = $excerpt;
@@ -59,6 +61,14 @@ class Article
     public function getPublishedAt(): \DateTimeImmutable
     {
         return $this->publishedAt;
+    }
+
+    /**
+     * Texte de la fiche, en Markdown saisi dans l'admin.
+     */
+    public function getBody(): string
+    {
+        return $this->body;
     }
 
     /**

@@ -63,6 +63,68 @@
                 "parameters": []
             }
         },
+        "/api/articles/{slug}": {
+            "get": {
+                "operationId": "api_articles_slug_get",
+                "tags": [
+                    "ArticleDetail"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ArticleDetail resource",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ArticleDetail"
+                                }
+                            },
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ArticleDetail.jsonld"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves a ArticleDetail resource.",
+                "description": "Retrieves a ArticleDetail resource.",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "description": "ArticleDetail identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
         "/api/categories": {
             "get": {
                 "operationId": "api_categories_get_collection",
@@ -644,6 +706,105 @@
                     }
                 ],
                 "description": "Liste les articles, du plus r\u00e9cent au plus ancien, sans pagination."
+            },
+            "ArticleDetail": {
+                "type": "object",
+                "description": "Lit un article par son slug.",
+                "required": [
+                    "id",
+                    "slug",
+                    "title",
+                    "excerpt",
+                    "publishedAt",
+                    "image",
+                    "html"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "excerpt": {
+                        "type": "string"
+                    },
+                    "publishedAt": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "image": {
+                        "description": "Image de l'article (16:9), null tant que l'admin n'en a pas envoy\u00e9.",
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ImageView"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "html": {
+                        "description": "Texte de l'article en HTML, converti du Markdown saisi (HTML saisi \u00e9chapp\u00e9, liens dangereux retir\u00e9s). Vide s'il n'y en a pas.",
+                        "type": "string"
+                    }
+                }
+            },
+            "ArticleDetail.jsonld": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "id",
+                            "slug",
+                            "title",
+                            "excerpt",
+                            "publishedAt",
+                            "image",
+                            "html"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "slug": {
+                                "type": "string"
+                            },
+                            "title": {
+                                "type": "string"
+                            },
+                            "excerpt": {
+                                "type": "string"
+                            },
+                            "publishedAt": {
+                                "type": "string",
+                                "format": "date"
+                            },
+                            "image": {
+                                "description": "Image de l'article (16:9), null tant que l'admin n'en a pas envoy\u00e9.",
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/ImageView.jsonld"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
+                            },
+                            "html": {
+                                "description": "Texte de l'article en HTML, converti du Markdown saisi (HTML saisi \u00e9chapp\u00e9, liens dangereux retir\u00e9s). Vide s'il n'y en a pas.",
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "description": "Lit un article par son slug."
             },
             "Category": {
                 "type": "object",
@@ -1901,6 +2062,10 @@
     },
     "security": [],
     "tags": [
+        {
+            "name": "ArticleDetail",
+            "description": "Fiche d'un article du blog : les champs de la liste, plus son texte en HTML."
+        },
         {
             "name": "Article",
             "description": "Article du blog affich\u00e9 sur la page d'accueil."

@@ -32,7 +32,7 @@ final readonly class CreateArticle
         $image = ($this->changeImage)(null, $data->imageContent, $data->imageAlt, $data->imageDecorative, ImageUsage::Article)
             ?? throw new BlogRuleViolation('Un article a besoin d\'une image.');
 
-        $article = new Article($data->slug, $data->title, $data->excerpt, $data->publishedAt, $image);
+        $article = new Article($data->slug, $data->title, $data->excerpt, $data->publishedAt, $image, $data->body);
         $this->articles->save($article);
 
         return $article;
