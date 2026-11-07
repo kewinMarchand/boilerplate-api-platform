@@ -11,6 +11,8 @@ use App\Content\Application\SlideData;
 use App\Content\Application\UpdateSlide;
 use App\Content\Domain\ContentRuleViolation;
 use App\Content\Domain\Slide;
+use App\Media\Domain\Image;
+use App\Media\Domain\ImageUsage;
 use App\Media\Domain\MediaRuleViolation;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -60,6 +62,7 @@ final class SlideCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         yield IntegerField::new('position', 'Position');
+        yield ImagePreview::column(ImageUsage::Slide, static fn (object $slide): ?Image => $slide instanceof Slide ? $slide->getImage() : null);
         yield TextField::new('title', 'Titre');
         yield TextField::new('slug', 'Slug');
         yield TextField::new('imageAlt', 'Texte de remplacement')->hideOnIndex();
@@ -76,7 +79,7 @@ final class SlideCrudController extends AbstractCrudController
         $slide = $context->getEntity()->getInstance();
         \assert($slide instanceof Slide);
 
-        return $this->form($context, SlideData::fromSlide($slide), $slide->getId(), \sprintf('Modifier « %s »', $slide->getTitle()));
+        return $this->form($context, SlideData::fromSlide($slide), $slide->getId(), \sprintf('Modifier « %s »', $slide->getTitle()), $slide->getImage());
     }
 
     public function deleteEntity(EntityManagerInterface $entityManager, $entityInstance): void
@@ -91,7 +94,7 @@ final class SlideCrudController extends AbstractCrudController
     /**
      * @param AdminContext<Slide> $context
      */
-    private function form(AdminContext $context, SlideData $data, ?int $id, string $title): Response
+    private function form(AdminContext $context, SlideData $data, ?int $id, string $title, ?Image $image = null): Response
     {
         $form = $this->createForm(SlideType::class, $data);
         $form->handleRequest($context->getRequest());
@@ -110,6 +113,7 @@ final class SlideCrudController extends AbstractCrudController
         return $this->render('admin/form.html.twig', [
             'form' => $form,
             'title' => $title,
+            'image_preview' => ImagePreview::url($image, ImageUsage::Slide),
             'cancel_url' => $this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl(),
         ]);
     }

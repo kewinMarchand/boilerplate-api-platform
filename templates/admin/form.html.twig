@@ -6,8 +6,30 @@
 {% block main %}
     {{ form_start(form) }}
         {{ form_errors(form) }}
-        {{ form_rest(form) }}
+        {% for child in form %}
+            {% if child.vars.name == 'imageContent' %}
+                {# Image actuelle, remplacée par le fichier choisi dès sa sélection (aperçu avant envoi) #}
+                <figure class="mb-3" data-image-preview {% if not image_preview|default(null) %}hidden{% endif %}>
+                    <img src="{{ image_preview|default('') }}" alt="" style="max-width: 320px; height: auto; border-radius: 4px">
+                    <figcaption class="form-text" data-image-preview-caption>Image actuelle</figcaption>
+                </figure>
+            {% endif %}
+            {{ form_row(child) }}
+        {% endfor %}
         <button type="submit" class="btn btn-primary">Enregistrer</button>
         <a href="{{ cancel_url }}" class="btn btn-secondary">Annuler</a>
     {{ form_end(form) }}
+    <script>
+        document.querySelectorAll('input[type=file][name$="[imageContent]"]').forEach((input) => {
+            const preview = document.querySelector('[data-image-preview]');
+            if (!preview) return;
+            input.addEventListener('change', () => {
+                const [file] = input.files;
+                if (!file) return;
+                preview.querySelector('img').src = URL.createObjectURL(file);
+                preview.querySelector('[data-image-preview-caption]').textContent = 'Image choisie, enregistrée à l’envoi du formulaire';
+                preview.hidden = false;
+            });
+        });
+    </script>
 {% endblock %}

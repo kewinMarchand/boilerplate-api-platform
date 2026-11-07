@@ -8,6 +8,7 @@ use App\Admin\Infrastructure\Security\AdminUser;
 use App\Catalog\Domain\Category;
 use App\Catalog\Domain\Product;
 use App\Content\Domain\LegalPage;
+use App\Content\Domain\Slide;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -53,6 +54,26 @@ final class AdminTest extends WebTestCase
             $client->click($crawler->filter('a.action-detail')->first()->link());
             self::assertResponseIsSuccessful($section);
         }
+    }
+
+    public function testShowsTheCurrentImageInTheListsAndTheForm(): void
+    {
+        $client = $this->loggedIn('admin-apercu@example.fr');
+        $slide = $this->entityManager()->getRepository(Slide::class)->findOneBy([], ['position' => 'ASC']);
+        self::assertInstanceOf(Slide::class, $slide);
+        $image = $slide->getImage();
+        self::assertNotNull($image);
+        $preview = \sprintf('/media/%s-640.webp', $image->key);
+
+        $client->request('GET', '/admin/slide');
+        self::assertSelectorExists(\sprintf('img[src="%s"]', $preview));
+
+        $client->request('GET', \sprintf('/admin/slide/%d/edit', $slide->getId()));
+        self::assertSelectorExists(\sprintf('[data-image-preview] img[src="%s"]', $preview));
+        self::assertSelectorTextContains('[data-image-preview] figcaption', 'Image actuelle');
+
+        $client->request('GET', '/admin/slide/new');
+        self::assertSelectorExists('[data-image-preview][hidden]');
     }
 
     public function testCreatesAProductThroughTheForm(): void

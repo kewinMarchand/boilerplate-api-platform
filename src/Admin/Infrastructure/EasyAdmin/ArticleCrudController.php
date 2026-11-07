@@ -11,6 +11,8 @@ use App\Blog\Application\DeleteArticle;
 use App\Blog\Application\UpdateArticle;
 use App\Blog\Domain\Article;
 use App\Blog\Domain\BlogRuleViolation;
+use App\Media\Domain\Image;
+use App\Media\Domain\ImageUsage;
 use App\Media\Domain\MediaRuleViolation;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -59,6 +61,7 @@ final class ArticleCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
+        yield ImagePreview::column(ImageUsage::Article, static fn (object $article): ?Image => $article instanceof Article ? $article->getImage() : null);
         yield TextField::new('title', 'Titre');
         yield TextField::new('slug', 'Slug');
         yield DateField::new('publishedAt', 'Publication');
@@ -75,7 +78,7 @@ final class ArticleCrudController extends AbstractCrudController
         $article = $context->getEntity()->getInstance();
         \assert($article instanceof Article);
 
-        return $this->form($context, ArticleData::fromArticle($article), $article->getId(), \sprintf('Modifier « %s »', $article->getTitle()));
+        return $this->form($context, ArticleData::fromArticle($article), $article->getId(), \sprintf('Modifier « %s »', $article->getTitle()), $article->getImage());
     }
 
     public function deleteEntity(EntityManagerInterface $entityManager, $entityInstance): void
@@ -90,7 +93,7 @@ final class ArticleCrudController extends AbstractCrudController
     /**
      * @param AdminContext<Article> $context
      */
-    private function form(AdminContext $context, ArticleData $data, ?int $id, string $title): Response
+    private function form(AdminContext $context, ArticleData $data, ?int $id, string $title, ?Image $image = null): Response
     {
         $form = $this->createForm(ArticleType::class, $data);
         $form->handleRequest($context->getRequest());
@@ -109,6 +112,7 @@ final class ArticleCrudController extends AbstractCrudController
         return $this->render('admin/form.html.twig', [
             'form' => $form,
             'title' => $title,
+            'image_preview' => ImagePreview::url($image, ImageUsage::Article),
             'cancel_url' => $this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl(),
         ]);
     }

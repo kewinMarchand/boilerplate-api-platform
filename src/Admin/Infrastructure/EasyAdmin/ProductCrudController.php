@@ -12,6 +12,8 @@ use App\Catalog\Application\UpdateProduct;
 use App\Catalog\Domain\CatalogRuleViolation;
 use App\Catalog\Domain\CategoryRepository;
 use App\Catalog\Domain\Product;
+use App\Media\Domain\Image;
+use App\Media\Domain\ImageUsage;
 use App\Media\Domain\MediaRuleViolation;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -61,6 +63,7 @@ final class ProductCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
+        yield ImagePreview::column(ImageUsage::Product, static fn (object $product): ?Image => $product instanceof Product ? $product->getImage() : null);
         yield TextField::new('name', 'Nom');
         yield TextField::new('slug', 'Slug');
         // Champs virtuels formatés depuis l'entité : sur une colonne liée, EasyAdmin devinerait un type et perdrait la mise en forme
@@ -91,7 +94,7 @@ final class ProductCrudController extends AbstractCrudController
         $product = $context->getEntity()->getInstance();
         \assert($product instanceof Product);
 
-        return $this->form($context, ProductData::fromProduct($product), $product->getId(), \sprintf('Modifier « %s »', $product->getName()));
+        return $this->form($context, ProductData::fromProduct($product), $product->getId(), \sprintf('Modifier « %s »', $product->getName()), $product->getImage());
     }
 
     public function deleteEntity(EntityManagerInterface $entityManager, $entityInstance): void
@@ -106,7 +109,7 @@ final class ProductCrudController extends AbstractCrudController
     /**
      * @param AdminContext<Product> $context
      */
-    private function form(AdminContext $context, ProductData $data, ?int $id, string $title): Response
+    private function form(AdminContext $context, ProductData $data, ?int $id, string $title, ?Image $image = null): Response
     {
         $categories = [];
         foreach ($this->categories->findAll() as $category) {
@@ -129,6 +132,7 @@ final class ProductCrudController extends AbstractCrudController
         return $this->render('admin/form.html.twig', [
             'form' => $form,
             'title' => $title,
+            'image_preview' => ImagePreview::url($image, ImageUsage::Product),
             'cancel_url' => $this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl(),
         ]);
     }

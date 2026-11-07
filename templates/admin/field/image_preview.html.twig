@@ -1,0 +1,6 @@
+{# Colonne « Image » des listes : la plus petite variante, ou un tiret sans image #}
+{% if field.formattedValue %}
+    <img src="{{ field.formattedValue }}" alt="" width="64" loading="lazy" style="height: auto; border-radius: 4px">
+{% else %}
+    <span class="text-muted">—</span>
+{% endif %}
