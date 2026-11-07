@@ -1,6 +1,6 @@
 # 0002 — Images envoyées par l'admin : volume de l'API, variantes générées à l'envoi
 
-- **Statut** : Acceptée
+- **Statut** : Acceptée, complétée par l'[ADR 0003](0003-variante-intermediaire-des-produits.md) (produits en 400, 640 et 800 px)
 - **Date** : 2026-11-06
 - **Décideurs** : Kewin Marchand
 - **Révisée le 06/11/2026** (en place, par exception : aucun code ne reposait encore sur elle) : les diapositives ont deux largeurs, 640 et 1280, et non trois. Les photos de démonstration des diapositives font 1280 px et le contrôle de largeur minimale les aurait refusées ; seul le hero existe en 1920, et il reste dans les fronts. La décision ne change pas.
