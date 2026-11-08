@@ -123,4 +123,4 @@ deptrac:
         SiteApplication: [SiteDomain, MediaDomain, MediaApplication]
         SiteInfrastructure: [SiteDomain, SiteApplication, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
         SharedInfrastructure: [Framework]
-        AdminInfrastructure: [CatalogDomain, CatalogApplication, BlogDomain, BlogApplication, ContentDomain, ContentApplication, SiteDomain, SiteApplication, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
+        AdminInfrastructure: [CatalogDomain, CatalogApplication, BlogDomain, BlogApplication, ContentDomain, ContentApplication, ContactDomain, SiteDomain, SiteApplication, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]

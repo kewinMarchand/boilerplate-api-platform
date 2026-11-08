@@ -42,5 +42,7 @@ final class DashboardController extends AbstractDashboardController
         yield MenuItem::section('Site');
         yield MenuItem::linkTo(SiteIdentityCrudController::class, 'Identité du site', 'fa fa-palette');
         yield MenuItem::linkTo(PageMetaCrudController::class, 'Référencement', 'fa fa-magnifying-glass');
+        yield MenuItem::section('Contact');
+        yield MenuItem::linkTo(ContactMessageCrudController::class, 'Messages', 'fa fa-envelope');
     }
 }

@@ -12,6 +12,7 @@ use App\Catalog\Domain\AttributeChoice;
 use App\Catalog\Domain\Category;
 use App\Catalog\Domain\Product;
 use App\Catalog\Domain\ProductAttribute;
+use App\Contact\Domain\ContactMessage;
 use App\Content\Domain\LegalPage;
 use App\Content\Domain\MetaPage;
 use App\Content\Domain\PageMeta;
@@ -347,6 +348,59 @@ final class AdminTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(422);
         self::assertSelectorTextContains('#main form .alert-danger', 'Saisir les deux couleurs, ou aucune.');
+    }
+
+    public function testRefusesTheMessagesWithoutASession(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/admin/contact-message');
+        self::assertResponseRedirects('/admin/login');
+    }
+
+    public function testListsTheMessagesLatestFirstAndShowsOneInFull(): void
+    {
+        $client = $this->loggedIn('admin-messages@example.fr');
+        $entityManager = $this->entityManager();
+        $text = 'Est-il livré en pot ? <b class="piege">Merci</b> '.str_repeat('Une précision de plus. ', 5).'Fin du message.';
+        $contact = new ContactMessage('Alex Contact', 'alex@example.fr', 'Bonjour, un simple message.', null, new \DateTimeImmutable('2100-01-01 12:00:00 UTC'));
+        $inquiry = new ContactMessage('Camille Demande', 'camille@example.fr', $text, 'monstera-deliciosa', new \DateTimeImmutable('2100-01-02 08:30:00 UTC'));
+        $entityManager->persist($contact);
+        $entityManager->persist($inquiry);
+        $entityManager->flush();
+
+        try {
+            $crawler = $client->request('GET', '/admin/contact-message');
+            self::assertResponseIsSuccessful();
+            $rows = $crawler->filter('table tbody tr');
+            self::assertStringContainsString('Camille Demande', $rows->eq(0)->text());
+            self::assertStringContainsString('02/01/2100 09:30', $rows->eq(0)->text());
+            self::assertStringContainsString('monstera-deliciosa', $rows->eq(0)->text());
+            self::assertStringContainsString('Est-il livré en pot ?', $rows->eq(0)->text());
+            self::assertStringNotContainsString('Fin du message.', $rows->eq(0)->text());
+            self::assertStringContainsString('Alex Contact', $rows->eq(1)->text());
+            self::assertStringContainsString('alex@example.fr', $rows->eq(1)->text());
+            self::assertStringContainsString('Aucun', $rows->eq(1)->text());
+            self::assertStringNotContainsString('Aucun(e)', $rows->eq(1)->text());
+            self::assertSelectorNotExists('a.action-new');
+            self::assertSelectorNotExists('a.action-edit');
+            self::assertSelectorNotExists('a.action-delete');
+
+            $client->click($rows->eq(0)->filter('a.action-detail')->link());
+            self::assertResponseIsSuccessful();
+            self::assertSelectorTextContains('h1', 'Message de Camille Demande');
+            self::assertSelectorTextContains('body', 'Fin du message.');
+            self::assertSelectorTextContains('body', '<b class="piege">Merci</b>');
+            self::assertSelectorNotExists('b.piege');
+        } finally {
+            // La base de test est partagée
+            $entityManager = $this->entityManager();
+            foreach ([$contact->getId(), $inquiry->getId()] as $id) {
+                $saved = $entityManager->find(ContactMessage::class, $id);
+                self::assertInstanceOf(ContactMessage::class, $saved);
+                $entityManager->remove($saved);
+            }
+            $entityManager->flush();
+        }
     }
 
     public function testThrottlesRepeatedFailedLogins(): void
