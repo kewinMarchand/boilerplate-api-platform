@@ -93,4 +93,18 @@ final class StoreImageTest extends TestCase
         $this->expectExceptionMessage('Recadrée au format 16:9, l\'image doit faire au moins 960 × 540 px');
         ($this->storeImage)(new ImageUpload($content, 'A'), ImageUsage::Article);
     }
+
+    public function testALogoKeepsTheRatioOfTheFile(): void
+    {
+        $image = ($this->storeImage)(new ImageUpload('image/png 1000x300', 'Oraki'), ImageUsage::Logo);
+
+        self::assertSame(120, $image->height);
+        self::assertSame([$image->key.'-200.avif', $image->key.'-200.webp', $image->key.'-400.avif', $image->key.'-400.webp'], array_keys($this->storage->files));
+    }
+
+    public function testRefusesALogoNarrowerThanItsLargestVariant(): void
+    {
+        $this->expectExceptionObject(new MediaRuleViolation('L\'image doit faire au moins 400 px de large : elle fait 399 × 2000 px.'));
+        ($this->storeImage)(new ImageUpload('image/png 399x2000', 'Oraki'), ImageUsage::Logo);
+    }
 }

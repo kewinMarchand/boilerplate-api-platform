@@ -12,7 +12,7 @@ interface ImageEncoder
     public function inspect(string $content): ?SourceImage;
 
     /**
-     * Recadre au ratio de l'usage, centré, puis encode chaque largeur dans chaque format, sans métadonnées.
+     * Recadre au ratio de l'usage, centré (sans recadrage pour un usage qui n'en a pas), puis encode chaque largeur dans chaque format, sans métadonnées.
      *
      * @return iterable<string, string> nom du fichier de la variante => contenu encodé
      */

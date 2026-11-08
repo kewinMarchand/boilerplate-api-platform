@@ -1,6 +1,6 @@
 # boilerplate-api-platform
 
-API de test commune aux cinq boilerplates front (Next, Nuxt, SvelteKit, Symfony Twig, HTML vanilla). Elle sert des tâches, des articles, un formulaire de contact, un catalogue à facettes avec ses fiches produit et ses produits à la une (le carrousel de l'accueil, [ADR 0004](doc/adr/0004-carrousel-de-produits-a-la-une.md)) et les pages légales, avec des données réalistes, en JSON simple ou en JSON-LD, et sait simuler une erreur serveur ou une liste vide pour tester les trois états des fronts.
+API de test commune aux cinq boilerplates front (Next, Nuxt, SvelteKit, Symfony Twig, HTML vanilla). Elle sert des tâches, des articles, un formulaire de contact, un catalogue à facettes avec ses fiches produit et ses produits à la une (le carrousel de l'accueil, [ADR 0004](doc/adr/0004-carrousel-de-produits-a-la-une.md)), les pages légales et l'identité du site (nom, accroche, logo, couleurs), avec des données réalistes, en JSON simple ou en JSON-LD, et sait simuler une erreur serveur ou une liste vide pour tester les trois états des fronts.
 
 | Ressource        | Opération                    | Ce qu'elle renvoie                                                 |
 | ---------------- | ---------------------------- | ------------------------------------------------------------------ |
@@ -14,6 +14,7 @@ API de test commune aux cinq boilerplates front (Next, Nuxt, SvelteKit, Symfony 
 | `ProductDetail`  | `GET /api/products/{slug}`   | fiche d'un produit : les champs de la liste, plus `categoryPath` (catégories de la racine à la sienne, `slug` et `name`) et `description` (texte brut, paragraphes séparés par une ligne vide, chaîne vide si aucune) ; 404 sinon |
 | `Product`        | `GET /api/featured-products` | Les produits « À la une » (case de l'admin), par nom : le carrousel de l'accueil |
 | `LegalPage`      | `GET /api/legal_pages/{slug}` | `mentions-legales`, `donnees-personnelles` ou `accessibilite` : `title`, `introduction` et `sections` (`title`, `html`) ; 404 sinon |
+| `SiteIdentity`   | `GET /api/site-identity`     | L'identité du site saisie dans l'admin ([ADR 0006](doc/adr/0006-identite-du-site-administree-dans-l-api.md)) : `name`, `tagline`, `logo` (image ou `null`), `defaultColorScheme` (`auto`, `light`, `dark`) et `theme` (`null` sans couleurs saisies, sinon `light` et `dark` : les douze jetons de couleur de marque de boilerplates-ui, calculés par l'API) |
 
 Tout est en lecture seule sauf le contact (un `POST` répond 405). Les collections ne sont pas paginées, sauf les produits qui ont leur propre pagination.
 
@@ -156,7 +157,7 @@ En dev et en test uniquement. En prod, la classe n'est pas enregistrée et l'en-
 | Valeur  | Effet                                                                |
 | ------- | -------------------------------------------------------------------- |
 | `error` | 500 en `application/problem+json`, sur toutes les opérations         |
-| `empty` | Collection vide (`[]`) sur les tâches, articles, catégories et produits. Sur `/api/product-facets` : total et compteurs à 0 |
+| `empty` | Collection vide (`[]`) sur les tâches, articles, catégories et produits. Sur `/api/product-facets` : total et compteurs à 0. Sur `/api/site-identity` : l'identité par défaut (celle des fixtures) |
 
 Toute autre valeur est ignorée.
 
@@ -172,7 +173,7 @@ Les origines autorisées sont une expression régulière dans `CORS_ALLOW_ORIGIN
 
 Le schéma OpenAPI est servi à **`http://localhost:8090/api/docs.jsonopenapi`** (OpenAPI 3.2, `application/vnd.openapi+json`). Il est aussi versionné dans **`openapi.json`** à la racine, pour générer les types sans lancer l'API. Côté front, `make api-types` génère les types depuis le schéma désigné par `API_SCHEMA_URL` (voir le README du front).
 
-Les schémas utiles côté front sont `Task`, `Article`, `ContactMessage`, `ConstraintViolation`, `Category`, `Product`, `ProductFacets`, `FacetValue`, `CategoryFacetValue`, `ProductDetail`, `CategoryLink`, `LegalPage`, `ImageView` et `ImageSource` (les variantes `.jsonld` concernent le JSON-LD). `make qa` échoue si `openapi.json` est périmé : relancer `make openapi` après toute modification d'une ressource.
+Les schémas utiles côté front sont `Task`, `Article`, `ContactMessage`, `ConstraintViolation`, `Category`, `Product`, `ProductFacets`, `FacetValue`, `CategoryFacetValue`, `ProductDetail`, `CategoryLink`, `LegalPage`, `SiteIdentity`, `SiteTheme`, `ThemeTokens`, `ImageView` et `ImageSource` (les variantes `.jsonld` concernent le JSON-LD). `make qa` échoue si `openapi.json` est périmé : relancer `make openapi` après toute modification d'une ressource.
 
 ### Images
 
@@ -191,7 +192,7 @@ Diapositives, produits et articles portent une image envoyée par l'admin ([ADR 
 }
 ```
 
-Le front pose `sources` dans un `<picture>`, `src`, `alt`, `width` et `height` sur l'`<img>`, et n'ajoute que `sizes`. `alt` vide : image décorative. Largeurs : article 480 et 960 (16:9), produit 400, 640 et 800 (carré, ADR 0003). Les adresses sont absolues, préfixées par `MEDIA_BASE_URL` (origine publique de l'API, `http://localhost:8090` par défaut) : la CSP du front doit autoriser cette origine dans `img-src`. Les fichiers ne changent jamais (leur nom porte l'empreinte du contenu) et sont servis en `Cache-Control: immutable`.
+Le front pose `sources` dans un `<picture>`, `src`, `alt`, `width` et `height` sur l'`<img>`, et n'ajoute que `sizes`. `alt` vide : image décorative. Largeurs : article 480 et 960 (16:9), produit 400, 640 et 800 (carré, ADR 0003), logo 200 et 400 (sans recadrage : `height` suit le ratio du fichier, transparence gardée, ADR 0006). Les adresses sont absolues, préfixées par `MEDIA_BASE_URL` (origine publique de l'API, `http://localhost:8090` par défaut) : la CSP du front doit autoriser cette origine dans `img-src`. Les fichiers ne changent jamais (leur nom porte l'empreinte du contenu) et sont servis en `Cache-Control: immutable`.
 
 ### Front dans un conteneur Docker
 
@@ -214,6 +215,10 @@ src/
     Domain/                 Price, CategoryTree (value objects), ProductSearch : filtre,
                             facettes disjonctives, tri, pagination (PHP pur)
     Application/            SearchProducts : charge par les ports, délègue à ProductSearch
+  Site/                     identité du site (ADR 0006)
+    Domain/                 SiteIdentity, HexColor, BrandColors (règles de contraste), BrandPalette
+                            et ColorShades (jetons clair et sombre)
+    Application/            GetSiteIdentity (valeurs du modèle sans ligne), UpdateSiteIdentity
   Shared/Infrastructure/ApiPlatform/Scenario/   en-tête X-Scenario
 tests/
   Unit/                     value objects et cas d'utilisation du catalogue, sans framework

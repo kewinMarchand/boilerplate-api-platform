@@ -40,6 +40,11 @@ doctrine:
                 is_bundle: false
                 dir: '%kernel.project_dir%/src/Contact/Infrastructure/Doctrine/Mapping'
                 prefix: 'App\Contact\Domain'
+            Site:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Site/Infrastructure/Doctrine/Mapping'
+                prefix: 'App\Site\Domain'
 
 when@test:
     doctrine:

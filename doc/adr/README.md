@@ -9,3 +9,4 @@ Une décision structurante par fichier, numérotée, jamais réécrite une fois 
 | [0003](0003-variante-intermediaire-des-produits.md)     | Variante intermédiaire de 640 px pour les images des produits    | Acceptée |
 | [0004](0004-carrousel-de-produits-a-la-une.md)          | Carrousel de l'accueil : produits à la une, diapositives retirées | Proposée |
 | [0005](0005-collection-de-produits-et-facettes-a-part.md) | Liste des produits en collection standard, facettes dans une ressource à part | Acceptée |
+| [0006](0006-identite-du-site-administree-dans-l-api.md)  | Identité du site administrée dans l'API, couleurs de marque calculées par l'API | Acceptée |

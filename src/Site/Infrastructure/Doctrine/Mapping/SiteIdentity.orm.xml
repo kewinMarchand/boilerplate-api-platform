@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="App\Site\Domain\SiteIdentity" table="site_identity">
+        <id name="id" type="integer">
+            <generator strategy="NONE"/>
+        </id>
+        <field name="name" type="string" length="60"/>
+        <field name="tagline" type="string" length="160"/>
+        <field name="logoKey" column="logo_key" type="string" length="32" nullable="true"/>
+        <field name="logoAlt" column="logo_alt" type="string" length="255"/>
+        <field name="logoHeight" column="logo_height" type="integer" nullable="true"/>
+        <field name="primaryColor" column="primary_color" type="string" length="7" nullable="true"/>
+        <field name="secondaryColor" column="secondary_color" type="string" length="7" nullable="true"/>
+        <field name="defaultColorScheme" column="default_color_scheme" type="string" length="5" enum-type="App\Site\Domain\DefaultColorScheme"/>
+    </entity>
+</doctrine-mapping>

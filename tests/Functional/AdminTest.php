@@ -8,6 +8,7 @@ use App\Admin\Infrastructure\Security\AdminUser;
 use App\Catalog\Domain\Category;
 use App\Catalog\Domain\Product;
 use App\Content\Domain\LegalPage;
+use App\Site\Domain\SiteIdentity;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -176,6 +177,79 @@ final class AdminTest extends WebTestCase
         self::assertInstanceOf(LegalPage::class, $saved);
         $saved->update('Mentions légales', $body);
         $this->entityManager()->flush();
+    }
+
+    public function testEditsTheSiteIdentityReadByTheApi(): void
+    {
+        $client = $this->loggedIn('admin-identite@example.fr');
+        $logo = imagecreatetruecolor(800, 240);
+        self::assertNotFalse($logo);
+        imagealphablending($logo, false);
+        imagesavealpha($logo, true);
+        imagefill($logo, 0, 0, (int) imagecolorallocatealpha($logo, 0, 0, 0, 127));
+        $path = sys_get_temp_dir().'/logo-oraki.png';
+        imagepng($logo, $path);
+
+        $client->request('GET', '/admin/site-identity');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorNotExists('a.action-new');
+        $client->submitForm('Enregistrer', [
+            'site_identity[name]' => 'Oraki',
+            'site_identity[tagline]' => 'Plantes rares et tropicales, livrées chez vous.',
+            'site_identity[imageContent]' => $path,
+            'site_identity[primaryColor]' => '#c2410c',
+            'site_identity[secondaryColor]' => '#ffffff',
+            'site_identity[defaultColorScheme]' => 'dark',
+        ]);
+        unlink($path);
+        self::assertResponseRedirects('/admin/site-identity');
+
+        try {
+            $client->request('GET', '/api/site-identity', [], [], ['HTTP_ACCEPT' => 'application/json']);
+            /** @var array{name: string, tagline: string, defaultColorScheme: string, logo: array{alt: string, width: int, height: int, src: string}, theme: array{light: array<string, string>}} $identity */
+            $identity = json_decode((string) $client->getResponse()->getContent(), true);
+            self::assertSame(['Oraki', 'Plantes rares et tropicales, livrées chez vous.', 'dark'], [$identity['name'], $identity['tagline'], $identity['defaultColorScheme']]);
+            self::assertSame(['Oraki', 400, 120], [$identity['logo']['alt'], $identity['logo']['width'], $identity['logo']['height']]);
+            self::assertMatchesRegularExpression('#^http://localhost:8090/media/[0-9a-f]{32}-200\.webp$#', $identity['logo']['src']);
+            self::assertSame(['#c2410c', '#ffffff'], [$identity['theme']['light']['primary'], $identity['theme']['light']['on-primary']]);
+
+            $client->request('GET', '/admin/site-identity');
+            self::assertSelectorExists('[data-image-preview]:not([hidden]) img[src$="-200.webp"]');
+            $client->submitForm('Enregistrer', ['site_identity[removeLogo]' => true, 'site_identity[primaryColor]' => '', 'site_identity[secondaryColor]' => '']);
+            self::assertResponseRedirects('/admin/site-identity');
+            $client->request('GET', '/api/site-identity', [], [], ['HTTP_ACCEPT' => 'application/json']);
+            self::assertSame(['logo' => null, 'theme' => null], array_intersect_key((array) json_decode((string) $client->getResponse()->getContent(), true), ['logo' => true, 'theme' => true]));
+        } finally {
+            // La base de test est partagée : les tests de l'API lisent l'identité des fixtures
+            $saved = $this->entityManager()->find(SiteIdentity::class, SiteIdentity::ID);
+            self::assertInstanceOf(SiteIdentity::class, $saved);
+            $default = SiteIdentity::byDefault();
+            $saved->update($default->getName(), $default->getTagline(), null, null, $default->getDefaultColorScheme());
+            $this->entityManager()->flush();
+        }
+    }
+
+    public function testRefusesAPrimaryColorUnreadableOnTheLightBackground(): void
+    {
+        $client = $this->loggedIn('admin-contraste@example.fr');
+
+        $client->request('GET', '/admin/site-identity');
+        $client->submitForm('Enregistrer', ['site_identity[primaryColor]' => '#ffff00', 'site_identity[secondaryColor]' => '#ffffff']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#main form .alert-danger', 'La couleur principale doit contraster à 4,5:1 au moins avec le fond clair (actuellement 1,07:1).');
+        self::assertNull($this->entityManager()->find(SiteIdentity::class, SiteIdentity::ID)?->getColors());
+    }
+
+    public function testRefusesASingleColor(): void
+    {
+        $client = $this->loggedIn('admin-couleur@example.fr');
+
+        $client->request('GET', '/admin/site-identity');
+        $client->submitForm('Enregistrer', ['site_identity[primaryColor]' => '#c2410c']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#main form .alert-danger', 'Saisir les deux couleurs, ou aucune.');
     }
 
     public function testThrottlesRepeatedFailedLogins(): void

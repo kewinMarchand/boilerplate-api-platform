@@ -25,21 +25,23 @@ final class ImageFields
      *
      * @param FormBuilderInterface<TData> $builder
      */
-    public static function add(FormBuilderInterface $builder, ImageUsage $usage, string $altHelp): void
+    public static function add(FormBuilderInterface $builder, ImageUsage $usage, string $altHelp, string $label = 'Image', bool $decorative = true): void
     {
-        [$ratioWidth, $ratioHeight] = $usage->ratio();
+        $ratio = $usage->ratio();
         $builder
             ->add('imageContent', FileType::class, [
-                'label' => 'Image',
+                'label' => $label,
                 'required' => false,
                 'data_class' => null,
                 'attr' => ['accept' => 'image/jpeg,image/png,image/webp,image/avif'],
-                'help' => \sprintf(
-                    'JPEG, PNG, WebP ou AVIF, 10 Mo au plus, recadrée au centre au format %d:%d, %d px de large au moins. Sans fichier, l\'image actuelle est gardée.',
-                    $ratioWidth,
-                    $ratioHeight,
-                    $usage->largestWidth(),
-                ),
+                'help' => null === $ratio
+                    ? \sprintf('PNG, WebP ou AVIF (transparence gardée) ou JPEG, 10 Mo au plus, sans recadrage, %d px de large au moins. Pas de SVG. Sans fichier, l\'image actuelle est gardée.', $usage->largestWidth())
+                    : \sprintf(
+                        'JPEG, PNG, WebP ou AVIF, 10 Mo au plus, recadrée au centre au format %d:%d, %d px de large au moins. Sans fichier, l\'image actuelle est gardée.',
+                        $ratio[0],
+                        $ratio[1],
+                        $usage->largestWidth(),
+                    ),
                 'invalid_message' => 'Le fichier n\'a pas pu être envoyé (10 Mo au plus).',
             ])
             ->add('imageAlt', TextType::class, [
@@ -48,11 +50,13 @@ final class ImageFields
                 'empty_data' => '',
                 'help' => $altHelp,
                 'constraints' => [new Assert\Length(max: 255)],
-            ])
-            ->add('imageDecorative', CheckboxType::class, [
+            ]);
+        if ($decorative) {
+            $builder->add('imageDecorative', CheckboxType::class, [
                 'label' => 'Image décorative (aucun texte de remplacement)',
                 'required' => false,
             ]);
+        }
 
         $builder->get('imageContent')->addModelTransformer(new CallbackTransformer(
             static fn (?string $content): null => null,

@@ -1,0 +1,59 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Site\Infrastructure\ApiPlatform\Resource;
+
+use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use App\Media\Infrastructure\ApiPlatform\ImageView;
+use App\Shared\Infrastructure\ApiPlatform\Scenario\EmptyScenarioResult;
+use App\Site\Domain\SiteIdentity;
+use App\Site\Infrastructure\ApiPlatform\State\SiteIdentityProvider;
+
+#[ApiResource(
+    shortName: 'SiteIdentity',
+    description: 'Identité du site, saisie dans l\'admin : nom, accroche, logo, couleurs de marque calculées (ou null) et thème par défaut.',
+    // logo et theme peuvent valoir null : sans cela, API Platform retire la clé alors que le schéma la déclare requise
+    normalizationContext: ['skip_null_values' => false],
+    operations: [
+        new Get(
+            uriTemplate: '/site-identity',
+            description: 'Lit l\'identité du site.',
+            provider: SiteIdentityProvider::class,
+        ),
+    ],
+)]
+final readonly class SiteIdentityResource implements EmptyScenarioResult
+{
+    public function __construct(
+        #[ApiProperty(description: 'Nom du site, 1 à 60 caractères.', required: true)]
+        public string $name,
+        #[ApiProperty(description: 'Accroche, 0 à 160 caractères.', required: true)]
+        public string $tagline,
+        #[ApiProperty(description: 'Logo, ratio du fichier gardé (largeurs 200 et 400), null sans logo : les fronts affichent alors le pictogramme et le nom.', required: true)]
+        public ?ImageView $logo,
+        #[ApiProperty(description: 'Thème servi tant que le visiteur n\'a rien choisi.', required: true, schema: ['type' => 'string', 'enum' => ['auto', 'light', 'dark']])]
+        public string $defaultColorScheme,
+        #[ApiProperty(description: 'Jetons de couleur de marque calculés, null sans couleurs saisies : le front garde alors ceux de boilerplates-ui.', required: true)]
+        public ?SiteTheme $theme,
+    ) {
+    }
+
+    public static function fromModel(SiteIdentity $identity, ?ImageView $logo): self
+    {
+        return new self(
+            $identity->getName(),
+            $identity->getTagline(),
+            $logo,
+            $identity->getDefaultColorScheme()->value,
+            SiteTheme::fromColors($identity->getColors()),
+        );
+    }
+
+    public static function emptyScenarioResult(): static
+    {
+        return self::fromModel(SiteIdentity::byDefault(), null);
+    }
+}

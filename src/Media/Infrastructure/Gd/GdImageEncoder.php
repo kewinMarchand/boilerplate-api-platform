@@ -39,16 +39,16 @@ final readonly class GdImageEncoder implements ImageEncoder
     public function variants(string $content, string $key, ImageUsage $usage): iterable
     {
         $source = $this->load($content);
-        [$ratioWidth, $ratioHeight] = $usage->ratio();
         $sourceWidth = imagesx($source);
         $sourceHeight = imagesy($source);
+        [$ratioWidth, $ratioHeight] = $usage->ratio() ?? [$sourceWidth, $sourceHeight];
         $cropWidth = min($sourceWidth, intdiv($sourceHeight * $ratioWidth, $ratioHeight));
         $cropHeight = min($sourceHeight, intdiv($cropWidth * $ratioHeight, $ratioWidth));
         $cropX = intdiv($sourceWidth - $cropWidth, 2);
         $cropY = intdiv($sourceHeight - $cropHeight, 2);
 
         foreach ($usage->widths() as $width) {
-            $height = $usage->heightFor($width);
+            $height = $usage->heightFor($width, [$sourceWidth, $sourceHeight]);
             $variant = imagecreatetruecolor($width, $height);
             if (false === $variant) {
                 throw new \RuntimeException('GD n\'a pas pu créer la variante.');

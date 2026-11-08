@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace App\Tests\Functional;
 
 use ApiPlatform\Test\ApiTestCase;
+use App\Site\Domain\BrandColors;
+use App\Site\Domain\DefaultColorScheme;
+use App\Site\Domain\HexColor;
+use App\Site\Domain\SiteIdentity;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 final class ScenarioHeaderTest extends ApiTestCase
@@ -47,6 +52,40 @@ final class ScenarioHeaderTest extends ApiTestCase
             'size' => [['value' => 'S', 'count' => 0], ['value' => 'M', 'count' => 0], ['value' => 'L', 'count' => 0]],
             'category' => [],
         ]);
+    }
+
+    public function testErrorScenarioAppliesToSiteIdentity(): void
+    {
+        static::createClient()->request('GET', '/api/site-identity', ['headers' => ['Accept' => 'application/json', 'X-Scenario' => 'error']]);
+
+        self::assertResponseStatusCodeSame(500);
+    }
+
+    public function testEmptyScenarioReturnsTheDefaultSiteIdentity(): void
+    {
+        $client = static::createClient();
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        self::assertInstanceOf(EntityManagerInterface::class, $entityManager);
+        $identity = $entityManager->find(SiteIdentity::class, SiteIdentity::ID);
+        self::assertInstanceOf(SiteIdentity::class, $identity);
+        $identity->update('Oraki', '', null, new BrandColors(new HexColor('#c2410c'), new HexColor('#ffffff')), DefaultColorScheme::Dark);
+        $entityManager->flush();
+
+        try {
+            $client->request('GET', '/api/site-identity', ['headers' => ['Accept' => 'application/json', 'X-Scenario' => 'empty']]);
+
+            self::assertResponseIsSuccessful();
+            self::assertJsonEquals(SiteIdentityApiTest::DEFAULT);
+        } finally {
+            // La base de test est partagée : les autres tests lisent l'identité des fixtures
+            $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+            self::assertInstanceOf(EntityManagerInterface::class, $entityManager);
+            $identity = $entityManager->find(SiteIdentity::class, SiteIdentity::ID);
+            self::assertInstanceOf(SiteIdentity::class, $identity);
+            $default = SiteIdentity::byDefault();
+            $identity->update($default->getName(), $default->getTagline(), null, null, $default->getDefaultColorScheme());
+            $entityManager->flush();
+        }
     }
 
     public function testErrorScenarioAppliesToContactForm(): void

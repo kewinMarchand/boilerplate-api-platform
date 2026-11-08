@@ -39,7 +39,7 @@ final readonly class ImageViews
         }
         $largest = $usage->largestWidth();
 
-        return new ImageView($image->alt, $largest, $usage->heightFor($largest), $sources, $this->url($image, $widths[0], ImageFormat::Webp));
+        return new ImageView($image->alt, $largest, $image->height ?? $usage->heightFor($largest), $sources, $this->url($image, $widths[0], ImageFormat::Webp));
     }
 
     private function url(Image $image, int $width, ImageFormat $format): string

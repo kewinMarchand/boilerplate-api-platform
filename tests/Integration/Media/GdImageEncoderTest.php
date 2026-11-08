@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Media;
 
+use App\Media\Application\ImageUpload;
+use App\Media\Application\StoreImage;
 use App\Media\Domain\ImageUsage;
+use App\Media\Domain\MediaRuleViolation;
 use App\Media\Infrastructure\Gd\GdImageEncoder;
+use App\Tests\Support\InMemoryMediaStorage;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -51,6 +55,41 @@ final class GdImageEncoderTest extends TestCase
         $size = getimagesizefromstring($variants[str_repeat('e', 32).'-960.webp']);
         self::assertNotFalse($size);
         self::assertSame([960, 540], [$size[0], $size[1]]);
+    }
+
+    public function testALogoKeepsItsRatioAndItsTransparency(): void
+    {
+        $logo = imagecreatetruecolor(1000, 300);
+        self::assertNotFalse($logo);
+        imagealphablending($logo, false);
+        imagesavealpha($logo, true);
+        imagefill($logo, 0, 0, (int) imagecolorallocatealpha($logo, 0, 0, 0, 127));
+        imagefilledrectangle($logo, 400, 100, 600, 200, (int) imagecolorallocatealpha($logo, 194, 65, 12, 0));
+        ob_start();
+        imagepng($logo);
+        $key = str_repeat('d', 32);
+
+        $variants = iterator_to_array(new GdImageEncoder()->variants((string) ob_get_clean(), $key, ImageUsage::Logo));
+
+        self::assertSame([$key.'-200.avif', $key.'-200.webp', $key.'-400.avif', $key.'-400.webp'], array_keys($variants));
+        foreach (['200.webp' => [200, 60], '400.webp' => [400, 120], '400.avif' => [400, 120]] as $suffix => $dimensions) {
+            $size = getimagesizefromstring($variants[$key.'-'.$suffix]);
+            self::assertNotFalse($size);
+            self::assertSame($dimensions, [$size[0], $size[1]], $suffix);
+        }
+        $webp = imagecreatefromstring($variants[$key.'-400.webp']);
+        self::assertNotFalse($webp);
+        self::assertSame(127, (imagecolorat($webp, 0, 0) >> 24) & 0x7F, 'coin transparent');
+        self::assertSame(0, (imagecolorat($webp, 200, 60) >> 24) & 0x7F, 'centre opaque');
+    }
+
+    public function testAnSvgLogoIsRefused(): void
+    {
+        // PHP 8.5 lit les dimensions d'un SVG : c'est la liste des types acceptés qui le refuse
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120"><rect width="400" height="120"/></svg>';
+
+        $this->expectExceptionObject(new MediaRuleViolation('Formats acceptés : JPEG, PNG, WebP ou AVIF.'));
+        new StoreImage(new GdImageEncoder(), new InMemoryMediaStorage())(new ImageUpload($svg, 'Oraki'), ImageUsage::Logo);
     }
 
     /**

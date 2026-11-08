@@ -2,7 +2,7 @@
     "openapi": "3.2.0",
     "info": {
         "title": "API de test Kewin",
-        "description": "API de test commune aux boilerplates front (Next, Nuxt, SvelteKit, Symfony Twig, HTML).\nFormats : JSON simple (`application/json`, format par d\u00e9faut) et JSON-LD (`application/ld+json`).\nEn dev et en test, l'en-t\u00eate `X-Scenario: error` renvoie une 500 et `X-Scenario: empty` une collection vide (sur `/api/product-facets` : total et compteurs \u00e0 0).",
+        "description": "API de test commune aux boilerplates front (Next, Nuxt, SvelteKit, Symfony Twig, HTML).\nFormats : JSON simple (`application/json`, format par d\u00e9faut) et JSON-LD (`application/ld+json`).\nEn dev et en test, l'en-t\u00eate `X-Scenario: error` renvoie une 500 et `X-Scenario: empty` une collection vide (sur `/api/product-facets` : total et compteurs \u00e0 0 ; sur `/api/site-identity` : l'identit\u00e9 par d\u00e9faut).",
         "version": "1.0.0"
     },
     "servers": [
@@ -764,6 +764,55 @@
                         "explode": true
                     }
                 ]
+            }
+        },
+        "/api/site-identity": {
+            "get": {
+                "operationId": "api_site-identity_get",
+                "tags": [
+                    "SiteIdentity"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SiteIdentity resource",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SiteIdentity"
+                                }
+                            },
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SiteIdentity.jsonld"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves a SiteIdentity resource.",
+                "description": "Retrieves a SiteIdentity resource.",
+                "parameters": []
             }
         },
         "/api/tasks": {
@@ -2264,6 +2313,149 @@
                 ],
                 "description": "Compte les produits filtr\u00e9s, au total et par valeur de facette. M\u00eames filtres que GET /api/products, sans tri ni pagination."
             },
+            "SiteIdentity": {
+                "type": "object",
+                "description": "Lit l'identit\u00e9 du site.",
+                "required": [
+                    "name",
+                    "tagline",
+                    "logo",
+                    "defaultColorScheme",
+                    "theme"
+                ],
+                "properties": {
+                    "name": {
+                        "description": "Nom du site, 1 \u00e0 60 caract\u00e8res.",
+                        "type": "string"
+                    },
+                    "tagline": {
+                        "description": "Accroche, 0 \u00e0 160 caract\u00e8res.",
+                        "type": "string"
+                    },
+                    "logo": {
+                        "description": "Logo, ratio du fichier gard\u00e9 (largeurs 200 et 400), null sans logo : les fronts affichent alors le pictogramme et le nom.",
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ImageView"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "defaultColorScheme": {
+                        "type": "string",
+                        "enum": [
+                            "auto",
+                            "light",
+                            "dark"
+                        ]
+                    },
+                    "theme": {
+                        "description": "Jetons de couleur de marque calcul\u00e9s, null sans couleurs saisies : le front garde alors ceux de boilerplates-ui.",
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/SiteTheme"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                }
+            },
+            "SiteIdentity.jsonld": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "tagline",
+                            "logo",
+                            "defaultColorScheme",
+                            "theme"
+                        ],
+                        "properties": {
+                            "name": {
+                                "description": "Nom du site, 1 \u00e0 60 caract\u00e8res.",
+                                "type": "string"
+                            },
+                            "tagline": {
+                                "description": "Accroche, 0 \u00e0 160 caract\u00e8res.",
+                                "type": "string"
+                            },
+                            "logo": {
+                                "description": "Logo, ratio du fichier gard\u00e9 (largeurs 200 et 400), null sans logo : les fronts affichent alors le pictogramme et le nom.",
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/ImageView.jsonld"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
+                            },
+                            "defaultColorScheme": {
+                                "type": "string",
+                                "enum": [
+                                    "auto",
+                                    "light",
+                                    "dark"
+                                ]
+                            },
+                            "theme": {
+                                "description": "Jetons de couleur de marque calcul\u00e9s, null sans couleurs saisies : le front garde alors ceux de boilerplates-ui.",
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/SiteTheme.jsonld"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "description": "Lit l'identit\u00e9 du site."
+            },
+            "SiteTheme": {
+                "type": "object",
+                "required": [
+                    "light",
+                    "dark"
+                ],
+                "properties": {
+                    "light": {
+                        "description": "Jetons du th\u00e8me clair (fond #ffffff).",
+                        "$ref": "#/components/schemas/ThemeTokens"
+                    },
+                    "dark": {
+                        "description": "Jetons du th\u00e8me sombre (fond #0f141d), couleurs \u00e9claircies jusqu'\u00e0 7:1 sur le fond.",
+                        "$ref": "#/components/schemas/ThemeTokens"
+                    }
+                }
+            },
+            "SiteTheme.jsonld": {
+                "type": "object",
+                "required": [
+                    "light",
+                    "dark"
+                ],
+                "properties": {
+                    "light": {
+                        "description": "Jetons du th\u00e8me clair (fond #ffffff).",
+                        "$ref": "#/components/schemas/ThemeTokens.jsonld"
+                    },
+                    "dark": {
+                        "description": "Jetons du th\u00e8me sombre (fond #0f141d), couleurs \u00e9claircies jusqu'\u00e0 7:1 sur le fond.",
+                        "$ref": "#/components/schemas/ThemeTokens.jsonld"
+                    }
+                }
+            },
             "Task": {
                 "type": "object",
                 "description": "Liste toutes les t\u00e2ches, sans pagination.",
@@ -2310,6 +2502,140 @@
                     }
                 ],
                 "description": "Liste toutes les t\u00e2ches, sans pagination."
+            },
+            "ThemeTokens": {
+                "type": "object",
+                "required": [
+                    "primary",
+                    "primary-dark",
+                    "on-primary",
+                    "primary-surface-subtle",
+                    "primary-surface",
+                    "primary-surface-strong",
+                    "secondary",
+                    "secondary-dark",
+                    "on-secondary",
+                    "secondary-surface-subtle",
+                    "secondary-surface",
+                    "secondary-surface-strong"
+                ],
+                "properties": {
+                    "primary": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "primary-dark": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "on-primary": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "primary-surface-subtle": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "primary-surface": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "primary-surface-strong": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "secondary": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "secondary-dark": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "on-secondary": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "secondary-surface-subtle": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "secondary-surface": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "secondary-surface-strong": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    }
+                }
+            },
+            "ThemeTokens.jsonld": {
+                "type": "object",
+                "required": [
+                    "primary",
+                    "primary-dark",
+                    "on-primary",
+                    "primary-surface-subtle",
+                    "primary-surface",
+                    "primary-surface-strong",
+                    "secondary",
+                    "secondary-dark",
+                    "on-secondary",
+                    "secondary-surface-subtle",
+                    "secondary-surface",
+                    "secondary-surface-strong"
+                ],
+                "properties": {
+                    "primary": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "primary-dark": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "on-primary": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "primary-surface-subtle": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "primary-surface": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "primary-surface-strong": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "secondary": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "secondary-dark": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "on-secondary": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "secondary-surface-subtle": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "secondary-surface": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    },
+                    "secondary-surface-strong": {
+                        "type": "string",
+                        "pattern": "^#[0-9a-f]{6}$"
+                    }
+                }
             }
         },
         "responses": {},
@@ -2352,6 +2678,10 @@
         {
             "name": "LegalPage",
             "description": "Page l\u00e9gale : mentions l\u00e9gales, donn\u00e9es personnelles, d\u00e9claration d'accessibilit\u00e9."
+        },
+        {
+            "name": "SiteIdentity",
+            "description": "Identit\u00e9 du site, saisie dans l'admin : nom, accroche, logo, couleurs de marque calcul\u00e9es (ou null) et th\u00e8me par d\u00e9faut."
         },
         {
             "name": "Task",

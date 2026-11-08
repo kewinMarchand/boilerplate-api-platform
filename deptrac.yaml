@@ -70,6 +70,18 @@ deptrac:
           collectors:
             - type: classLike
               value: '^App\\Media\\Infrastructure\\'
+        - name: SiteDomain
+          collectors:
+            - type: classLike
+              value: '^App\\Site\\Domain\\'
+        - name: SiteApplication
+          collectors:
+            - type: classLike
+              value: '^App\\Site\\Application\\'
+        - name: SiteInfrastructure
+          collectors:
+            - type: classLike
+              value: '^App\\Site\\Infrastructure\\'
         - name: SharedInfrastructure
           collectors:
             - type: classLike
@@ -101,5 +113,8 @@ deptrac:
         MediaDomain: ~
         MediaApplication: [MediaDomain]
         MediaInfrastructure: [MediaDomain, MediaApplication, SharedInfrastructure, Framework]
+        SiteDomain: [MediaDomain]
+        SiteApplication: [SiteDomain, MediaDomain, MediaApplication]
+        SiteInfrastructure: [SiteDomain, SiteApplication, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
         SharedInfrastructure: [Framework]
-        AdminInfrastructure: [CatalogDomain, CatalogApplication, BlogDomain, BlogApplication, ContentDomain, ContentApplication, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
+        AdminInfrastructure: [CatalogDomain, CatalogApplication, BlogDomain, BlogApplication, ContentDomain, ContentApplication, SiteDomain, SiteApplication, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]

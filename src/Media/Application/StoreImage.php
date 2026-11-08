@@ -43,10 +43,16 @@ final readonly class StoreImage
         if (!\in_array($source->mimeType, self::ACCEPTED_TYPES, true)) {
             throw new MediaRuleViolation('Formats acceptés : JPEG, PNG, WebP ou AVIF.');
         }
-        [$ratioWidth, $ratioHeight] = $usage->ratio();
-        $croppedWidth = min($source->width, intdiv($source->height * $ratioWidth, $ratioHeight));
-        if ($croppedWidth < $usage->largestWidth()) {
-            throw new MediaRuleViolation(\sprintf('Recadrée au format %d:%d, l\'image doit faire au moins %d × %d px : elle fait %d × %d px.', $ratioWidth, $ratioHeight, $usage->largestWidth(), $usage->heightFor($usage->largestWidth()), $source->width, $source->height));
+        $ratio = $usage->ratio();
+        if (null === $ratio && $source->width < $usage->largestWidth()) {
+            throw new MediaRuleViolation(\sprintf('L\'image doit faire au moins %d px de large : elle fait %d × %d px.', $usage->largestWidth(), $source->width, $source->height));
+        }
+        if (null !== $ratio) {
+            [$ratioWidth, $ratioHeight] = $ratio;
+            $croppedWidth = min($source->width, intdiv($source->height * $ratioWidth, $ratioHeight));
+            if ($croppedWidth < $usage->largestWidth()) {
+                throw new MediaRuleViolation(\sprintf('Recadrée au format %d:%d, l\'image doit faire au moins %d × %d px : elle fait %d × %d px.', $ratioWidth, $ratioHeight, $usage->largestWidth(), $usage->heightFor($usage->largestWidth()), $source->width, $source->height));
+            }
         }
 
         $key = substr(hash('sha256', $usage->value."\n".$upload->content), 0, 32);
@@ -56,7 +62,7 @@ final readonly class StoreImage
             }
         }
 
-        return new Image($key, $alt);
+        return new Image($key, $alt, null === $ratio ? $usage->heightFor($usage->largestWidth(), [$source->width, $source->height]) : null);
     }
 
     private function isStored(string $key, ImageUsage $usage): bool
