@@ -101,6 +101,7 @@ final class AdminTest extends WebTestCase
             'product[categoryId]' => (string) $category->getId(),
             'product[price]' => '12,50',
             'product[featured]' => true,
+            'product[description]' => "Rustique.\r\n\r\nRésiste au vent.",
             'product[imageContent]' => \dirname(__DIR__, 2).'/fixtures/images/product-2.webp',
         ]);
 
@@ -109,6 +110,7 @@ final class AdminTest extends WebTestCase
         self::assertInstanceOf(Product::class, $saved);
         self::assertSame(1250, $saved->getPrice()->cents);
         self::assertTrue($saved->isFeatured());
+        self::assertSame("Rustique.\n\nRésiste au vent.", $saved->getDescription());
         self::assertSame('Palmier de test', $saved->getImage()?->alt);
         self::assertFileExists(\dirname(__DIR__, 2).'/var/test-media/'.$saved->getImage()->key.'-800.avif');
 

@@ -39,7 +39,7 @@ final readonly class UpdateProduct
         $image = ($this->changeImage)($product->getImage(), $data->imageContent, $alt, $data->imageDecorative, ImageUsage::Product)
             ?? throw new CatalogRuleViolation('Un produit a besoin d\'une image.');
 
-        $product->update($data->slug, $data->name, $category, Price::fromCents($data->price), $data->exposure, $data->size, $data->inStock, $image, $data->featured);
+        $product->update($data->slug, $data->name, $category, Price::fromCents($data->price), $data->exposure, $data->size, $data->inStock, $image, $data->featured, $data->description);
         $this->products->save($product);
     }
 }

@@ -22,6 +22,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\Form\FormError;
@@ -89,6 +90,7 @@ final class ProductCrudController extends AbstractCrudController
         // renderAsSwitch(false) : l'interrupteur d'EasyAdmin écrirait directement dans l'entité, sans le cas d'usage
         yield BooleanField::new('inStock', 'En stock')->renderAsSwitch(false);
         yield BooleanField::new('featured', 'À la une')->renderAsSwitch(false);
+        yield TextareaField::new('description', 'Description')->onlyOnDetail();
         yield TextField::new('imageAlt', 'Texte de remplacement')->hideOnIndex();
     }
 

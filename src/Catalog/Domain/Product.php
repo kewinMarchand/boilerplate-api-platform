@@ -30,13 +30,15 @@ class Product
         private bool $inStock,
         Image $image,
         private bool $featured = false,
+        private string $description = '',
     ) {
+        $this->description = self::normalize($description);
         $this->price = $price->cents;
         $this->imageKey = $image->key;
         $this->imageAlt = $image->alt;
     }
 
-    public function update(string $slug, string $name, Category $category, Price $price, Exposure $exposure, Size $size, bool $inStock, Image $image, bool $featured): void
+    public function update(string $slug, string $name, Category $category, Price $price, Exposure $exposure, Size $size, bool $inStock, Image $image, bool $featured, string $description): void
     {
         $this->slug = $slug;
         $this->name = $name;
@@ -48,6 +50,7 @@ class Product
         $this->imageKey = $image->key;
         $this->imageAlt = $image->alt;
         $this->featured = $featured;
+        $this->description = self::normalize($description);
     }
 
     public function getId(): ?int
@@ -95,11 +98,23 @@ class Product
         return $this->featured;
     }
 
+    /** Texte brut, paragraphes séparés par une ligne vide ; vide tant que l'admin n'en a pas écrit. */
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
+
     /**
      * Null pour un produit d'avant l'envoi des images (ligne migrée), jusqu'à ce que l'admin lui en donne une.
      */
     public function getImage(): ?Image
     {
         return null === $this->imageKey ? null : new Image($this->imageKey, $this->imageAlt);
+    }
+
+    /** Fins de ligne du formulaire (CRLF) ramenées à LF, blancs de début et de fin retirés. */
+    private static function normalize(string $text): string
+    {
+        return trim(str_replace("\r\n", "\n", $text));
     }
 }

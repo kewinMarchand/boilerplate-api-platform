@@ -15,7 +15,7 @@ use App\Media\Infrastructure\ApiPlatform\ImageViews;
 
 #[ApiResource(
     shortName: 'ProductDetail',
-    description: 'Fiche d\'un produit : les champs de la liste, plus le chemin de sa catégorie.',
+    description: 'Fiche d\'un produit : les champs de la liste, plus sa description et le chemin de sa catégorie.',
     // image peut valoir null : sans cela, API Platform retire la clé alors que le schéma la déclare requise
     normalizationContext: ['skip_null_values' => false],
     operations: [
@@ -52,6 +52,8 @@ final readonly class ProductDetailResource
         public ?ImageView $image,
         #[ApiProperty(description: 'Catégories de la racine à celle du produit, pour le fil d\'Ariane.', readableLink: true, required: true)]
         public array $categoryPath,
+        #[ApiProperty(description: 'Texte brut, paragraphes séparés par une ligne vide ; chaîne vide si l\'admin n\'en a pas écrit.', required: true)]
+        public string $description,
     ) {
     }
 
@@ -68,6 +70,7 @@ final readonly class ProductDetailResource
             $product->isInStock(),
             $images->view($product->getImage(), ImageUsage::Product),
             CategoryLink::pathTo($product->getCategory()),
+            $product->getDescription(),
         );
     }
 }

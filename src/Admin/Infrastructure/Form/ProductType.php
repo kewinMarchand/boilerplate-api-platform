@@ -13,6 +13,7 @@ use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -45,6 +46,14 @@ final class ProductType extends AbstractType
                 'divisor' => 100,
                 'input' => 'integer',
                 'constraints' => [new Assert\PositiveOrZero(message: 'Le prix ne peut pas être négatif.')],
+            ])
+            ->add('description', TextareaType::class, [
+                'label' => 'Description',
+                'help' => 'Texte brut, affiché sur la fiche du produit. Une ligne vide sépare deux paragraphes.',
+                'required' => false,
+                'empty_data' => '',
+                'attr' => ['rows' => 6],
+                'constraints' => [new Assert\Length(max: 2000)],
             ])
             ->add('exposure', EnumType::class, [
                 'label' => 'Exposition',

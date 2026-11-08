@@ -67,6 +67,16 @@ final class ProductWritesTest extends TestCase
         self::assertSame(0, $this->dwarfPalm->getPrice()->cents);
     }
 
+    public function testUpdatesTheDescriptionWithUnixLineEndings(): void
+    {
+        $data = $this->data('palmier-nain', $this->palms->getId(), 4490);
+        $data->description = "  Rustique.\r\n\r\nRésiste au vent.  ";
+
+        new UpdateProduct($this->products, $this->categories, TestImages::changeImage())((int) $this->dwarfPalm->getId(), $data);
+
+        self::assertSame("Rustique.\n\nRésiste au vent.", $this->dwarfPalm->getDescription());
+    }
+
     public function testAProductWithoutAltTakesItsName(): void
     {
         $data = $this->data('palmier-geant', $this->palms->getId(), 9900);
