@@ -8,11 +8,11 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Catalog\Domain\Product;
 use App\Catalog\Domain\ProductRepository;
-use App\Catalog\Infrastructure\ApiPlatform\Resource\ProductItem;
+use App\Catalog\Infrastructure\ApiPlatform\Resource\ProductResource;
 use App\Media\Infrastructure\ApiPlatform\ImageViews;
 
 /**
- * @implements ProviderInterface<ProductItem>
+ * @implements ProviderInterface<ProductResource>
  */
 final readonly class FeaturedProductsProvider implements ProviderInterface
 {
@@ -23,10 +23,10 @@ final readonly class FeaturedProductsProvider implements ProviderInterface
     }
 
     /**
-     * @return list<ProductItem>
+     * @return list<ProductResource>
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
-        return array_map(fn (Product $product): ProductItem => ProductItem::fromModel($product, $this->images), $this->products->findFeatured());
+        return array_map(fn (Product $product): ProductResource => ProductResource::fromModel($product, $this->images), $this->products->findFeatured());
     }
 }

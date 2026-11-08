@@ -29,29 +29,23 @@ final class ScenarioHeaderTest extends ApiTestCase
         self::assertJsonEquals([]);
     }
 
-    public function testErrorScenarioAppliesToProducts(): void
+    public function testErrorScenarioAppliesToProductFacets(): void
     {
-        static::createClient()->request('GET', '/api/products', ['headers' => ['Accept' => 'application/json', 'X-Scenario' => 'error']]);
+        static::createClient()->request('GET', '/api/product-facets', ['headers' => ['Accept' => 'application/json', 'X-Scenario' => 'error']]);
 
         self::assertResponseStatusCodeSame(500);
     }
 
-    public function testEmptyScenarioReturnsAnEmptyProductList(): void
+    public function testEmptyScenarioReturnsZeroFacets(): void
     {
-        static::createClient()->request('GET', '/api/products?category=feuillages', ['headers' => ['Accept' => 'application/json', 'X-Scenario' => 'empty']]);
+        static::createClient()->request('GET', '/api/product-facets?category=feuillages', ['headers' => ['Accept' => 'application/json', 'X-Scenario' => 'empty']]);
 
         self::assertResponseIsSuccessful();
         self::assertJsonEquals([
-            'items' => [],
             'totalItems' => 0,
-            'page' => 1,
-            'itemsPerPage' => 12,
-            'totalPages' => 0,
-            'facets' => [
-                'exposure' => [['value' => 'soleil', 'count' => 0], ['value' => 'mi-ombre', 'count' => 0], ['value' => 'ombre', 'count' => 0]],
-                'size' => [['value' => 'S', 'count' => 0], ['value' => 'M', 'count' => 0], ['value' => 'L', 'count' => 0]],
-                'category' => [],
-            ],
+            'exposure' => [['value' => 'soleil', 'count' => 0], ['value' => 'mi-ombre', 'count' => 0], ['value' => 'ombre', 'count' => 0]],
+            'size' => [['value' => 'S', 'count' => 0], ['value' => 'M', 'count' => 0], ['value' => 'L', 'count' => 0]],
+            'category' => [],
         ]);
     }
 
@@ -81,5 +75,7 @@ final class ScenarioHeaderTest extends ApiTestCase
         yield 'tâches' => ['/api/tasks'];
         yield 'articles' => ['/api/articles'];
         yield 'catégories' => ['/api/categories'];
+        yield 'produits' => ['/api/products'];
+        yield 'produits à la une' => ['/api/featured-products'];
     }
 }

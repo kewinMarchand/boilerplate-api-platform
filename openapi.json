@@ -2,7 +2,7 @@
     "openapi": "3.2.0",
     "info": {
         "title": "API de test Kewin",
-        "description": "API de test commune aux boilerplates front (Next, Nuxt, SvelteKit, Symfony Twig, HTML).\nFormats : JSON simple (`application/json`, format par d\u00e9faut) et JSON-LD (`application/ld+json`).\nEn dev et en test, l'en-t\u00eate `X-Scenario: error` renvoie une 500 et `X-Scenario: empty` une collection vide (sur `/api/products` : liste sans produit, totaux et compteurs \u00e0 0).",
+        "description": "API de test commune aux boilerplates front (Next, Nuxt, SvelteKit, Symfony Twig, HTML).\nFormats : JSON simple (`application/json`, format par d\u00e9faut) et JSON-LD (`application/ld+json`).\nEn dev et en test, l'en-t\u00eate `X-Scenario: error` renvoie une 500 et `X-Scenario: empty` une collection vide (sur `/api/product-facets` : total et compteurs \u00e0 0).",
         "version": "1.0.0"
     },
     "servers": [
@@ -263,57 +263,6 @@
                 }
             }
         },
-        "/api/featured-products": {
-            "get": {
-                "operationId": "api_featured-products_get_collection",
-                "tags": [
-                    "FeaturedProduct"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "FeaturedProduct collection",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/FeaturedProduct.ProductItem"
-                                    }
-                                }
-                            },
-                            "application/ld+json": {
-                                "schema": {
-                                    "type": "object",
-                                    "description": "FeaturedProduct.ProductItem.jsonld collection.",
-                                    "allOf": [
-                                        {
-                                            "$ref": "#/components/schemas/HydraCollectionBaseSchemaNoPagination"
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "member"
-                                            ],
-                                            "properties": {
-                                                "member": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "$ref": "#/components/schemas/FeaturedProduct.ProductItem.jsonld"
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                },
-                "summary": "Retrieves the collection of FeaturedProduct resources.",
-                "description": "Retrieves the collection of FeaturedProduct resources.",
-                "parameters": []
-            }
-        },
         "/api/legal_pages/{slug}": {
             "get": {
                 "operationId": "api_legal_pages_slug_get",
@@ -376,114 +325,105 @@
                 ]
             }
         },
-        "/api/products/{slug}": {
+        "/api/featured-products": {
             "get": {
-                "operationId": "api_products_slug_get",
+                "operationId": "api_featured-products_get_collection",
                 "tags": [
-                    "ProductDetail"
+                    "Product"
                 ],
                 "responses": {
                     "200": {
-                        "description": "ProductDetail resource",
+                        "description": "Product collection",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ProductDetail"
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Product"
+                                    }
                                 }
                             },
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ProductDetail.jsonld"
+                                    "type": "object",
+                                    "description": "Product.jsonld collection.",
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/HydraCollectionBaseSchemaNoPagination"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "member"
+                                            ],
+                                            "properties": {
+                                                "member": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Product.jsonld"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "content": {
-                            "application/ld+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error.jsonld"
-                                }
-                            },
-                            "application/problem+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            },
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            }
-                        },
-                        "links": {}
                     }
                 },
-                "summary": "Retrieves a ProductDetail resource.",
-                "description": "Retrieves a ProductDetail resource.",
-                "parameters": [
-                    {
-                        "name": "slug",
-                        "in": "path",
-                        "description": "ProductDetail identifier",
-                        "required": true,
-                        "deprecated": false,
-                        "schema": {
-                            "type": "string"
-                        },
-                        "style": "simple",
-                        "explode": false
-                    }
-                ]
+                "summary": "Retrieves the collection of Product resources.",
+                "description": "Retrieves the collection of Product resources.",
+                "parameters": []
             }
         },
         "/api/products": {
             "get": {
-                "operationId": "api_products_get",
+                "operationId": "api_products_get_collection",
                 "tags": [
-                    "ProductList"
+                    "Product"
                 ],
                 "responses": {
                     "200": {
-                        "description": "ProductList resource",
+                        "description": "Product collection",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ProductList"
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Product"
+                                    }
                                 }
                             },
                             "application/ld+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ProductList.jsonld"
+                                    "type": "object",
+                                    "description": "Product.jsonld collection.",
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/HydraCollectionBaseSchemaNoPagination"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "member"
+                                            ],
+                                            "properties": {
+                                                "member": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Product.jsonld"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "content": {
-                            "application/ld+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error.jsonld"
-                                }
-                            },
-                            "application/problem+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            },
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            }
-                        },
-                        "links": {}
                     }
                 },
-                "summary": "Retrieves a ProductList resource.",
-                "description": "Retrieves a ProductList resource.",
+                "summary": "Retrieves the collection of Product resources.",
+                "description": "Retrieves the collection of Product resources.",
                 "parameters": [
                     {
                         "name": "category",
@@ -600,7 +540,7 @@
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "Num\u00e9ro de page, \u00e0 partir de 1. Au-del\u00e0 de la derni\u00e8re page : items vide.",
+                        "description": "Num\u00e9ro de page, \u00e0 partir de 1. Au-del\u00e0 de la derni\u00e8re page : tableau vide.",
                         "required": false,
                         "deprecated": false,
                         "schema": {
@@ -619,6 +559,206 @@
                         "schema": {
                             "type": "integer",
                             "default": 12
+                        },
+                        "style": "form",
+                        "explode": true
+                    }
+                ]
+            }
+        },
+        "/api/products/{slug}": {
+            "get": {
+                "operationId": "api_products_slug_get",
+                "tags": [
+                    "ProductDetail"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ProductDetail resource",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProductDetail"
+                                }
+                            },
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProductDetail.jsonld"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves a ProductDetail resource.",
+                "description": "Retrieves a ProductDetail resource.",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "description": "ProductDetail identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
+        "/api/product-facets": {
+            "get": {
+                "operationId": "api_product-facets_get",
+                "tags": [
+                    "ProductFacets"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ProductFacets resource",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProductFacets"
+                                }
+                            },
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProductFacets.jsonld"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves a ProductFacets resource.",
+                "description": "Retrieves a ProductFacets resource.",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "description": "Slug de cat\u00e9gorie : inclut toute la branche. Slug inconnu : 404.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "exposure[]",
+                        "in": "query",
+                        "description": "Expositions accept\u00e9es, cl\u00e9 r\u00e9p\u00e9t\u00e9e : exposure[]=soleil&exposure[]=ombre.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "soleil",
+                                    "mi-ombre",
+                                    "ombre"
+                                ]
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    },
+                    {
+                        "name": "size[]",
+                        "in": "query",
+                        "description": "Tailles accept\u00e9es, cl\u00e9 r\u00e9p\u00e9t\u00e9e : size[]=S&size[]=M.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "S",
+                                    "M",
+                                    "L"
+                                ]
+                            }
+                        },
+                        "style": "deepObject",
+                        "explode": true
+                    },
+                    {
+                        "name": "priceMin",
+                        "in": "query",
+                        "description": "Prix minimum inclus, en centimes.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "priceMax",
+                        "in": "query",
+                        "description": "Prix maximum inclus, en centimes.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "inStock",
+                        "in": "query",
+                        "description": "true : uniquement les produits en stock.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "boolean"
                         },
                         "style": "form",
                         "explode": true
@@ -1399,139 +1539,6 @@
                     }
                 }
             },
-            "FeaturedProduct.ProductItem": {
-                "type": "object",
-                "description": "Liste les produits \u00e0 la une par ordre alphab\u00e9tique, sans pagination.",
-                "required": [
-                    "id",
-                    "slug",
-                    "name",
-                    "categorySlug",
-                    "price",
-                    "exposure",
-                    "size",
-                    "inStock",
-                    "image"
-                ],
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "slug": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "categorySlug": {
-                        "type": "string"
-                    },
-                    "price": {
-                        "description": "Prix en centimes.",
-                        "type": "integer"
-                    },
-                    "exposure": {
-                        "type": "string",
-                        "enum": [
-                            "soleil",
-                            "mi-ombre",
-                            "ombre"
-                        ]
-                    },
-                    "size": {
-                        "type": "string",
-                        "enum": [
-                            "S",
-                            "M",
-                            "L"
-                        ]
-                    },
-                    "inStock": {
-                        "type": "boolean"
-                    },
-                    "image": {
-                        "description": "Image du produit (carr\u00e9e), null tant que l'admin n'en a pas envoy\u00e9.",
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/ImageView"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ]
-                    }
-                }
-            },
-            "FeaturedProduct.ProductItem.jsonld": {
-                "allOf": [
-                    {
-                        "$ref": "#/components/schemas/HydraItemBaseSchema"
-                    },
-                    {
-                        "type": "object",
-                        "required": [
-                            "id",
-                            "slug",
-                            "name",
-                            "categorySlug",
-                            "price",
-                            "exposure",
-                            "size",
-                            "inStock",
-                            "image"
-                        ],
-                        "properties": {
-                            "id": {
-                                "type": "integer"
-                            },
-                            "slug": {
-                                "type": "string"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "categorySlug": {
-                                "type": "string"
-                            },
-                            "price": {
-                                "description": "Prix en centimes.",
-                                "type": "integer"
-                            },
-                            "exposure": {
-                                "type": "string",
-                                "enum": [
-                                    "soleil",
-                                    "mi-ombre",
-                                    "ombre"
-                                ]
-                            },
-                            "size": {
-                                "type": "string",
-                                "enum": [
-                                    "S",
-                                    "M",
-                                    "L"
-                                ]
-                            },
-                            "inStock": {
-                                "type": "boolean"
-                            },
-                            "image": {
-                                "description": "Image du produit (carr\u00e9e), null tant que l'admin n'en a pas envoy\u00e9.",
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/components/schemas/ImageView.jsonld"
-                                    },
-                                    {
-                                        "type": "null"
-                                    }
-                                ]
-                            }
-                        }
-                    }
-                ],
-                "description": "Liste les produits \u00e0 la une par ordre alphab\u00e9tique, sans pagination."
-            },
             "HydraCollectionBaseSchema": {
                 "allOf": [
                     {
@@ -1884,6 +1891,139 @@
                     }
                 }
             },
+            "Product": {
+                "type": "object",
+                "description": "Liste une page de produits. Les filtres se combinent en ET, les valeurs d'une m\u00eame facette en OU. Une valeur invalide (inconnue, non num\u00e9rique, hors bornes) est ignor\u00e9e et remplac\u00e9e par la valeur par d\u00e9faut. Le total et les compteurs de facettes : GET /api/product-facets avec les m\u00eames filtres.",
+                "required": [
+                    "id",
+                    "slug",
+                    "name",
+                    "categorySlug",
+                    "price",
+                    "exposure",
+                    "size",
+                    "inStock",
+                    "image"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "categorySlug": {
+                        "type": "string"
+                    },
+                    "price": {
+                        "description": "Prix en centimes.",
+                        "type": "integer"
+                    },
+                    "exposure": {
+                        "type": "string",
+                        "enum": [
+                            "soleil",
+                            "mi-ombre",
+                            "ombre"
+                        ]
+                    },
+                    "size": {
+                        "type": "string",
+                        "enum": [
+                            "S",
+                            "M",
+                            "L"
+                        ]
+                    },
+                    "inStock": {
+                        "type": "boolean"
+                    },
+                    "image": {
+                        "description": "Image du produit (carr\u00e9e), null tant que l'admin n'en a pas envoy\u00e9.",
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/ImageView"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                }
+            },
+            "Product.jsonld": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "id",
+                            "slug",
+                            "name",
+                            "categorySlug",
+                            "price",
+                            "exposure",
+                            "size",
+                            "inStock",
+                            "image"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "slug": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "categorySlug": {
+                                "type": "string"
+                            },
+                            "price": {
+                                "description": "Prix en centimes.",
+                                "type": "integer"
+                            },
+                            "exposure": {
+                                "type": "string",
+                                "enum": [
+                                    "soleil",
+                                    "mi-ombre",
+                                    "ombre"
+                                ]
+                            },
+                            "size": {
+                                "type": "string",
+                                "enum": [
+                                    "S",
+                                    "M",
+                                    "L"
+                                ]
+                            },
+                            "inStock": {
+                                "type": "boolean"
+                            },
+                            "image": {
+                                "description": "Image du produit (carr\u00e9e), null tant que l'admin n'en a pas envoy\u00e9.",
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/components/schemas/ImageView.jsonld"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "description": "Liste une page de produits. Les filtres se combinent en ET, les valeurs d'une m\u00eame facette en OU. Une valeur invalide (inconnue, non num\u00e9rique, hors bornes) est ignor\u00e9e et remplac\u00e9e par la valeur par d\u00e9faut. Le total et les compteurs de facettes : GET /api/product-facets avec les m\u00eames filtres."
+            },
             "ProductDetail": {
                 "type": "object",
                 "description": "Lit un produit par son slug.",
@@ -2045,12 +2185,18 @@
             },
             "ProductFacets": {
                 "type": "object",
+                "description": "Compte les produits filtr\u00e9s, au total et par valeur de facette. M\u00eames filtres que GET /api/products, sans tri ni pagination.",
                 "required": [
+                    "totalItems",
                     "exposure",
                     "size",
                     "category"
                 ],
                 "properties": {
+                    "totalItems": {
+                        "description": "Nombre de produits filtr\u00e9s, toutes pages confondues.",
+                        "type": "integer"
+                    },
                     "exposure": {
                         "description": "Toutes les expositions, y compris \u00e0 0.",
                         "type": "array",
@@ -2075,198 +2221,6 @@
                 }
             },
             "ProductFacets.jsonld": {
-                "type": "object",
-                "required": [
-                    "exposure",
-                    "size",
-                    "category"
-                ],
-                "properties": {
-                    "exposure": {
-                        "description": "Toutes les expositions, y compris \u00e0 0.",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/FacetValue.jsonld"
-                        }
-                    },
-                    "size": {
-                        "description": "Toutes les tailles, y compris \u00e0 0.",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/FacetValue.jsonld"
-                        }
-                    },
-                    "category": {
-                        "description": "Sous-cat\u00e9gories directes de la cat\u00e9gorie filtr\u00e9e (cat\u00e9gories racines sans filtre). Vide sur une feuille.",
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/CategoryFacetValue.jsonld"
-                        }
-                    }
-                }
-            },
-            "ProductItem": {
-                "type": "object",
-                "required": [
-                    "id",
-                    "slug",
-                    "name",
-                    "categorySlug",
-                    "price",
-                    "exposure",
-                    "size",
-                    "inStock",
-                    "image"
-                ],
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "slug": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "categorySlug": {
-                        "type": "string"
-                    },
-                    "price": {
-                        "description": "Prix en centimes.",
-                        "type": "integer"
-                    },
-                    "exposure": {
-                        "type": "string",
-                        "enum": [
-                            "soleil",
-                            "mi-ombre",
-                            "ombre"
-                        ]
-                    },
-                    "size": {
-                        "type": "string",
-                        "enum": [
-                            "S",
-                            "M",
-                            "L"
-                        ]
-                    },
-                    "inStock": {
-                        "type": "boolean"
-                    },
-                    "image": {
-                        "description": "Image du produit (carr\u00e9e), null tant que l'admin n'en a pas envoy\u00e9.",
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/ImageView"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ]
-                    }
-                }
-            },
-            "ProductItem.jsonld": {
-                "type": "object",
-                "required": [
-                    "id",
-                    "slug",
-                    "name",
-                    "categorySlug",
-                    "price",
-                    "exposure",
-                    "size",
-                    "inStock",
-                    "image"
-                ],
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "slug": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "categorySlug": {
-                        "type": "string"
-                    },
-                    "price": {
-                        "description": "Prix en centimes.",
-                        "type": "integer"
-                    },
-                    "exposure": {
-                        "type": "string",
-                        "enum": [
-                            "soleil",
-                            "mi-ombre",
-                            "ombre"
-                        ]
-                    },
-                    "size": {
-                        "type": "string",
-                        "enum": [
-                            "S",
-                            "M",
-                            "L"
-                        ]
-                    },
-                    "inStock": {
-                        "type": "boolean"
-                    },
-                    "image": {
-                        "description": "Image du produit (carr\u00e9e), null tant que l'admin n'en a pas envoy\u00e9.",
-                        "anyOf": [
-                            {
-                                "$ref": "#/components/schemas/ImageView.jsonld"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ]
-                    }
-                }
-            },
-            "ProductList": {
-                "type": "object",
-                "description": "Liste les produits du catalogue. Les filtres se combinent en ET, les valeurs d'une m\u00eame facette en OU. Une valeur invalide (inconnue, non num\u00e9rique, hors bornes) est ignor\u00e9e et remplac\u00e9e par la valeur par d\u00e9faut.",
-                "required": [
-                    "items",
-                    "totalItems",
-                    "page",
-                    "itemsPerPage",
-                    "totalPages",
-                    "facets"
-                ],
-                "properties": {
-                    "items": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/ProductItem"
-                        }
-                    },
-                    "totalItems": {
-                        "description": "Nombre total de produits filtr\u00e9s, toutes pages confondues.",
-                        "type": "integer"
-                    },
-                    "page": {
-                        "type": "integer"
-                    },
-                    "itemsPerPage": {
-                        "type": "integer"
-                    },
-                    "totalPages": {
-                        "description": "Nombre de pages, 0 si aucun r\u00e9sultat.",
-                        "type": "integer"
-                    },
-                    "facets": {
-                        "$ref": "#/components/schemas/ProductFacets"
-                    }
-                }
-            },
-            "ProductList.jsonld": {
                 "allOf": [
                     {
                         "$ref": "#/components/schemas/HydraItemBaseSchema"
@@ -2274,41 +2228,41 @@
                     {
                         "type": "object",
                         "required": [
-                            "items",
                             "totalItems",
-                            "page",
-                            "itemsPerPage",
-                            "totalPages",
-                            "facets"
+                            "exposure",
+                            "size",
+                            "category"
                         ],
                         "properties": {
-                            "items": {
+                            "totalItems": {
+                                "description": "Nombre de produits filtr\u00e9s, toutes pages confondues.",
+                                "type": "integer"
+                            },
+                            "exposure": {
+                                "description": "Toutes les expositions, y compris \u00e0 0.",
                                 "type": "array",
                                 "items": {
-                                    "$ref": "#/components/schemas/ProductItem.jsonld"
+                                    "$ref": "#/components/schemas/FacetValue.jsonld"
                                 }
                             },
-                            "totalItems": {
-                                "description": "Nombre total de produits filtr\u00e9s, toutes pages confondues.",
-                                "type": "integer"
+                            "size": {
+                                "description": "Toutes les tailles, y compris \u00e0 0.",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/FacetValue.jsonld"
+                                }
                             },
-                            "page": {
-                                "type": "integer"
-                            },
-                            "itemsPerPage": {
-                                "type": "integer"
-                            },
-                            "totalPages": {
-                                "description": "Nombre de pages, 0 si aucun r\u00e9sultat.",
-                                "type": "integer"
-                            },
-                            "facets": {
-                                "$ref": "#/components/schemas/ProductFacets.jsonld"
+                            "category": {
+                                "description": "Sous-cat\u00e9gories directes de la cat\u00e9gorie filtr\u00e9e (cat\u00e9gories racines sans filtre). Vide sur une feuille.",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/CategoryFacetValue.jsonld"
+                                }
                             }
                         }
                     }
                 ],
-                "description": "Liste les produits du catalogue. Les filtres se combinent en ET, les valeurs d'une m\u00eame facette en OU. Une valeur invalide (inconnue, non num\u00e9rique, hors bornes) est ignor\u00e9e et remplac\u00e9e par la valeur par d\u00e9faut."
+                "description": "Compte les produits filtr\u00e9s, au total et par valeur de facette. M\u00eames filtres que GET /api/products, sans tri ni pagination."
             },
             "Task": {
                 "type": "object",
@@ -2380,16 +2334,16 @@
             "description": "Cat\u00e9gorie du catalogue, avec ses sous-cat\u00e9gories imbriqu\u00e9es."
         },
         {
-            "name": "FeaturedProduct",
-            "description": "Produits \u00e0 la une, montr\u00e9s dans le carrousel de la page d'accueil."
-        },
-        {
             "name": "ProductDetail",
             "description": "Fiche d'un produit : les champs de la liste, plus sa description et le chemin de sa cat\u00e9gorie."
         },
         {
-            "name": "ProductList",
-            "description": "Page de produits filtr\u00e9s, avec le total et les compteurs de facettes disjonctifs."
+            "name": "ProductFacets",
+            "description": "Total des produits filtr\u00e9s et compteurs de facettes disjonctifs."
+        },
+        {
+            "name": "Product",
+            "description": "Produit du catalogue, sans sa description ni le chemin de sa cat\u00e9gorie (voir ProductDetail)."
         },
         {
             "name": "ContactMessage",

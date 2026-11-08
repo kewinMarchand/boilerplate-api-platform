@@ -9,9 +9,10 @@ API de test commune aux cinq boilerplates front (Next, Nuxt, SvelteKit, Symfony 
 | `ArticleDetail`  | `GET /api/articles/{slug}`   | fiche d'un article : les mêmes champs, plus `html` (texte saisi en Markdown dans l'admin, converti en HTML) ; 404 sinon |
 | `ContactMessage` | `POST /api/contact_messages` | 201 et le message enregistré, ou 422 avec les violations en français |
 | `Category`       | `GET /api/categories`        | L'arbre des 14 catégories du catalogue (`slug`, `name`, `parent`, `children`) |
-| `ProductList`    | `GET /api/products`          | Une page des 24 produits, filtrée et triée, avec le total et les compteurs de facettes |
+| `Product`        | `GET /api/products`          | Une page des 24 produits, filtrée et triée (tableau) |
+| `ProductFacets`  | `GET /api/product-facets`    | Le total des produits filtrés et les compteurs de facettes, avec les mêmes filtres |
 | `ProductDetail`  | `GET /api/products/{slug}`   | fiche d'un produit : les champs de la liste, plus `categoryPath` (catégories de la racine à la sienne, `slug` et `name`) et `description` (texte brut, paragraphes séparés par une ligne vide, chaîne vide si aucune) ; 404 sinon |
-| `FeaturedProduct` | `GET /api/featured-products` | Les produits « À la une » (case de l'admin), par nom, sous la forme des éléments de la liste : le carrousel de l'accueil |
+| `Product`        | `GET /api/featured-products` | Les produits « À la une » (case de l'admin), par nom : le carrousel de l'accueil |
 | `LegalPage`      | `GET /api/legal_pages/{slug}` | `mentions-legales`, `donnees-personnelles` ou `accessibilite` : `title`, `introduction` et `sections` (`title`, `html`) ; 404 sinon |
 
 Tout est en lecture seule sauf le contact (un `POST` répond 405). Les collections ne sont pas paginées, sauf les produits qui ont leur propre pagination.
@@ -117,19 +118,22 @@ Un payload invalide renvoie **422** en `application/problem+json`. Le tableau `v
 
 Jardinerie tropicale fictive : 3 catégories racines, 14 catégories sur 3 niveaux, 24 produits dans les feuilles. `GET /api/categories` renvoie les racines, chacune avec ses `children` imbriqués (`parent` vaut `null` à la racine).
 
-`GET /api/products` renvoie un **objet**, pas une collection :
+`GET /api/products` renvoie une page de produits, sous la forme d'un **tableau** comme les autres collections. Le total et les compteurs de facettes sont une ressource à part, `GET /api/product-facets`, qui prend les mêmes filtres ([ADR 0005](doc/adr/0005-collection-de-produits-et-facettes-a-part.md)) :
+
+```json
+[{ "id": 1, "slug": "monstera-deliciosa", "name": "Monstera deliciosa", "categorySlug": "monstera", "price": 3490, "exposure": "mi-ombre", "size": "M", "inStock": true, "image": { … } }, …]
+```
 
 ```json
 {
-  "items": [{ "id": 1, "slug": "monstera-deliciosa", "name": "Monstera deliciosa", "categorySlug": "monstera", "price": 3490, "exposure": "mi-ombre", "size": "M", "inStock": true, "image": 1 }],
-  "totalItems": 24, "page": 1, "itemsPerPage": 12, "totalPages": 2,
-  "facets": {
-    "exposure": [{ "value": "soleil", "count": 14 }, { "value": "mi-ombre", "count": 7 }, { "value": "ombre", "count": 3 }],
-    "size": [{ "value": "S", "count": 6 }, { "value": "M", "count": 9 }, { "value": "L", "count": 9 }],
-    "category": [{ "slug": "plantes-interieur", "name": "Plantes d’intérieur", "count": 12 }, ...]
-  }
+  "totalItems": 24,
+  "exposure": [{ "value": "soleil", "count": 14 }, { "value": "mi-ombre", "count": 7 }, { "value": "ombre", "count": 3 }],
+  "size": [{ "value": "S", "count": 6 }, { "value": "M", "count": 9 }, { "value": "L", "count": 9 }],
+  "category": [{ "slug": "plantes-interieur", "name": "Plantes d’intérieur", "count": 12 }, …]
 }
 ```
+
+En JSON-LD (`Accept: application/ld+json`), la liste est une `Collection` Hydra : `totalItems` filtré, `member` (chaque produit a son IRI `/api/products/{slug}`) et `view` (liens des pages).
 
 | Paramètre | Effet |
 | --------- | ----- |
@@ -138,12 +142,12 @@ Jardinerie tropicale fictive : 3 catégories racines, 14 catégories sur 3 nivea
 | `size[]` | `S`, `M`, `L`, clé répétée, valeurs combinées en OU |
 | `priceMin`, `priceMax` | Bornes incluses, en **centimes** |
 | `inStock` | `true` ou `1` : produits en stock seulement |
-| `order[price]`, `order[name]` | `asc` ou `desc`. Le prix l'emporte si les deux sont donnés. Sans tri : ordre de pertinence (ordre des fixtures). Tri par nom en collation française |
-| `page`, `itemsPerPage` | Page à partir de 1, 12 produits par défaut, 48 au plus. Au-delà de la dernière page, `items` est vide |
+| `order[price]`, `order[name]` | Liste seulement. `asc` ou `desc`. Le prix l'emporte si les deux sont donnés. Sans tri : ordre de pertinence (ordre des fixtures). Tri par nom en collation française |
+| `page`, `itemsPerPage` | Liste seulement. Page à partir de 1, 12 produits par défaut, 48 au plus. Au-delà de la dernière page, le tableau est vide |
 
-Les facettes sont **disjonctives** : le compteur d'une valeur d'exposition applique tous les filtres actifs sauf l'exposition, idem pour la taille. `facets.category` liste les sous-catégories directes de la catégorie filtrée (les racines sans `category`, vide sur une feuille), comptées avec tous les autres filtres. Toutes les expositions et tailles sont toujours présentes, y compris à 0.
+Les facettes sont **disjonctives** : le compteur d'une valeur d'exposition applique tous les filtres actifs sauf l'exposition, idem pour la taille. `category` liste les sous-catégories directes de la catégorie filtrée (les racines sans `category`, vide sur une feuille), comptées avec tous les autres filtres. Toutes les expositions et tailles sont toujours présentes, y compris à 0.
 
-Une valeur invalide (exposition inconnue, prix non numérique, page hors bornes) est **ignorée**, comme dans l'URL des fronts : pas de 422. `image` est l'index du visuel partagé (`product-{1..12}`).
+Une valeur invalide (exposition inconnue, prix non numérique, page hors bornes) est **ignorée**, comme dans l'URL des fronts : pas de 422.
 
 ### Simuler un état : en-tête `X-Scenario`
 
@@ -152,7 +156,7 @@ En dev et en test uniquement. En prod, la classe n'est pas enregistrée et l'en-
 | Valeur  | Effet                                                                |
 | ------- | -------------------------------------------------------------------- |
 | `error` | 500 en `application/problem+json`, sur toutes les opérations         |
-| `empty` | Collection vide (`[]`) sur les tâches, articles et catégories. Sur `/api/products` : `items` vide, totaux à 0, compteurs à 0 |
+| `empty` | Collection vide (`[]`) sur les tâches, articles, catégories et produits. Sur `/api/product-facets` : total et compteurs à 0 |
 
 Toute autre valeur est ignorée.
 
@@ -168,7 +172,7 @@ Les origines autorisées sont une expression régulière dans `CORS_ALLOW_ORIGIN
 
 Le schéma OpenAPI est servi à **`http://localhost:8090/api/docs.jsonopenapi`** (OpenAPI 3.2, `application/vnd.openapi+json`). Il est aussi versionné dans **`openapi.json`** à la racine, pour générer les types sans lancer l'API. Côté front, `make api-types` génère les types depuis le schéma désigné par `API_SCHEMA_URL` (voir le README du front).
 
-Les schémas utiles côté front sont `Task`, `Article`, `ContactMessage`, `ConstraintViolation`, `Category`, `ProductList`, `ProductItem`, `ProductFacets`, `FacetValue`, `CategoryFacetValue`, `ProductDetail`, `CategoryLink`, `FeaturedProduct.ProductItem`, `LegalPage`, `ImageView` et `ImageSource` (les variantes `.jsonld` concernent le JSON-LD). `make qa` échoue si `openapi.json` est périmé : relancer `make openapi` après toute modification d'une ressource.
+Les schémas utiles côté front sont `Task`, `Article`, `ContactMessage`, `ConstraintViolation`, `Category`, `Product`, `ProductFacets`, `FacetValue`, `CategoryFacetValue`, `ProductDetail`, `CategoryLink`, `LegalPage`, `ImageView` et `ImageSource` (les variantes `.jsonld` concernent le JSON-LD). `make qa` échoue si `openapi.json` est périmé : relancer `make openapi` après toute modification d'une ressource.
 
 ### Images
 
@@ -323,7 +327,7 @@ Puis, selon l'origine du dépôt :
 4. Dans `deptrac.yaml`, retirer les couches `Catalog*`, `Blog*` et `Contact*` et leurs lignes de `ruleset`.
 5. Dans `Makefile.qa.mk`, pointer `make arch-selftest` sur le module conservé : `ARCH_SELFTEST_FILE = src/Task/Domain/ArchSelftestViolation.php`, puis remplacer dans le `printf` et le `grep` de la cible `App\Catalog\Domain` par `App\Task\Domain`, `App\Catalog\Infrastructure\Doctrine\DoctrineProductRepository` par `App\Task\Infrastructure\Doctrine\DoctrineTaskRepository` (et le type du paramètre), `App\\Catalog\\Infrastructure` par `App\\Task\\Infrastructure`.
 6. Adapter les tests transverses qui visent les ressources retirées :
-   - `tests/Functional/ScenarioHeaderTest.php` : supprimer les tests sur `/api/products` et `/api/contact_messages`, et les entrées `articles` et `catégories` de `collections()`.
+   - `tests/Functional/ScenarioHeaderTest.php` : supprimer les tests sur `/api/product-facets` et `/api/contact_messages`, et les entrées `articles`, `catégories`, `produits` et `produits à la une` de `collections()`.
    - `tests/Functional/CorsTest.php` : faire porter le test de prévol sur `/api/tasks` avec la méthode `GET`.
 7. Repartir d'une migration propre. La migration actuelle crée toutes les tables :
 

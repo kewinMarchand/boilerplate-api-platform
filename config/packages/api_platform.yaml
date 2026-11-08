@@ -3,7 +3,7 @@ api_platform:
     description: |
         API de test commune aux boilerplates front (Next, Nuxt, SvelteKit, Symfony Twig, HTML).
         Formats : JSON simple (`application/json`, format par défaut) et JSON-LD (`application/ld+json`).
-        En dev et en test, l'en-tête `X-Scenario: error` renvoie une 500 et `X-Scenario: empty` une collection vide (sur `/api/products` : liste sans produit, totaux et compteurs à 0).
+        En dev et en test, l'en-tête `X-Scenario: error` renvoie une 500 et `X-Scenario: empty` une collection vide (sur `/api/product-facets` : total et compteurs à 0).
     version: 1.0.0
     mapping:
         paths:

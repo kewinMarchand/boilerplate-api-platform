@@ -8,3 +8,4 @@ Une décision structurante par fichier, numérotée, jamais réécrite une fois 
 | [0002](0002-images-envoyees-par-l-admin.md)             | Images envoyées par l'admin : volume de l'API, variantes générées à l'envoi | Acceptée, complétée par 0003 |
 | [0003](0003-variante-intermediaire-des-produits.md)     | Variante intermédiaire de 640 px pour les images des produits    | Acceptée |
 | [0004](0004-carrousel-de-produits-a-la-une.md)          | Carrousel de l'accueil : produits à la une, diapositives retirées | Proposée |
+| [0005](0005-collection-de-produits-et-facettes-a-part.md) | Liste des produits en collection standard, facettes dans une ressource à part | Acceptée |
