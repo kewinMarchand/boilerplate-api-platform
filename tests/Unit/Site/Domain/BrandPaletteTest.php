@@ -23,16 +23,24 @@ final class BrandPaletteTest extends TestCase
         self::assertSame(['#f2b705', '#b68904', '#111827', '#fef9eb', '#fdf2d2', '#fbe8af'], $this->values($palette->secondary));
     }
 
-    public function testLightensEachColorInFivePercentStepsUntilFourAndAHalfToOneOnTheDarkBackground(): void
+    public function testLightensEachColorInFivePercentStepsUntilFourAndAHalfToOneOnTheDarkSurface(): void
     {
         $palette = BrandPalette::dark(new HexColor('#1d4ed8'), new HexColor('#7c3aed'));
 
-        // 25 % de blanc pour la principale, 20 % pour la secondaire, -dark à 25 % de blanc en plus, texte de la couleur du fond
-        self::assertSame(['#567ae2', '#809be9', '#0f141d', '#151c2d', '#182035', '#1c2742'], $this->values($palette->primary));
-        self::assertSame(['#9661f1', '#b088f4', '#0f141d', '#1a1a2e', '#1f1d36', '#292345'], $this->values($palette->secondary));
-        $background = new HexColor(BrandPalette::DARK_BACKGROUND);
-        self::assertGreaterThanOrEqual(4.5, $palette->primary->color->contrastWith($background));
-        self::assertLessThan(4.5, new HexColor('#1d4ed8')->mix(new HexColor('#ffffff'), 0.20)->contrastWith($background));
+        // 35 % de blanc pour la principale, 30 % pour la secondaire, -dark à 25 % de blanc en plus, texte de la couleur du fond
+        self::assertSame(['#6c8ce6', '#91a9ec', '#0f141d', '#161e2d', '#1a2235', '#212b43'], $this->values($palette->primary));
+        self::assertSame(['#a375f2', '#ba98f5', '#0f141d', '#1b1c2e', '#212037', '#2b2645'], $this->values($palette->secondary));
+        $surface = new HexColor(BrandPalette::DARK_CONTRAST_SURFACE);
+        self::assertGreaterThanOrEqual(4.5, $palette->primary->color->contrastWith($surface));
+        self::assertLessThan(4.5, new HexColor('#1d4ed8')->mix(new HexColor('#ffffff'), 0.30)->contrastWith($surface));
+    }
+
+    public function testKeepsTheBrandRedReadableOnASurfaceLighterThanTheBackground(): void
+    {
+        $palette = BrandPalette::dark(new HexColor('#e10600'), new HexColor('#cf4919'));
+
+        self::assertSame(['#ec5d59', '#d96d47'], [$palette->primary->color->value, $palette->secondary->color->value]);
+        self::assertGreaterThanOrEqual(4.5, $palette->primary->color->contrastWith(new HexColor('#1a1a1d')));
     }
 
     public function testTextOnADarkThemeColorIsAlwaysReadable(): void
@@ -53,7 +61,7 @@ final class BrandPaletteTest extends TestCase
 
     public function testLightensBlackToMidGray(): void
     {
-        self::assertSame('#808080', BrandPalette::dark(new HexColor('#000000'), new HexColor('#000000'))->primary->color->value);
+        self::assertSame('#8c8c8c', BrandPalette::dark(new HexColor('#000000'), new HexColor('#000000'))->primary->color->value);
     }
 
     /**
