@@ -10,7 +10,7 @@ API de test commune aux cinq boilerplates front (Next, Nuxt, SvelteKit, Symfony 
 | `ContactMessage` | `POST /api/contact_messages` | 201 et le message enregistré, ou 422 avec les violations en français |
 | `Category`       | `GET /api/categories`        | L'arbre des 14 catégories du catalogue (`slug`, `name`, `parent`, `children`) |
 | `Product`        | `GET /api/products`          | Une page des 24 produits, filtrée et triée (tableau) |
-| `ProductFacets`  | `GET /api/product-facets`    | Le total des produits filtrés et les compteurs de facettes, avec les mêmes filtres |
+| `ProductFacets`  | `GET /api/product-facets`    | Le total des produits filtrés et les compteurs de facettes (dont les attributs filtrables), avec les mêmes filtres |
 | `ProductDetail`  | `GET /api/products/{slug}`   | fiche d'un produit : les champs de la liste, plus `categoryPath` (catégories de la racine à la sienne, `slug` et `name`) et `description` (texte brut, paragraphes séparés par une ligne vide, chaîne vide si aucune) ; 404 sinon |
 | `Product`        | `GET /api/featured-products` | Les produits « À la une » (case de l'admin), par nom : le carrousel de l'accueil |
 | `LegalPage`      | `GET /api/legal_pages/{slug}` | `mentions-legales`, `donnees-personnelles` ou `accessibilite` : `title`, `introduction` et `sections` (`title`, `html`) ; 404 sinon |
@@ -117,12 +117,12 @@ Un payload invalide renvoie **422** en `application/problem+json`. Le tableau `v
 
 ### Catalogue
 
-Jardinerie tropicale fictive : 3 catégories racines, 14 catégories sur 3 niveaux, 24 produits dans les feuilles. `GET /api/categories` renvoie les racines, chacune avec ses `children` imbriqués (`parent` vaut `null` à la racine).
+Jardinerie tropicale fictive : 3 catégories racines, 14 catégories sur 3 niveaux, 24 produits dans les feuilles, deux attributs configurables ([ADR 0007](doc/adr/0007-attributs-de-produit-configurables.md)). `GET /api/categories` renvoie les racines, chacune avec ses `children` imbriqués (`parent` vaut `null` à la racine).
 
 `GET /api/products` renvoie une page de produits, sous la forme d'un **tableau** comme les autres collections. Le total et les compteurs de facettes sont une ressource à part, `GET /api/product-facets`, qui prend les mêmes filtres ([ADR 0005](doc/adr/0005-collection-de-produits-et-facettes-a-part.md)) :
 
 ```json
-[{ "id": 1, "slug": "monstera-deliciosa", "name": "Monstera deliciosa", "categorySlug": "monstera", "price": 3490, "exposure": "mi-ombre", "size": "M", "inStock": true, "image": { … } }, …]
+[{ "id": 1, "slug": "monstera-deliciosa", "name": "Monstera deliciosa", "categorySlug": "monstera", "price": 3490, "exposure": "mi-ombre", "size": "M", "inStock": true, "image": { … }, "attributes": [{ "code": "feuillage", "label": "Feuillage", "type": "choice", "value": "persistant", "valueLabel": "Persistant", "unit": null }, { "code": "hauteur-adulte", "label": "Hauteur adulte", "type": "number", "value": "300", "valueLabel": "300", "unit": "cm" }] }, …]
 ```
 
 ```json
@@ -130,7 +130,8 @@ Jardinerie tropicale fictive : 3 catégories racines, 14 catégories sur 3 nivea
   "totalItems": 24,
   "exposure": [{ "value": "soleil", "count": 14 }, { "value": "mi-ombre", "count": 7 }, { "value": "ombre", "count": 3 }],
   "size": [{ "value": "S", "count": 6 }, { "value": "M", "count": 9 }, { "value": "L", "count": 9 }],
-  "category": [{ "slug": "plantes-interieur", "name": "Plantes d’intérieur", "count": 12 }, …]
+  "category": [{ "slug": "plantes-interieur", "name": "Plantes d’intérieur", "count": 12 }, …],
+  "attributes": [{ "code": "feuillage", "label": "Feuillage", "values": [{ "value": "persistant", "label": "Persistant", "count": 6 }, { "value": "caduc", "label": "Caduc", "count": 2 }] }]
 }
 ```
 
@@ -143,12 +144,15 @@ En JSON-LD (`Accept: application/ld+json`), la liste est une `Collection` Hydra 
 | `size[]` | `S`, `M`, `L`, clé répétée, valeurs combinées en OU |
 | `priceMin`, `priceMax` | Bornes incluses, en **centimes** |
 | `inStock` | `true` ou `1` : produits en stock seulement |
+| `attributes[<code>][]` | Attributs filtrables (type `choice`) : `attributes[feuillage][]=persistant`, clé répétée, valeurs d'un même attribut en OU, attributs entre eux en ET |
 | `order[price]`, `order[name]` | Liste seulement. `asc` ou `desc`. Le prix l'emporte si les deux sont donnés. Sans tri : ordre de pertinence (ordre des fixtures). Tri par nom en collation française |
 | `page`, `itemsPerPage` | Liste seulement. Page à partir de 1, 12 produits par défaut, 48 au plus. Au-delà de la dernière page, le tableau est vide |
 
-Les facettes sont **disjonctives** : le compteur d'une valeur d'exposition applique tous les filtres actifs sauf l'exposition, idem pour la taille. `category` liste les sous-catégories directes de la catégorie filtrée (les racines sans `category`, vide sur une feuille), comptées avec tous les autres filtres. Toutes les expositions et tailles sont toujours présentes, y compris à 0.
+Les facettes sont **disjonctives** : le compteur d'une valeur d'exposition applique tous les filtres actifs sauf l'exposition, idem pour la taille. `category` liste les sous-catégories directes de la catégorie filtrée (les racines sans `category`, vide sur une feuille), comptées avec tous les autres filtres. Toutes les expositions et tailles sont toujours présentes, y compris à 0. `attributes` liste les attributs filtrables portés par au moins un produit de la branche, avec toutes leurs valeurs (y compris à 0), comptées avec tous les filtres sauf celui de leur propre attribut.
 
-Une valeur invalide (exposition inconnue, prix non numérique, page hors bornes) est **ignorée**, comme dans l'URL des fronts : pas de 422.
+**Attributs configurables** : les caractéristiques propres à un client (diamètre d'une jante, kilométrage d'un véhicule) se définissent dans l'admin, section « Attributs » (code, libellé, type `choice`, `number` ou `text`, unité, filtre du catalogue, position, valeurs d'une liste), sans changer le code ; le formulaire du produit gagne un champ par attribut. Chaque produit et chaque fiche exposent `attributes`, les attributs renseignés par position (`value` en chaîne, `valueLabel` = libellé de la valeur pour une liste, `unit` à `null` sans unité). Fixtures : `feuillage` (liste filtrable, 8 produits) et `hauteur-adulte` (nombre, en cm, 6 produits).
+
+Une valeur invalide (exposition inconnue, prix non numérique, page hors bornes, attribut ou valeur inconnus) est **ignorée**, comme dans l'URL des fronts : pas de 422.
 
 ### Simuler un état : en-tête `X-Scenario`
 
@@ -157,7 +161,7 @@ En dev et en test uniquement. En prod, la classe n'est pas enregistrée et l'en-
 | Valeur  | Effet                                                                |
 | ------- | -------------------------------------------------------------------- |
 | `error` | 500 en `application/problem+json`, sur toutes les opérations         |
-| `empty` | Collection vide (`[]`) sur les tâches, articles, catégories et produits. Sur `/api/product-facets` : total et compteurs à 0. Sur `/api/site-identity` : l'identité par défaut (celle des fixtures) |
+| `empty` | Collection vide (`[]`) sur les tâches, articles, catégories et produits. Sur `/api/product-facets` : total et compteurs à 0, `attributes` vide. Sur `/api/site-identity` : l'identité par défaut (celle des fixtures) |
 
 Toute autre valeur est ignorée.
 
@@ -212,9 +216,11 @@ src/
   Blog/                     articles, même découpage
   Contact/                  messages de contact, ressource + processor
   Catalog/                  catégories et produits
-    Domain/                 Price, CategoryTree (value objects), ProductSearch : filtre,
-                            facettes disjonctives, tri, pagination (PHP pur)
-    Application/            SearchProducts : charge par les ports, délègue à ProductSearch
+    Domain/                 Price, CategoryTree (value objects), ProductAttribute (attributs
+                            configurables), ProductSearch : filtre, facettes disjonctives,
+                            tri, pagination (PHP pur)
+    Application/            SearchProducts : charge par les ports, délègue à ProductSearch ;
+                            écritures de l'admin (catégories, produits, attributs)
   Site/                     identité du site (ADR 0006)
     Domain/                 SiteIdentity, HexColor, BrandColors (règles de contraste), BrandPalette
                             et ColorShades (jetons clair et sombre)

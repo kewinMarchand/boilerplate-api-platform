@@ -51,6 +51,7 @@ final class ScenarioHeaderTest extends ApiTestCase
             'exposure' => [['value' => 'soleil', 'count' => 0], ['value' => 'mi-ombre', 'count' => 0], ['value' => 'ombre', 'count' => 0]],
             'size' => [['value' => 'S', 'count' => 0], ['value' => 'M', 'count' => 0], ['value' => 'L', 'count' => 0]],
             'category' => [],
+            'attributes' => [],
         ]);
     }
 

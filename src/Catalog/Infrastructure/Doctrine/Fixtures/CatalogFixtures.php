@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Catalog\Infrastructure\Doctrine\Fixtures;
 
+use App\Catalog\Domain\AttributeChoice;
+use App\Catalog\Domain\AttributeType;
 use App\Catalog\Domain\Category;
 use App\Catalog\Domain\Exposure;
 use App\Catalog\Domain\Price;
 use App\Catalog\Domain\Product;
+use App\Catalog\Domain\ProductAttribute;
 use App\Catalog\Domain\Size;
 use App\Media\Domain\ImageUsage;
 use App\Media\Infrastructure\Fixtures\DemoImages;
@@ -15,7 +18,8 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
 /**
- * Jardinerie tropicale fictive : arbre de catégories sur 3 niveaux, 24 produits répartis dans les feuilles.
+ * Jardinerie tropicale fictive : arbre de catégories sur 3 niveaux, 24 produits répartis dans les feuilles,
+ * deux attributs de démonstration renseignés sur quelques plantes (section 23 de la spec commune).
  */
 final class CatalogFixtures extends Fixture
 {
@@ -76,6 +80,20 @@ final class CatalogFixtures extends Fixture
     /** Produits du carrousel de la page d'accueil. */
     private const array FEATURED = ['heliconia-rostrata', 'anthurium-andreanum-rouge', 'calliandra-haematocephala', 'strelitzia-reginae', 'nenuphar-bleu-du-nil'];
 
+    /** Attributs renseignés, par slug : feuillage (liste filtrable) et hauteur adulte (nombre, en cm). */
+    private const array ATTRIBUTE_VALUES = [
+        'monstera-deliciosa' => ['feuillage' => 'persistant', 'hauteur-adulte' => '300'],
+        'monstera-adansonii' => ['feuillage' => 'persistant'],
+        'fougere-de-boston' => ['feuillage' => 'persistant'],
+        'fougere-arborescente-dicksonia' => ['hauteur-adulte' => '500'],
+        'strelitzia-nicolai' => ['feuillage' => 'persistant', 'hauteur-adulte' => '600'],
+        'palmier-de-chine' => ['feuillage' => 'persistant', 'hauteur-adulte' => '1200'],
+        'palmier-bleu-du-mexique' => ['feuillage' => 'persistant'],
+        'palmier-nain' => ['hauteur-adulte' => '250'],
+        'nenuphar-blanc-rustique' => ['feuillage' => 'caduc'],
+        'lotus-sacre' => ['feuillage' => 'caduc', 'hauteur-adulte' => '150'],
+    ];
+
     /** Description de chaque produit, par slug. */
     private const array DESCRIPTIONS = [
         'monstera-deliciosa' => "Grandes feuilles vert profond, découpées et perforées avec l’âge : le monstera deliciosa habille une pièce à lui seul.\n\nLumière vive sans soleil direct, arrosage quand le terreau a séché sur deux centimètres. Un tuteur en mousse l’aide à grimper.",
@@ -114,8 +132,14 @@ final class CatalogFixtures extends Fixture
             $manager->persist($categories[$slug]);
         }
 
+        $manager->persist(new ProductAttribute('feuillage', 'Feuillage', AttributeType::Choice, null, true, 1, [
+            new AttributeChoice('persistant', 'Persistant'),
+            new AttributeChoice('caduc', 'Caduc'),
+        ]));
+        $manager->persist(new ProductAttribute('hauteur-adulte', 'Hauteur adulte', AttributeType::Number, 'cm', false, 2));
+
         foreach (self::PRODUCTS as $index => [$slug, $name, $categorySlug, $price, $exposure, $size, $inStock]) {
-            $manager->persist(new Product(
+            $product = new Product(
                 $slug,
                 $name,
                 $categories[$categorySlug],
@@ -126,7 +150,9 @@ final class CatalogFixtures extends Fixture
                 $this->images->import('product-'.($index % 12 + 1), ImageUsage::Product, $name),
                 \in_array($slug, self::FEATURED, true),
                 self::DESCRIPTIONS[$slug],
-            ));
+            );
+            $product->changeAttributeValues(self::ATTRIBUTE_VALUES[$slug] ?? []);
+            $manager->persist($product);
         }
 
         $manager->flush();

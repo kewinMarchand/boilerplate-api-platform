@@ -8,7 +8,9 @@ use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\QueryParameter;
+use ApiPlatform\OpenApi\Model\Parameter;
 use App\Catalog\Domain\Product;
+use App\Catalog\Domain\ProductAttribute;
 use App\Catalog\Domain\ProductCriteria;
 use App\Catalog\Infrastructure\ApiPlatform\State\FeaturedProductsProvider;
 use App\Catalog\Infrastructure\ApiPlatform\State\ProductCollectionProvider;
@@ -44,6 +46,11 @@ use App\Media\Infrastructure\ApiPlatform\ImageViews;
                     description: 'Tailles acceptées, clé répétée : size[]=S&size[]=M.',
                     castToArray: true,
                     schema: ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['S', 'M', 'L']]],
+                ),
+                'attributes' => new QueryParameter(
+                    description: 'Valeurs acceptées des attributs filtrables, par code, clé répétée : attributes[feuillage][]=persistant&attributes[feuillage][]=caduc. Valeurs d\'un même attribut en OU, attributs entre eux en ET. Code ou valeur inconnus : ignorés. Les attributs filtrables et leurs valeurs : attributes de GET /api/product-facets.',
+                    schema: ['type' => 'object', 'additionalProperties' => ['type' => 'array', 'items' => ['type' => 'string']]],
+                    openApi: new Parameter('attributes', 'query', style: 'deepObject', explode: true),
                 ),
                 'priceMin' => new QueryParameter(
                     description: 'Prix minimum inclus, en centimes.',
@@ -85,6 +92,9 @@ use App\Media\Infrastructure\ApiPlatform\ImageViews;
 )]
 final readonly class ProductResource
 {
+    /**
+     * @param list<AttributeValue> $attributes
+     */
     public function __construct(
         #[ApiProperty(identifier: false, required: true)]
         public int $id,
@@ -104,10 +114,15 @@ final readonly class ProductResource
         public bool $inStock,
         #[ApiProperty(description: 'Image du produit (carrée), null tant que l\'admin n\'en a pas envoyé.', required: true)]
         public ?ImageView $image,
+        #[ApiProperty(description: 'Attributs configurables renseignés sur le produit, par position ; tableau vide si aucun.', readableLink: true, required: true)]
+        public array $attributes,
     ) {
     }
 
-    public static function fromModel(Product $product, ImageViews $images): self
+    /**
+     * @param list<ProductAttribute> $attributes définitions triées par position
+     */
+    public static function fromModel(Product $product, ImageViews $images, array $attributes): self
     {
         return new self(
             (int) $product->getId(),
@@ -119,6 +134,7 @@ final readonly class ProductResource
             $product->getSize()->value,
             $product->isInStock(),
             $images->view($product->getImage(), ImageUsage::Product),
+            AttributeValue::listFor($product, $attributes),
         );
     }
 }

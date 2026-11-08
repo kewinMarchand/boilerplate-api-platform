@@ -7,6 +7,7 @@ namespace App\Catalog\Infrastructure\ApiPlatform\State;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\Catalog\Domain\Product;
+use App\Catalog\Domain\ProductAttributeRepository;
 use App\Catalog\Domain\ProductRepository;
 use App\Catalog\Infrastructure\ApiPlatform\Resource\ProductResource;
 use App\Media\Infrastructure\ApiPlatform\ImageViews;
@@ -18,6 +19,7 @@ final readonly class FeaturedProductsProvider implements ProviderInterface
 {
     public function __construct(
         private ProductRepository $products,
+        private ProductAttributeRepository $attributes,
         private ImageViews $images,
     ) {
     }
@@ -27,6 +29,8 @@ final readonly class FeaturedProductsProvider implements ProviderInterface
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
-        return array_map(fn (Product $product): ProductResource => ProductResource::fromModel($product, $this->images), $this->products->findFeatured());
+        $attributes = $this->attributes->findAll();
+
+        return array_map(fn (Product $product): ProductResource => ProductResource::fromModel($product, $this->images, $attributes), $this->products->findFeatured());
     }
 }

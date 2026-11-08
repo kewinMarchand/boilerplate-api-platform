@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\QueryParameter;
+use ApiPlatform\OpenApi\Model\Parameter;
 use App\Catalog\Domain\Exposure;
 use App\Catalog\Domain\Size;
 use App\Catalog\Infrastructure\ApiPlatform\State\ProductFacetsProvider;
@@ -40,6 +41,11 @@ use App\Shared\Infrastructure\ApiPlatform\Scenario\EmptyScenarioResult;
                     castToArray: true,
                     schema: ['type' => 'array', 'items' => ['type' => 'string', 'enum' => ['S', 'M', 'L']]],
                 ),
+                'attributes' => new QueryParameter(
+                    description: 'Valeurs acceptées des attributs filtrables, par code, clé répétée : attributes[feuillage][]=persistant&attributes[feuillage][]=caduc. Valeurs d\'un même attribut en OU, attributs entre eux en ET. Code ou valeur inconnus : ignorés. Les attributs filtrables et leurs valeurs : attributes de GET /api/product-facets.',
+                    schema: ['type' => 'object', 'additionalProperties' => ['type' => 'array', 'items' => ['type' => 'string']]],
+                    openApi: new Parameter('attributes', 'query', style: 'deepObject', explode: true),
+                ),
                 'priceMin' => new QueryParameter(
                     description: 'Prix minimum inclus, en centimes.',
                     schema: ['type' => 'integer'],
@@ -62,6 +68,7 @@ final readonly class ProductFacetsResource implements EmptyScenarioResult
      * @param list<FacetValue>         $exposure
      * @param list<FacetValue>         $size
      * @param list<CategoryFacetValue> $category
+     * @param list<AttributeFacet>     $attributes
      */
     public function __construct(
         #[ApiProperty(description: 'Nombre de produits filtrés, toutes pages confondues.', required: true)]
@@ -72,6 +79,8 @@ final readonly class ProductFacetsResource implements EmptyScenarioResult
         public array $size,
         #[ApiProperty(description: 'Sous-catégories directes de la catégorie filtrée (catégories racines sans filtre). Vide sur une feuille.', required: true)]
         public array $category,
+        #[ApiProperty(description: 'Attributs filtrables portés par au moins un produit de la branche de catégorie, par position.', readableLink: true, required: true)]
+        public array $attributes,
     ) {
     }
 
@@ -79,6 +88,6 @@ final readonly class ProductFacetsResource implements EmptyScenarioResult
     {
         $zero = static fn (\BackedEnum $case): FacetValue => new FacetValue((string) $case->value, 0);
 
-        return new static(0, array_map($zero, Exposure::cases()), array_map($zero, Size::cases()), []);
+        return new static(0, array_map($zero, Exposure::cases()), array_map($zero, Size::cases()), [], []);
     }
 }

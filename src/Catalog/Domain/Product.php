@@ -20,6 +20,9 @@ class Product
     /** Centimes, colonne entière : le value object est reconstruit à la lecture. */
     private int $price;
 
+    /** @var array<string, string> valeurs des attributs renseignés, par code (colonne JSON) */
+    private array $attributeValues = [];
+
     public function __construct(
         private string $slug,
         private string $name,
@@ -51,6 +54,32 @@ class Product
         $this->imageAlt = $image->alt;
         $this->featured = $featured;
         $this->description = self::normalize($description);
+    }
+
+    /**
+     * @param array<string, string> $values par code d'attribut, déjà contrôlées par ProductAttribute::valueFor
+     */
+    public function changeAttributeValues(array $values): void
+    {
+        $this->attributeValues = $values;
+    }
+
+    public function removeAttributeValue(string $code): void
+    {
+        unset($this->attributeValues[$code]);
+    }
+
+    /**
+     * @return array<string, string> par code d'attribut
+     */
+    public function getAttributeValues(): array
+    {
+        return $this->attributeValues;
+    }
+
+    public function getAttributeValue(string $code): ?string
+    {
+        return $this->attributeValues[$code] ?? null;
     }
 
     public function getId(): ?int

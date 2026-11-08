@@ -9,6 +9,7 @@ use ApiPlatform\State\Pagination\TraversablePaginator;
 use ApiPlatform\State\ProviderInterface;
 use App\Catalog\Application\SearchProducts;
 use App\Catalog\Domain\Product;
+use App\Catalog\Domain\ProductAttributeRepository;
 use App\Catalog\Infrastructure\ApiPlatform\Resource\ProductResource;
 use App\Media\Infrastructure\ApiPlatform\ImageViews;
 
@@ -19,6 +20,7 @@ final readonly class ProductCollectionProvider implements ProviderInterface
 {
     public function __construct(
         private SearchProducts $searchProducts,
+        private ProductAttributeRepository $attributes,
         private ImageViews $images,
     ) {
     }
@@ -32,9 +34,10 @@ final readonly class ProductCollectionProvider implements ProviderInterface
     {
         $criteria = ProductQuery::criteria($operation);
         $result = ($this->searchProducts)($criteria);
+        $attributes = $this->attributes->findAll();
 
         return new TraversablePaginator(
-            new \ArrayIterator(array_map(fn (Product $product): ProductResource => ProductResource::fromModel($product, $this->images), $result->items)),
+            new \ArrayIterator(array_map(fn (Product $product): ProductResource => ProductResource::fromModel($product, $this->images, $attributes), $result->items)),
             $criteria->page,
             $criteria->itemsPerPage,
             $result->totalItems,

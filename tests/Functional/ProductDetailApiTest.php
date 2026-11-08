@@ -33,6 +33,7 @@ final class ProductDetailApiTest extends ApiTestCase
                 ['slug' => 'monstera', 'name' => 'Monstera'],
             ],
             'description' => "Grandes feuilles vert profond, découpées et perforées avec l’âge : le monstera deliciosa habille une pièce à lui seul.\n\nLumière vive sans soleil direct, arrosage quand le terreau a séché sur deux centimètres. Un tuteur en mousse l’aide à grimper.",
+            'attributes' => [['code' => 'feuillage', 'label' => 'Feuillage', 'type' => 'choice', 'value' => 'persistant', 'valueLabel' => 'Persistant', 'unit' => null], ['code' => 'hauteur-adulte', 'label' => 'Hauteur adulte', 'type' => 'number', 'value' => '300', 'valueLabel' => '300', 'unit' => 'cm']],
         ], $response->toArray());
     }
 
@@ -55,7 +56,7 @@ final class ProductDetailApiTest extends ApiTestCase
             array_column($products, 'slug'),
         );
         self::assertSame(
-            ['id', 'slug', 'name', 'categorySlug', 'price', 'exposure', 'size', 'inStock', 'image'],
+            ['id', 'slug', 'name', 'categorySlug', 'price', 'exposure', 'size', 'inStock', 'image', 'attributes'],
             array_keys($products[0]),
         );
     }

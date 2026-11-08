@@ -5,14 +5,19 @@ declare(strict_types=1);
 namespace App\Admin\Infrastructure\Form;
 
 use App\Catalog\Application\ProductData;
+use App\Catalog\Domain\AttributeChoice;
+use App\Catalog\Domain\AttributeType;
 use App\Catalog\Domain\Exposure;
+use App\Catalog\Domain\ProductAttribute;
 use App\Catalog\Domain\Size;
 use App\Media\Domain\ImageUsage;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -68,11 +73,56 @@ final class ProductType extends AbstractType
             ->add('inStock', CheckboxType::class, ['label' => 'En stock', 'required' => false])
             ->add('featured', CheckboxType::class, ['label' => 'À la une', 'help' => 'Montré dans le carrousel de la page d\'accueil, par ordre alphabétique.', 'required' => false]);
         ImageFields::add($builder, ImageUsage::Product, 'Vide : le nom du produit, qui suffit le plus souvent.');
+        /** @var list<ProductAttribute> $attributes */
+        $attributes = $options['attributes'];
+        $this->addAttributeFields($builder, $attributes);
+    }
+
+    /**
+     * Un champ facultatif par attribut défini dans la section « Attributs ».
+     *
+     * @template TData
+     *
+     * @param FormBuilderInterface<TData> $builder
+     * @param list<ProductAttribute>      $attributes
+     */
+    private function addAttributeFields(FormBuilderInterface $builder, array $attributes): void
+    {
+        if ([] === $attributes) {
+            return;
+        }
+        $fields = $builder->create('attributes', FormType::class, ['label' => 'Attributs', 'required' => false]);
+        foreach ($attributes as $attribute) {
+            $label = null === $attribute->getUnit() ? $attribute->getLabel() : \sprintf('%s (%s)', $attribute->getLabel(), $attribute->getUnit());
+            match ($attribute->getType()) {
+                AttributeType::Choice => $fields->add($attribute->getCode(), ChoiceType::class, [
+                    'label' => $label,
+                    'required' => false,
+                    'placeholder' => 'Non renseigné',
+                    'choices' => array_column(array_map(static fn (AttributeChoice $choice): array => [$choice->label, $choice->value], $attribute->getChoices()), 1, 0),
+                ]),
+                AttributeType::Number => $fields->add($attribute->getCode(), NumberType::class, [
+                    'label' => $label,
+                    'required' => false,
+                    'input' => 'string',
+                    'html5' => true,
+                    'attr' => ['step' => 'any'],
+                ]),
+                AttributeType::Text => $fields->add($attribute->getCode(), TextType::class, [
+                    'label' => $label,
+                    'required' => false,
+                    'empty_data' => '',
+                    'constraints' => [new Assert\Length(max: ProductAttribute::TEXT_MAX_LENGTH)],
+                ]),
+            };
+        }
+        $builder->add($fields);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => ProductData::class, 'categories' => []]);
+        $resolver->setDefaults(['data_class' => ProductData::class, 'categories' => [], 'attributes' => []]);
         $resolver->setAllowedTypes('categories', 'array');
+        $resolver->setAllowedTypes('attributes', 'array');
     }
 }

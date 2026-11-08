@@ -30,6 +30,8 @@ final class ProductData
     public string $imageAlt = '';
     public bool $imageDecorative = false;
     public ?Image $currentImage = null;
+    /** @var array<string, ?string> valeur saisie par code d'attribut, vide ou null quand il n'est pas renseigné */
+    public array $attributes = [];
 
     public static function fromProduct(Product $product): self
     {
@@ -46,6 +48,7 @@ final class ProductData
         $data->currentImage = $product->getImage();
         $data->imageAlt = $data->currentImage->alt ?? '';
         $data->imageDecorative = $data->currentImage?->isDecorative() ?? false;
+        $data->attributes = $product->getAttributeValues();
 
         return $data;
     }

@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Tests\Functional;
 
 use App\Admin\Infrastructure\Security\AdminUser;
+use App\Catalog\Domain\AttributeChoice;
 use App\Catalog\Domain\Category;
 use App\Catalog\Domain\Product;
+use App\Catalog\Domain\ProductAttribute;
 use App\Content\Domain\LegalPage;
 use App\Site\Domain\SiteIdentity;
 use Doctrine\ORM\EntityManagerInterface;
@@ -48,7 +50,7 @@ final class AdminTest extends WebTestCase
     public function testShowsTheListsAndRecordsOfEachSection(): void
     {
         $client = $this->loggedIn('admin-pages@example.fr');
-        foreach (['category', 'product', 'article', 'legal-page'] as $section) {
+        foreach (['category', 'product', 'product-attribute', 'article', 'legal-page'] as $section) {
             $crawler = $client->request('GET', \sprintf('/admin/%s', $section));
             self::assertResponseIsSuccessful($section);
             $client->click($crawler->filter('a.action-detail')->first()->link());
@@ -59,7 +61,7 @@ final class AdminTest extends WebTestCase
     public function testShowsTheFormattedColumnsOfTheCatalog(): void
     {
         $client = $this->loggedIn('admin-colonnes@example.fr');
-        foreach (['category', 'product'] as $section) {
+        foreach (['category', 'product-attribute', 'product'] as $section) {
             $crawler = $client->request('GET', \sprintf('/admin/%s', $section));
             self::assertStringNotContainsString('Inaccessible', $crawler->filter('body')->text(), $section);
             $crawler = $client->click($crawler->filter('a.action-detail')->first()->link());
@@ -104,6 +106,8 @@ final class AdminTest extends WebTestCase
             'product[featured]' => true,
             'product[description]' => "Rustique.\r\n\r\nRésiste au vent.",
             'product[imageContent]' => \dirname(__DIR__, 2).'/fixtures/images/product-2.webp',
+            'product[attributes][feuillage]' => 'caduc',
+            'product[attributes][hauteur-adulte]' => '12.5',
         ]);
 
         self::assertResponseRedirects();
@@ -114,10 +118,95 @@ final class AdminTest extends WebTestCase
         self::assertSame("Rustique.\n\nRésiste au vent.", $saved->getDescription());
         self::assertSame('Palmier de test', $saved->getImage()?->alt);
         self::assertFileExists(\dirname(__DIR__, 2).'/var/test-media/'.$saved->getImage()->key.'-800.avif');
+        self::assertSame(['feuillage' => 'caduc', 'hauteur-adulte' => '12.5'], $saved->getAttributeValues());
 
         // La base de test est partagée : les tests de l'API comptent les 24 produits des fixtures
         $this->entityManager()->remove($saved);
         $this->entityManager()->flush();
+    }
+
+    public function testCreatesAndEditsAnAttributeThroughTheForm(): void
+    {
+        $client = $this->loggedIn('admin-attribut@example.fr');
+
+        $client->request('GET', '/admin/product-attribute/new');
+        self::assertResponseIsSuccessful();
+        $client->submitForm('Enregistrer', [
+            'product_attribute[code]' => 'port',
+            'product_attribute[label]' => 'Port',
+            'product_attribute[type]' => 'choice',
+            'product_attribute[filterable]' => true,
+            'product_attribute[position]' => '3',
+            'product_attribute[choices][0][value]' => 'buissonnant',
+            'product_attribute[choices][0][label]' => 'Buissonnant',
+        ]);
+        self::assertResponseRedirects();
+        $saved = $this->entityManager()->getRepository(ProductAttribute::class)->findOneBy(['code' => 'port']);
+        self::assertInstanceOf(ProductAttribute::class, $saved);
+
+        try {
+            $client->request('GET', \sprintf('/admin/product-attribute/%d/edit', $saved->getId()));
+            self::assertSelectorExists('input[name="product_attribute[code]"][disabled]');
+            $client->submitForm('Enregistrer', [
+                'product_attribute[label]' => 'Port de la plante',
+                'product_attribute[choices][1][value]' => 'retombant',
+                'product_attribute[choices][1][label]' => 'Retombant',
+            ]);
+            self::assertResponseRedirects();
+
+            $this->entityManager()->clear();
+            $edited = $this->entityManager()->find(ProductAttribute::class, $saved->getId());
+            self::assertInstanceOf(ProductAttribute::class, $edited);
+            self::assertSame(['port', 'Port de la plante'], [$edited->getCode(), $edited->getLabel()]);
+            self::assertEquals([new AttributeChoice('buissonnant', 'Buissonnant'), new AttributeChoice('retombant', 'Retombant')], $edited->getChoices());
+
+            $client->request('GET', '/admin/product/new');
+            self::assertSelectorTextContains('label[for="product_attributes_port"]', 'Port de la plante');
+        } finally {
+            // La base de test est partagée : les tests de l'API comptent les attributs des fixtures
+            $attribute = $this->entityManager()->getRepository(ProductAttribute::class)->findOneBy(['code' => 'port']);
+            if (null !== $attribute) {
+                $this->entityManager()->remove($attribute);
+                $this->entityManager()->flush();
+            }
+        }
+    }
+
+    public function testRefusesToRemoveAnAttributeValueCarriedByProducts(): void
+    {
+        $client = $this->loggedIn('admin-valeur@example.fr');
+        $foliage = $this->entityManager()->getRepository(ProductAttribute::class)->findOneBy(['code' => 'feuillage']);
+        self::assertInstanceOf(ProductAttribute::class, $foliage);
+
+        $client->request('GET', \sprintf('/admin/product-attribute/%d/edit', $foliage->getId()));
+        $client->submitForm('Enregistrer', ['product_attribute[choices][0][value]' => '', 'product_attribute[choices][0][label]' => '']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#main form .alert-danger', 'La valeur « Persistant » est utilisée par 6 produits.');
+    }
+
+    public function testRefusesATakenAttributeCode(): void
+    {
+        $client = $this->loggedIn('admin-code@example.fr');
+
+        $client->request('GET', '/admin/product-attribute/new');
+        $client->submitForm('Enregistrer', ['product_attribute[code]' => 'feuillage', 'product_attribute[label]' => 'Doublon', 'product_attribute[type]' => 'text', 'product_attribute[position]' => '9']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#main form .alert-danger', 'Le code « feuillage » est déjà pris par un autre attribut.');
+    }
+
+    public function testRefusesAnAttributeValueOnTheProductForm(): void
+    {
+        $client = $this->loggedIn('admin-valeur-produit@example.fr');
+        $product = $this->entityManager()->getRepository(Product::class)->findOneBy(['slug' => 'palmier-nain']);
+        self::assertInstanceOf(Product::class, $product);
+
+        $client->request('GET', \sprintf('/admin/product/%d/edit', $product->getId()));
+        self::assertSelectorExists('input[name="product[attributes][hauteur-adulte]"][value="250"]');
+        $client->submitForm('Enregistrer', ['product[attributes][hauteur-adulte]' => '-']);
+
+        self::assertResponseStatusCodeSame(422);
     }
 
     public function testRefusesAnImageTooSmallForAnArticle(): void

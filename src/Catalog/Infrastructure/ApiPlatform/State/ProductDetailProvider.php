@@ -6,6 +6,7 @@ namespace App\Catalog\Infrastructure\ApiPlatform\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use App\Catalog\Domain\ProductAttributeRepository;
 use App\Catalog\Domain\ProductRepository;
 use App\Catalog\Infrastructure\ApiPlatform\Resource\ProductDetailResource;
 use App\Media\Infrastructure\ApiPlatform\ImageViews;
@@ -19,6 +20,7 @@ final readonly class ProductDetailProvider implements ProviderInterface
 {
     public function __construct(
         private ProductRepository $products,
+        private ProductAttributeRepository $attributes,
         private ImageViews $images,
     ) {
     }
@@ -28,6 +30,6 @@ final readonly class ProductDetailProvider implements ProviderInterface
         $slug = $uriVariables['slug'] ?? null;
         $product = \is_string($slug) ? $this->products->findBySlug($slug) : null;
 
-        return null === $product ? null : ProductDetailResource::fromModel($product, $this->images);
+        return null === $product ? null : ProductDetailResource::fromModel($product, $this->images, $this->attributes->findAll());
     }
 }

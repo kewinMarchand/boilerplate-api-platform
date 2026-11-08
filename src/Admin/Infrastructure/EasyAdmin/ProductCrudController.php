@@ -12,6 +12,7 @@ use App\Catalog\Application\UpdateProduct;
 use App\Catalog\Domain\CatalogRuleViolation;
 use App\Catalog\Domain\CategoryRepository;
 use App\Catalog\Domain\Product;
+use App\Catalog\Domain\ProductAttributeRepository;
 use App\Media\Domain\Image;
 use App\Media\Domain\ImageUsage;
 use App\Media\Domain\MediaRuleViolation;
@@ -37,6 +38,7 @@ final class ProductCrudController extends AbstractCrudController
 {
     public function __construct(
         private readonly CategoryRepository $categories,
+        private readonly ProductAttributeRepository $attributes,
         private readonly CreateProduct $createProduct,
         private readonly UpdateProduct $updateProduct,
         private readonly DeleteProduct $deleteProduct,
@@ -125,7 +127,7 @@ final class ProductCrudController extends AbstractCrudController
         foreach ($this->categories->findAll() as $category) {
             $categories[str_repeat('— ', $category->depth() - 1).$category->getName()] = $category->getId();
         }
-        $form = $this->createForm(ProductType::class, $data, ['categories' => $categories]);
+        $form = $this->createForm(ProductType::class, $data, ['categories' => $categories, 'attributes' => $this->attributes->findAll()]);
         $form->handleRequest($context->getRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {

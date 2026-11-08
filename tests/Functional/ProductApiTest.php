@@ -20,7 +20,7 @@ final class ProductApiTest extends ApiTestCase
         $items = $this->products('');
 
         self::assertCount(12, $items);
-        self::assertSame(['id' => 1, 'slug' => 'monstera-deliciosa', 'name' => 'Monstera deliciosa', 'categorySlug' => 'monstera', 'price' => 3490, 'exposure' => 'mi-ombre', 'size' => 'M', 'inStock' => true, 'image' => TestImages::demoView('product-1', ImageUsage::Product, 'Monstera deliciosa')], $items[0]);
+        self::assertSame(['id' => 1, 'slug' => 'monstera-deliciosa', 'name' => 'Monstera deliciosa', 'categorySlug' => 'monstera', 'price' => 3490, 'exposure' => 'mi-ombre', 'size' => 'M', 'inStock' => true, 'image' => TestImages::demoView('product-1', ImageUsage::Product, 'Monstera deliciosa'), 'attributes' => [['code' => 'feuillage', 'label' => 'Feuillage', 'type' => 'choice', 'value' => 'persistant', 'valueLabel' => 'Persistant', 'unit' => null], ['code' => 'hauteur-adulte', 'label' => 'Hauteur adulte', 'type' => 'number', 'value' => '300', 'valueLabel' => '300', 'unit' => 'cm']]], $items[0]);
     }
 
     public function testFacetsCountAllProductsWithoutFilter(): void
@@ -166,6 +166,57 @@ final class ProductApiTest extends ApiTestCase
         self::assertSame([], $this->products('page=99999999999999999999'));
     }
 
+    public function testFacetsCountTheFilterableAttributesWithoutFilter(): void
+    {
+        self::assertSame(['feuillage' => ['label' => 'Feuillage', 'values' => ['persistant' => 6, 'caduc' => 2]]], self::attributeCounts($this->facets('')));
+    }
+
+    public function testAttributeFilterKeepsItsOwnFacetCountsDisjunctive(): void
+    {
+        $facets = $this->facets('attributes[feuillage][]=caduc');
+
+        self::assertSame(2, $facets['totalItems']);
+        self::assertSame(['nenuphar-blanc-rustique', 'lotus-sacre'], array_column($this->products('attributes[feuillage][]=caduc'), 'slug'));
+        self::assertSame(['persistant' => 6, 'caduc' => 2], self::attributeCounts($facets)['feuillage']['values']);
+        self::assertSame(['soleil' => 2, 'mi-ombre' => 0, 'ombre' => 0], self::counts($facets, 'exposure'));
+        self::assertSame(['plantes-interieur' => 0, 'plantes-exterieur' => 0, 'plantes-aquatiques' => 2], self::categoryCounts($facets));
+    }
+
+    public function testAttributeValuesAreCombinedWithOrAndWithTheOtherFiltersWithAnd(): void
+    {
+        self::assertSame(8, $this->facets('attributes[feuillage][]=persistant&attributes[feuillage][]=caduc')['totalItems']);
+
+        $facets = $this->facets('exposure[]=mi-ombre&attributes[feuillage][]=persistant');
+        self::assertSame(2, $facets['totalItems']);
+        self::assertSame(['monstera-deliciosa', 'monstera-adansonii'], array_column($this->products('exposure[]=mi-ombre&attributes[feuillage][]=persistant'), 'slug'));
+        self::assertSame(['persistant' => 2, 'caduc' => 0], self::attributeCounts($facets)['feuillage']['values']);
+        self::assertSame(['soleil' => 3, 'mi-ombre' => 2, 'ombre' => 1], self::counts($facets, 'exposure'));
+    }
+
+    public function testIgnoresUnknownAttributesAndValuesAndAttributesThatAreNotFilters(): void
+    {
+        $query = 'attributes[inconnu][]=x&attributes[feuillage][]=epineux&attributes[hauteur-adulte][]=300&attributes[]=y';
+
+        self::assertSame(24, $this->facets($query)['totalItems']);
+        self::assertCount(12, $this->products($query));
+        self::assertSame(24, $this->facets('attributes=feuillage')['totalItems']);
+        self::assertSame(2, $this->facets('attributes[feuillage]=caduc')['totalItems']);
+    }
+
+    public function testAttributeFacetsOnlyListAttributesCarriedInTheBranch(): void
+    {
+        self::assertSame([], $this->facets('category=anthurium')['attributes']);
+        self::assertSame(['persistant' => 0, 'caduc' => 2], self::attributeCounts($this->facets('category=plantes-aquatiques'))['feuillage']['values']);
+    }
+
+    public function testListsOnlyTheAttributesFilledOnAProduct(): void
+    {
+        $items = array_column($this->products('itemsPerPage=48'), null, 'slug');
+
+        self::assertSame([], $items['anthurium-clarinervium']['attributes']);
+        self::assertSame([['code' => 'hauteur-adulte', 'label' => 'Hauteur adulte', 'type' => 'number', 'value' => '250', 'valueLabel' => '250', 'unit' => 'cm']], $items['palmier-nain']['attributes']);
+    }
+
     /**
      * @return list<array<string, mixed>>
      */
@@ -181,14 +232,14 @@ final class ProductApiTest extends ApiTestCase
     }
 
     /**
-     * @return array{totalItems: int, exposure: list<array{value: string, count: int}>, size: list<array{value: string, count: int}>, category: list<array{slug: string, name: string, count: int}>}
+     * @return array{totalItems: int, exposure: list<array{value: string, count: int}>, size: list<array{value: string, count: int}>, category: list<array{slug: string, name: string, count: int}>, attributes: list<array{code: string, label: string, values: list<array{value: string, label: string, count: int}>}>}
      */
     private function facets(string $query): array
     {
         $response = static::createClient()->request('GET', '/api/product-facets?'.$query, ['headers' => ['Accept' => 'application/json']]);
         self::assertResponseIsSuccessful();
 
-        /** @var array{totalItems: int, exposure: list<array{value: string, count: int}>, size: list<array{value: string, count: int}>, category: list<array{slug: string, name: string, count: int}>} $facets */
+        /** @var array{totalItems: int, exposure: list<array{value: string, count: int}>, size: list<array{value: string, count: int}>, category: list<array{slug: string, name: string, count: int}>, attributes: list<array{code: string, label: string, values: list<array{value: string, label: string, count: int}>}>} $facets */
         $facets = $response->toArray();
 
         return $facets;
@@ -213,5 +264,20 @@ final class ProductApiTest extends ApiTestCase
     private static function categoryCounts(array $facets): array
     {
         return array_column($facets['category'], 'count', 'slug');
+    }
+
+    /**
+     * @param array{attributes: list<array{code: string, label: string, values: list<array{value: string, label: string, count: int}>}>} $facets
+     *
+     * @return array<string, array{label: string, values: array<string, int>}>
+     */
+    private static function attributeCounts(array $facets): array
+    {
+        $counts = [];
+        foreach ($facets['attributes'] as $attribute) {
+            $counts[$attribute['code']] = ['label' => $attribute['label'], 'values' => array_column($attribute['values'], 'count', 'value')];
+        }
+
+        return $counts;
     }
 }

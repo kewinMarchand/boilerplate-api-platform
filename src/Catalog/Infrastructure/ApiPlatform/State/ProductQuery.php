@@ -53,7 +53,25 @@ final class ProductQuery
             },
             page: min(self::MAX_PAGE, max(1, self::toInt($value('page')) ?? 1)),
             itemsPerPage: self::itemsPerPage(self::toInt($value('itemsPerPage'))),
+            attributes: self::attributeFilters($value('attributes')),
         );
+    }
+
+    /**
+     * attributes[<code>][]=<valeur> ; une valeur seule (attributes[<code>]=<valeur>) est acceptée, comme exposure=ombre.
+     *
+     * @return array<string, list<string>>
+     */
+    private static function attributeFilters(mixed $value): array
+    {
+        $filters = [];
+        foreach (\is_array($value) ? $value : [] as $code => $values) {
+            if (\is_string($code)) {
+                $filters[$code] = array_values(array_filter((array) $values, \is_string(...)));
+            }
+        }
+
+        return $filters;
     }
 
     private static function itemsPerPage(?int $itemsPerPage): int

@@ -33,6 +33,7 @@ final class DashboardController extends AbstractDashboardController
         yield MenuItem::section('Catalogue');
         yield MenuItem::linkTo(CategoryCrudController::class, 'Catégories', 'fa fa-folder-tree');
         yield MenuItem::linkTo(ProductCrudController::class, 'Produits', 'fa fa-seedling');
+        yield MenuItem::linkTo(ProductAttributeCrudController::class, 'Attributs', 'fa fa-tags');
         yield MenuItem::section('Contenus');
         yield MenuItem::linkTo(ArticleCrudController::class, 'Articles', 'fa fa-newspaper');
         yield MenuItem::linkTo(LegalPageCrudController::class, 'Pages légales', 'fa fa-scale-balanced');

@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use App\Catalog\Domain\Product;
+use App\Catalog\Domain\ProductAttribute;
 use App\Catalog\Infrastructure\ApiPlatform\State\ProductDetailProvider;
 use App\Media\Domain\ImageUsage;
 use App\Media\Infrastructure\ApiPlatform\ImageView;
@@ -29,7 +30,8 @@ use App\Media\Infrastructure\ApiPlatform\ImageViews;
 final readonly class ProductDetailResource
 {
     /**
-     * @param list<CategoryLink> $categoryPath
+     * @param list<CategoryLink>   $categoryPath
+     * @param list<AttributeValue> $attributes
      */
     public function __construct(
         #[ApiProperty(identifier: false, required: true)]
@@ -54,10 +56,15 @@ final readonly class ProductDetailResource
         public array $categoryPath,
         #[ApiProperty(description: 'Texte brut, paragraphes séparés par une ligne vide ; chaîne vide si l\'admin n\'en a pas écrit.', required: true)]
         public string $description,
+        #[ApiProperty(description: 'Attributs configurables renseignés sur le produit, par position ; tableau vide si aucun.', readableLink: true, required: true)]
+        public array $attributes,
     ) {
     }
 
-    public static function fromModel(Product $product, ImageViews $images): self
+    /**
+     * @param list<ProductAttribute> $attributes définitions triées par position
+     */
+    public static function fromModel(Product $product, ImageViews $images, array $attributes): self
     {
         return new self(
             (int) $product->getId(),
@@ -71,6 +78,7 @@ final readonly class ProductDetailResource
             $images->view($product->getImage(), ImageUsage::Product),
             CategoryLink::pathTo($product->getCategory()),
             $product->getDescription(),
+            AttributeValue::listFor($product, $attributes),
         );
     }
 }
