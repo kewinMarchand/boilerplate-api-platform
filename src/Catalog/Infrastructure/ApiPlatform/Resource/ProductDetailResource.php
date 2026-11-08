@@ -10,13 +10,14 @@ use ApiPlatform\Metadata\Get;
 use App\Catalog\Domain\Product;
 use App\Catalog\Domain\ProductAttribute;
 use App\Catalog\Infrastructure\ApiPlatform\State\ProductDetailProvider;
+use App\Media\Domain\Image;
 use App\Media\Domain\ImageUsage;
 use App\Media\Infrastructure\ApiPlatform\ImageView;
 use App\Media\Infrastructure\ApiPlatform\ImageViews;
 
 #[ApiResource(
     shortName: 'ProductDetail',
-    description: 'Fiche d\'un produit : les champs de la liste, plus sa description et le chemin de sa catégorie.',
+    description: 'Fiche d\'un produit : les champs de la liste, plus sa description, le chemin de sa catégorie, sa galerie et ses métadonnées.',
     // image peut valoir null : sans cela, API Platform retire la clé alors que le schéma la déclare requise
     normalizationContext: ['skip_null_values' => false],
     operations: [
@@ -32,6 +33,7 @@ final readonly class ProductDetailResource
     /**
      * @param list<CategoryLink>   $categoryPath
      * @param list<AttributeValue> $attributes
+     * @param list<ImageView>      $gallery
      */
     public function __construct(
         #[ApiProperty(identifier: false, required: true)]
@@ -58,6 +60,12 @@ final readonly class ProductDetailResource
         public string $description,
         #[ApiProperty(description: 'Attributs configurables renseignés sur le produit, par position ; tableau vide si aucun.', readableLink: true, required: true)]
         public array $attributes,
+        #[ApiProperty(description: 'Images de la galerie (carrées, 8 au plus), dans l\'ordre, sans l\'image principale ; tableau vide si aucune.', readableLink: true, required: true)]
+        public array $gallery,
+        #[ApiProperty(description: 'Titre pour les moteurs de recherche, 60 caractères au plus ; chaîne vide si l\'admin n\'en a pas saisi.', required: true)]
+        public string $metaTitle,
+        #[ApiProperty(description: 'Description pour les moteurs de recherche, 160 caractères au plus ; chaîne vide si l\'admin n\'en a pas saisi.', required: true)]
+        public string $metaDescription,
     ) {
     }
 
@@ -79,6 +87,9 @@ final readonly class ProductDetailResource
             CategoryLink::pathTo($product->getCategory()),
             $product->getDescription(),
             AttributeValue::listFor($product, $attributes),
+            array_map(static fn (Image $image): ImageView => $images->view($image, ImageUsage::Product), $product->getGallery()),
+            $product->getMetaTitle(),
+            $product->getMetaDescription(),
         );
     }
 }

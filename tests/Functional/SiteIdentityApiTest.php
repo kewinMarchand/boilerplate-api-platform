@@ -11,12 +11,14 @@ final class SiteIdentityApiTest extends ApiTestCase
     protected static ?bool $alwaysBootKernel = false;
 
     /**
-     * Fixtures : valeurs du modèle, sans logo ni couleurs (le front garde les jetons de boilerplates-ui).
+     * Fixtures : valeurs du modèle, sans logo, image de partage, icône ni couleurs (le front garde les jetons de boilerplates-ui).
      */
     public const array DEFAULT = [
         'name' => 'Boilerplate',
         'tagline' => 'Modèle de site avec boilerplates-ui, outillé pour la QA et les tests end-to-end.',
         'logo' => null,
+        'shareImage' => null,
+        'icon' => null,
         'defaultColorScheme' => 'auto',
         'theme' => null,
     ];

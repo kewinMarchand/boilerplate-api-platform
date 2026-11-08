@@ -8,12 +8,14 @@ use App\Catalog\Application\ProductData;
 use App\Catalog\Domain\AttributeChoice;
 use App\Catalog\Domain\AttributeType;
 use App\Catalog\Domain\Exposure;
+use App\Catalog\Domain\Product;
 use App\Catalog\Domain\ProductAttribute;
 use App\Catalog\Domain\Size;
 use App\Media\Domain\ImageUsage;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
@@ -73,6 +75,14 @@ final class ProductType extends AbstractType
             ->add('inStock', CheckboxType::class, ['label' => 'En stock', 'required' => false])
             ->add('featured', CheckboxType::class, ['label' => 'À la une', 'help' => 'Montré dans le carrousel de la page d\'accueil, par ordre alphabétique.', 'required' => false]);
         ImageFields::add($builder, ImageUsage::Product, 'Vide : le nom du produit, qui suffit le plus souvent.');
+        $builder->add('gallery', CollectionType::class, [
+            'label' => 'Galerie',
+            'help' => \sprintf('%d images au plus, en plus de l\'image principale, par position croissante. Enregistrer propose de nouvelles lignes d\'ajout.', Product::MAX_GALLERY_IMAGES),
+            'entry_type' => GalleryImageType::class,
+            'allow_add' => true,
+            'allow_delete' => true,
+        ]);
+        MetaFields::add($builder);
         /** @var list<ProductAttribute> $attributes */
         $attributes = $options['attributes'];
         $this->addAttributeFields($builder, $attributes);

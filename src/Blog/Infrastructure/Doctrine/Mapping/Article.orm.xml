@@ -13,5 +13,17 @@
         <field name="publishedAt" type="date_immutable"/>
         <field name="imageKey" column="image_key" type="string" length="32" nullable="true"/>
         <field name="imageAlt" column="image_alt" type="string" length="255"/>
+        <field name="audioKey" column="audio_key" type="string" length="32" nullable="true"/>
+        <field name="audioFormat" column="audio_format" type="string" length="3" nullable="true" enum-type="App\Media\Domain\AudioFormat"/>
+        <field name="audioDuration" column="audio_duration" type="integer" nullable="true"/>
+        <field name="speaker" type="string" length="80"/>
+        <field name="metaTitle" column="meta_title" type="string" length="60"/>
+        <field name="metaDescription" column="meta_description" type="string" length="160"/>
+        <many-to-one field="section" target-entity="App\Blog\Domain\ArticleTerm">
+            <join-column name="section_id" referenced-column-name="id" nullable="true"/>
+        </many-to-one>
+        <many-to-one field="format" target-entity="App\Blog\Domain\ArticleTerm">
+            <join-column name="format_id" referenced-column-name="id" nullable="true"/>
+        </many-to-one>
     </entity>
 </doctrine-mapping>

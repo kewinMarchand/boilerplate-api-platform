@@ -5,11 +5,18 @@ declare(strict_types=1);
 namespace App\Tests\Functional;
 
 use App\Admin\Infrastructure\Security\AdminUser;
+use App\Blog\Domain\Article;
+use App\Blog\Domain\ArticleTerm;
+use App\Blog\Domain\ArticleTermKind;
 use App\Catalog\Domain\AttributeChoice;
 use App\Catalog\Domain\Category;
 use App\Catalog\Domain\Product;
 use App\Catalog\Domain\ProductAttribute;
 use App\Content\Domain\LegalPage;
+use App\Content\Domain\MetaPage;
+use App\Content\Domain\PageMeta;
+use App\Media\Domain\Image;
+use App\Site\Domain\DefaultColorScheme;
 use App\Site\Domain\SiteIdentity;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -50,7 +57,7 @@ final class AdminTest extends WebTestCase
     public function testShowsTheListsAndRecordsOfEachSection(): void
     {
         $client = $this->loggedIn('admin-pages@example.fr');
-        foreach (['category', 'product', 'product-attribute', 'article', 'legal-page'] as $section) {
+        foreach (['category', 'product', 'product-attribute', 'article', 'article-section', 'article-format', 'legal-page', 'page-meta'] as $section) {
             $crawler = $client->request('GET', \sprintf('/admin/%s', $section));
             self::assertResponseIsSuccessful($section);
             $client->click($crawler->filter('a.action-detail')->first()->link());
@@ -286,6 +293,7 @@ final class AdminTest extends WebTestCase
             'site_identity[name]' => 'Oraki',
             'site_identity[tagline]' => 'Plantes rares et tropicales, livrées chez vous.',
             'site_identity[imageContent]' => $path,
+            'site_identity[useLibraryColors]' => false,
             'site_identity[primaryColor]' => '#c2410c',
             'site_identity[secondaryColor]' => '#ffffff',
             'site_identity[defaultColorScheme]' => 'dark',
@@ -304,7 +312,7 @@ final class AdminTest extends WebTestCase
 
             $client->request('GET', '/admin/site-identity');
             self::assertSelectorExists('[data-image-preview]:not([hidden]) img[src$="-200.webp"]');
-            $client->submitForm('Enregistrer', ['site_identity[removeLogo]' => true, 'site_identity[primaryColor]' => '', 'site_identity[secondaryColor]' => '']);
+            $client->submitForm('Enregistrer', ['site_identity[removeLogo]' => true, 'site_identity[useLibraryColors]' => true]);
             self::assertResponseRedirects('/admin/site-identity');
             $client->request('GET', '/api/site-identity', [], [], ['HTTP_ACCEPT' => 'application/json']);
             self::assertSame(['logo' => null, 'theme' => null], array_intersect_key((array) json_decode((string) $client->getResponse()->getContent(), true), ['logo' => true, 'theme' => true]));
@@ -313,7 +321,7 @@ final class AdminTest extends WebTestCase
             $saved = $this->entityManager()->find(SiteIdentity::class, SiteIdentity::ID);
             self::assertInstanceOf(SiteIdentity::class, $saved);
             $default = SiteIdentity::byDefault();
-            $saved->update($default->getName(), $default->getTagline(), null, null, $default->getDefaultColorScheme());
+            $saved->update($default->getName(), $default->getTagline(), null, null, $default->getDefaultColorScheme(), null, null);
             $this->entityManager()->flush();
         }
     }
@@ -323,7 +331,7 @@ final class AdminTest extends WebTestCase
         $client = $this->loggedIn('admin-contraste@example.fr');
 
         $client->request('GET', '/admin/site-identity');
-        $client->submitForm('Enregistrer', ['site_identity[primaryColor]' => '#ffff00', 'site_identity[secondaryColor]' => '#ffffff']);
+        $client->submitForm('Enregistrer', ['site_identity[useLibraryColors]' => false, 'site_identity[primaryColor]' => '#ffff00', 'site_identity[secondaryColor]' => '#ffffff']);
 
         self::assertResponseStatusCodeSame(422);
         self::assertSelectorTextContains('#main form .alert-danger', 'La couleur principale doit contraster à 4,5:1 au moins avec le fond clair (actuellement 1,07:1).');
@@ -335,7 +343,7 @@ final class AdminTest extends WebTestCase
         $client = $this->loggedIn('admin-couleur@example.fr');
 
         $client->request('GET', '/admin/site-identity');
-        $client->submitForm('Enregistrer', ['site_identity[primaryColor]' => '#c2410c']);
+        $client->submitForm('Enregistrer', ['site_identity[useLibraryColors]' => false, 'site_identity[primaryColor]' => '#c2410c']);
 
         self::assertResponseStatusCodeSame(422);
         self::assertSelectorTextContains('#main form .alert-danger', 'Saisir les deux couleurs, ou aucune.');
@@ -355,6 +363,302 @@ final class AdminTest extends WebTestCase
 
         self::assertRouteSame('admin_login');
         self::assertSelectorExists('.alert-danger');
+    }
+
+    public function testShowsTheCurrentLogoWithItsAltAboveTheUploadField(): void
+    {
+        $client = $this->loggedIn('admin-logo@example.fr');
+        $identity = $this->entityManager()->find(SiteIdentity::class, SiteIdentity::ID);
+        self::assertInstanceOf(SiteIdentity::class, $identity);
+        $identity->update('Oraki', '', new Image(str_repeat('a', 32), 'Oraki, plantes rares', 120), null, DefaultColorScheme::Auto, null, new Image(str_repeat('b', 32), ''));
+        $this->entityManager()->flush();
+
+        try {
+            $crawler = $client->request('GET', '/admin/site-identity');
+            self::assertSelectorExists(\sprintf('[data-image-preview="site_identity_imageContent"]:not([hidden]) img[src="/media/%s-200.webp"]', str_repeat('a', 32)));
+            self::assertSelectorTextContains('[data-image-preview="site_identity_imageContent"] figcaption', 'Logo actuel, texte de remplacement : « Oraki, plantes rares »');
+            self::assertSelectorExists(\sprintf('[data-image-preview="site_identity_iconContent"]:not([hidden]) img[src="/media/%s-192.png"]', str_repeat('b', 32)));
+            self::assertSelectorExists('[data-image-preview="site_identity_shareImageContent"][hidden]');
+            // L'aperçu précède le champ d'envoi
+            self::assertSame(1, $crawler->filter('[data-image-preview="site_identity_imageContent"] + div #site_identity_imageContent')->count());
+        } finally {
+            $this->resetSiteIdentity();
+        }
+    }
+
+    public function testColorsAreColorInputsBehindTheLibraryColorsBox(): void
+    {
+        $client = $this->loggedIn('admin-couleurs@example.fr');
+
+        $client->request('GET', '/admin/site-identity');
+
+        self::assertSelectorExists('input[type="color"][name="site_identity[primaryColor]"]');
+        self::assertSelectorExists('input[type="color"][name="site_identity[secondaryColor]"]');
+        self::assertSelectorExists('input[type="checkbox"][name="site_identity[useLibraryColors]"][checked]');
+    }
+
+    public function testSavesAndRemovesTheIconAndTheShareImage(): void
+    {
+        $client = $this->loggedIn('admin-favicons@example.fr');
+        $icon = $this->png(600, 512, 'icone.png');
+        $share = $this->png(1200, 630, 'partage.png');
+
+        try {
+            $client->request('GET', '/admin/site-identity');
+            $client->submitForm('Enregistrer', ['site_identity[iconContent]' => $icon, 'site_identity[shareImageContent]' => $share, 'site_identity[shareImageAlt]' => 'Serre tropicale']);
+            self::assertResponseRedirects('/admin/site-identity');
+
+            $client->request('GET', '/api/site-identity', [], [], ['HTTP_ACCEPT' => 'application/json']);
+            /** @var array{icon: array<string, string>, shareImage: array{alt: string, width: int, height: int, src: string}} $identity */
+            $identity = json_decode((string) $client->getResponse()->getContent(), true);
+            self::assertSame(['png32', 'png180', 'png192', 'png512'], array_keys($identity['icon']));
+            self::assertMatchesRegularExpression('#^http://localhost:8090/media/[0-9a-f]{32}-180\.png$#', $identity['icon']['png180']);
+            self::assertFileExists(\dirname(__DIR__, 2).'/var/test-media/'.basename($identity['icon']['png512']));
+            self::assertSame(['Serre tropicale', 1200, 630], [$identity['shareImage']['alt'], $identity['shareImage']['width'], $identity['shareImage']['height']]);
+
+            $client->request('GET', '/admin/site-identity');
+            $client->submitForm('Enregistrer', ['site_identity[removeIcon]' => true, 'site_identity[removeShareImage]' => true]);
+            $client->request('GET', '/api/site-identity', [], [], ['HTTP_ACCEPT' => 'application/json']);
+            self::assertSame(['shareImage' => null, 'icon' => null], array_intersect_key((array) json_decode((string) $client->getResponse()->getContent(), true), ['shareImage' => true, 'icon' => true]));
+        } finally {
+            unlink($icon);
+            unlink($share);
+            $this->resetSiteIdentity();
+        }
+    }
+
+    public function testRefusesAnIconTooSmall(): void
+    {
+        $client = $this->loggedIn('admin-icone@example.fr');
+        $icon = $this->png(256, 256, 'petite-icone.png');
+
+        $client->request('GET', '/admin/site-identity');
+        $client->submitForm('Enregistrer', ['site_identity[iconContent]' => $icon]);
+        unlink($icon);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#main form .alert-danger', 'Recadrée au format 1:1, l\'image doit faire au moins 512 × 512 px : elle fait 256 × 256 px.');
+    }
+
+    public function testManagesTheGalleryOfAProduct(): void
+    {
+        $client = $this->loggedIn('admin-galerie@example.fr');
+        $product = $this->entityManager()->getRepository(Product::class)->findOneBy(['slug' => 'palmier-nain']);
+        self::assertInstanceOf(Product::class, $product);
+        $narrow = $this->png(600, 600, 'galerie-etroite.png');
+
+        try {
+            $client->request('GET', \sprintf('/admin/product/%d/edit', $product->getId()));
+            self::assertSelectorCount(2, 'input[type="file"][name^="product[gallery]"]');
+            $client->submitForm('Enregistrer', [
+                'product[gallery][0][content]' => $narrow,
+                'product[gallery][0][position]' => '2',
+                'product[gallery][1][content]' => \dirname(__DIR__, 2).'/fixtures/images/product-5.webp',
+                'product[gallery][1][alt]' => 'Feuilles en éventail',
+                'product[gallery][1][position]' => '1',
+                'product[metaTitle]' => 'Palmier nain en pot',
+                'product[metaDescription]' => 'Rustique et compact.',
+            ]);
+            self::assertResponseRedirects();
+
+            $client->request('GET', '/api/products/palmier-nain', [], [], ['HTTP_ACCEPT' => 'application/json']);
+            /** @var array{gallery: list<array{alt: string, width: int}>, metaTitle: string, metaDescription: string} $detail */
+            $detail = json_decode((string) $client->getResponse()->getContent(), true);
+            self::assertSame([['Feuilles en éventail', 800], ['Palmier nain (Chamaerops humilis)', 600]], array_map(static fn (array $image): array => [$image['alt'], $image['width']], $detail['gallery']));
+            self::assertSame(['Palmier nain en pot', 'Rustique et compact.'], [$detail['metaTitle'], $detail['metaDescription']]);
+
+            $client->request('GET', \sprintf('/admin/product/%d/edit', $product->getId()));
+            self::assertSelectorCount(2, '[data-gallery-preview]');
+            self::assertSelectorTextContains('[data-gallery-preview] figcaption', 'texte de remplacement : « Feuilles en éventail »');
+            $client->submitForm('Enregistrer', ['product[gallery][0][remove]' => true]);
+            self::assertResponseRedirects();
+            $this->entityManager()->clear();
+            $saved = $this->entityManager()->find(Product::class, $product->getId());
+            self::assertInstanceOf(Product::class, $saved);
+            self::assertSame(['Palmier nain (Chamaerops humilis)'], array_map(static fn (Image $image): string => $image->alt, $saved->getGallery()));
+        } finally {
+            unlink($narrow);
+            // La base de test est partagée : les tests de l'API lisent le produit des fixtures, sans galerie ni métadonnées
+            $saved = $this->entityManager()->getRepository(Product::class)->findOneBy(['slug' => 'palmier-nain']);
+            self::assertInstanceOf(Product::class, $saved);
+            $saved->changeGallery([]);
+            $saved->changeMeta('', '');
+            $this->entityManager()->flush();
+        }
+    }
+
+    public function testRefusesAGalleryOfMoreThanEightImages(): void
+    {
+        $client = $this->loggedIn('admin-galerie-pleine@example.fr');
+        $product = $this->entityManager()->getRepository(Product::class)->findOneBy(['slug' => 'palmier-nain']);
+        self::assertInstanceOf(Product::class, $product);
+        $image = $product->getImage();
+        self::assertNotNull($image);
+        $product->changeGallery(array_fill(0, 8, $image));
+        $this->entityManager()->flush();
+
+        try {
+            $client->request('GET', \sprintf('/admin/product/%d/edit', $product->getId()));
+            $client->submitForm('Enregistrer', ['product[gallery][8][content]' => \dirname(__DIR__, 2).'/fixtures/images/product-5.webp']);
+
+            self::assertResponseStatusCodeSame(422);
+            self::assertSelectorTextContains('#main form .alert-danger', 'La galerie compte 8 images au plus (9 demandées).');
+        } finally {
+            $saved = $this->entityManager()->getRepository(Product::class)->findOneBy(['slug' => 'palmier-nain']);
+            self::assertInstanceOf(Product::class, $saved);
+            $saved->changeGallery([]);
+            $this->entityManager()->flush();
+        }
+    }
+
+    public function testManagesSectionsAndRefusesToDeleteAUsedOne(): void
+    {
+        $client = $this->loggedIn('admin-rubriques@example.fr');
+
+        $client->request('GET', '/admin/article-section/new');
+        $client->submitForm('Enregistrer', ['article_term[name]' => 'Jardin', 'article_term[slug]' => 'jardin', 'article_term[position]' => '3']);
+        self::assertResponseRedirects();
+        $client->request('GET', '/api/article-sections', [], [], ['HTTP_ACCEPT' => 'application/json']);
+        self::assertSame(['conseils', 'actualites', 'jardin'], array_column((array) json_decode((string) $client->getResponse()->getContent(), true), 'slug'));
+
+        $crawler = $client->request('GET', '/admin/article-section');
+        self::assertStringNotContainsString('Guide', $crawler->filter('#main table')->text());
+        $token = (string) $crawler->filter('input[name="token"]')->attr('value');
+        $used = $this->entityManager()->getRepository(ArticleTerm::class)->findOneBy(['kind' => ArticleTermKind::Section, 'slug' => 'conseils']);
+        $unused = $this->entityManager()->getRepository(ArticleTerm::class)->findOneBy(['kind' => ArticleTermKind::Section, 'slug' => 'jardin']);
+        self::assertInstanceOf(ArticleTerm::class, $used);
+        self::assertInstanceOf(ArticleTerm::class, $unused);
+
+        $client->request('POST', \sprintf('/admin/article-section/%d/delete', $used->getId()), ['token' => $token]);
+        $client->followRedirect();
+        self::assertSelectorTextContains('.alert-danger', 'La rubrique Conseils est utilisée par 2 articles.');
+
+        $client->request('POST', \sprintf('/admin/article-section/%d/delete', $unused->getId()), ['token' => $token]);
+        $this->entityManager()->clear();
+        self::assertNull($this->entityManager()->getRepository(ArticleTerm::class)->findOneBy(['slug' => 'jardin']));
+    }
+
+    public function testRefusesATakenFormatSlug(): void
+    {
+        $client = $this->loggedIn('admin-formats@example.fr');
+
+        $client->request('GET', '/admin/article-format/new');
+        $client->submitForm('Enregistrer', ['article_term[name]' => 'Guide bis', 'article_term[slug]' => 'guide', 'article_term[position]' => '2']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#main form .alert-danger', 'Le slug « guide » est déjà pris par un autre format.');
+    }
+
+    public function testClassifiesAnArticleAndSendsThenRemovesItsAudio(): void
+    {
+        $client = $this->loggedIn('admin-audio@example.fr');
+        $article = $this->entityManager()->getRepository(Article::class)->findOneBy(['slug' => 'le-mode-accessibilite-renforcee']);
+        self::assertInstanceOf(Article::class, $article);
+        $guide = $this->entityManager()->getRepository(ArticleTerm::class)->findOneBy(['kind' => ArticleTermKind::Format, 'slug' => 'guide']);
+        self::assertInstanceOf(ArticleTerm::class, $guide);
+
+        try {
+            $client->request('GET', \sprintf('/admin/article/%d/edit', $article->getId()));
+            self::assertSelectorNotExists('[data-audio-preview]');
+            $client->submitForm('Enregistrer', [
+                'article[formatId]' => (string) $guide->getId(),
+                'article[audioPath]' => \dirname(__DIR__).'/Fixtures/audio/beep-3s.m4a',
+                'article[speaker]' => 'Présenté par Camille Exemple',
+                'article[metaDescription]' => 'Texte agrandi et contraste AAA.',
+            ]);
+            self::assertResponseRedirects();
+
+            $client->request('GET', '/api/articles/le-mode-accessibilite-renforcee', [], [], ['HTTP_ACCEPT' => 'application/json']);
+            /** @var array{format: array{slug: string}, audio: array{src: string, type: string, durationSeconds: int}, speaker: string, metaDescription: string} $detail */
+            $detail = json_decode((string) $client->getResponse()->getContent(), true);
+            self::assertSame(['guide', 'audio/mp4', 3, 'Présenté par Camille Exemple', 'Texte agrandi et contraste AAA.'], [$detail['format']['slug'], $detail['audio']['type'], $detail['audio']['durationSeconds'], $detail['speaker'], $detail['metaDescription']]);
+            self::assertMatchesRegularExpression('#^http://localhost:8090/media/[0-9a-f]{32}\.m4a$#', $detail['audio']['src']);
+            self::assertFileExists(\dirname(__DIR__, 2).'/var/test-media/'.basename($detail['audio']['src']));
+
+            $client->request('GET', '/api/articles?format=guide', [], [], ['HTTP_ACCEPT' => 'application/json']);
+            self::assertSame([3, 1], array_column((array) json_decode((string) $client->getResponse()->getContent(), true), 'id'));
+
+            $client->request('GET', \sprintf('/admin/article/%d/edit', $article->getId()));
+            self::assertSelectorTextContains('[data-audio-preview] figcaption', 'Fichier audio actuel, M4A, 3 s');
+            $client->submitForm('Enregistrer', ['article[removeAudio]' => true]);
+            $client->request('GET', '/api/articles/le-mode-accessibilite-renforcee', [], [], ['HTTP_ACCEPT' => 'application/json']);
+            self::assertNull(((array) json_decode((string) $client->getResponse()->getContent(), true))['audio']);
+        } finally {
+            // La base de test est partagée : les tests de l'API lisent l'article des fixtures
+            $saved = $this->entityManager()->getRepository(Article::class)->findOneBy(['slug' => 'le-mode-accessibilite-renforcee']);
+            self::assertInstanceOf(Article::class, $saved);
+            $saved->classify($saved->getSection(), null);
+            $saved->changeAudio(null, '');
+            $saved->changeMeta('', '');
+            $this->entityManager()->flush();
+        }
+    }
+
+    public function testRefusesAFileThatIsNotAudio(): void
+    {
+        $client = $this->loggedIn('admin-audio-refuse@example.fr');
+        $article = $this->entityManager()->getRepository(Article::class)->findOneBy(['slug' => 'le-mode-accessibilite-renforcee']);
+        self::assertInstanceOf(Article::class, $article);
+
+        $client->request('GET', \sprintf('/admin/article/%d/edit', $article->getId()));
+        $client->submitForm('Enregistrer', ['article[audioPath]' => \dirname(__DIR__).'/Fixtures/audio/video-1s.mp4']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('#main form .alert-danger', 'Le fichier ne se lit pas comme un fichier audio MP3, M4A ou OGG.');
+    }
+
+    public function testEditsTheMetadataOfAFixedPage(): void
+    {
+        $client = $this->loggedIn('admin-referencement@example.fr');
+        $home = $this->entityManager()->getRepository(PageMeta::class)->findOneBy(['page' => MetaPage::Home]);
+        self::assertInstanceOf(PageMeta::class, $home);
+
+        try {
+            $client->request('GET', '/admin/page-meta');
+            self::assertSelectorTextContains('#main table', 'Données personnelles');
+            self::assertSelectorNotExists('a.action-new');
+            $client->request('GET', \sprintf('/admin/page-meta/%d/edit', $home->getId()));
+            $client->submitForm('Enregistrer', ['page_meta[title]' => 'Oraki, plantes rares', 'page_meta[description]' => 'Plantes tropicales livrées chez vous.']);
+            self::assertResponseRedirects();
+
+            $client->request('GET', '/api/page-metas', [], [], ['HTTP_ACCEPT' => 'application/json']);
+            /** @var list<array{page: string, title: string, description: string}> $metas */
+            $metas = json_decode((string) $client->getResponse()->getContent(), true);
+            self::assertSame(['page' => 'home', 'title' => 'Oraki, plantes rares', 'description' => 'Plantes tropicales livrées chez vous.'], $metas[0]);
+
+            $client->request('GET', \sprintf('/admin/page-meta/%d/edit', $home->getId()));
+            $client->submitForm('Enregistrer', ['page_meta[title]' => str_repeat('a', 61)]);
+            self::assertResponseStatusCodeSame(422);
+        } finally {
+            $saved = $this->entityManager()->getRepository(PageMeta::class)->findOneBy(['page' => MetaPage::Home]);
+            self::assertInstanceOf(PageMeta::class, $saved);
+            $saved->update('', '');
+            $this->entityManager()->flush();
+        }
+    }
+
+    /**
+     * @param positive-int $width
+     * @param positive-int $height
+     */
+    private function png(int $width, int $height, string $name): string
+    {
+        $image = imagecreatetruecolor($width, $height);
+        self::assertNotFalse($image);
+        $path = sys_get_temp_dir().'/'.$name;
+        imagepng($image, $path);
+
+        return $path;
+    }
+
+    private function resetSiteIdentity(): void
+    {
+        // La base de test est partagée : les tests de l'API lisent l'identité des fixtures
+        $saved = $this->entityManager()->find(SiteIdentity::class, SiteIdentity::ID);
+        self::assertInstanceOf(SiteIdentity::class, $saved);
+        $default = SiteIdentity::byDefault();
+        $saved->update($default->getName(), $default->getTagline(), null, null, $default->getDefaultColorScheme(), null, null);
+        $this->entityManager()->flush();
     }
 
     private function loggedIn(string $email): KernelBrowser

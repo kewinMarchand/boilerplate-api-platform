@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Catalog\Application;
 
 use App\Catalog\Application\CreateProduct;
 use App\Catalog\Application\DeleteProduct;
+use App\Catalog\Application\GalleryImageData;
 use App\Catalog\Application\ProductData;
 use App\Catalog\Application\UpdateProduct;
 use App\Catalog\Domain\AttributeChoice;
@@ -17,7 +18,9 @@ use App\Catalog\Domain\Price;
 use App\Catalog\Domain\Product;
 use App\Catalog\Domain\ProductAttribute;
 use App\Catalog\Domain\Size;
+use App\Media\Domain\Image;
 use App\Tests\Support\InMemoryCategoryRepository;
+use App\Tests\Support\InMemoryMediaStorage;
 use App\Tests\Support\InMemoryProductAttributeRepository;
 use App\Tests\Support\InMemoryProductRepository;
 use App\Tests\Support\TestImages;
@@ -141,6 +144,57 @@ final class ProductWritesTest extends TestCase
         new CreateProduct($this->products, $this->categories, $this->attributes, TestImages::changeImage())($data);
     }
 
+    public function testAddsGalleryImagesOrderedByPositionNamedAfterTheProduct(): void
+    {
+        $storage = new InMemoryMediaStorage();
+        $data = $this->data('palmier-nain', $this->palms->getId(), 4490);
+        $data->gallery = [$this->galleryRow('image/jpeg 600x600', 2), $this->galleryRow('image/jpeg 1600x1600', 1, 'Vue de près'), new GalleryImageData()];
+
+        new UpdateProduct($this->products, $this->categories, $this->attributes, TestImages::changeImage($storage))((int) $this->dwarfPalm->getId(), $data);
+
+        $gallery = $this->dwarfPalm->getGallery();
+        self::assertSame([['Vue de près', null], ['Palmier nain', 600]], array_map(static fn (Image $image): array => [$image->alt, $image->width], $gallery));
+        self::assertArrayHasKey($gallery[1]->key.'-600.webp', $storage->files);
+    }
+
+    public function testRemovesAGalleryImageAndRenamesAnother(): void
+    {
+        $this->dwarfPalm->changeGallery([TestImages::image('A', str_repeat('a', 32)), TestImages::image('B', str_repeat('b', 32))]);
+        $data = ProductData::fromProduct($this->dwarfPalm);
+        $data->gallery[0]->remove = true;
+        $data->gallery[1]->alt = 'B, revue';
+
+        new UpdateProduct($this->products, $this->categories, $this->attributes, TestImages::changeImage())((int) $this->dwarfPalm->getId(), $data);
+
+        self::assertEquals([TestImages::image('B, revue', str_repeat('b', 32))], $this->dwarfPalm->getGallery());
+    }
+
+    public function testRefusesAGalleryOfMoreThanEightImagesBeforeEncodingAnything(): void
+    {
+        $storage = new InMemoryMediaStorage();
+        $data = $this->data('palmier-geant', $this->palms->getId(), 100);
+        $data->gallery = array_map(fn (int $position): GalleryImageData => $this->galleryRow('image/jpeg 1600x1600', $position), range(1, 9));
+
+        try {
+            new CreateProduct($this->products, $this->categories, $this->attributes, TestImages::changeImage($storage))($data);
+            self::fail('Neuf images acceptées.');
+        } catch (CatalogRuleViolation $violation) {
+            self::assertSame('La galerie compte 8 images au plus (9 demandées).', $violation->getMessage());
+        }
+        self::assertSame([], $storage->files);
+    }
+
+    public function testSavesTheMetadataOfTheProduct(): void
+    {
+        $data = $this->data('palmier-nain', $this->palms->getId(), 4490);
+        $data->metaTitle = ' Palmier nain en pot ';
+        $data->metaDescription = 'Rustique, compact.';
+
+        new UpdateProduct($this->products, $this->categories, $this->attributes, TestImages::changeImage())((int) $this->dwarfPalm->getId(), $data);
+
+        self::assertSame(['Palmier nain en pot', 'Rustique, compact.'], [$this->dwarfPalm->getMetaTitle(), $this->dwarfPalm->getMetaDescription()]);
+    }
+
     public function testDeletesAProduct(): void
     {
         new DeleteProduct($this->products)((int) $this->dwarfPalm->getId());
@@ -158,5 +212,15 @@ final class ProductWritesTest extends TestCase
         $data->price = $price;
 
         return $data;
+    }
+
+    private function galleryRow(string $content, int $position, string $alt = ''): GalleryImageData
+    {
+        $row = new GalleryImageData();
+        $row->content = $content;
+        $row->position = $position;
+        $row->alt = $alt;
+
+        return $row;
     }
 }

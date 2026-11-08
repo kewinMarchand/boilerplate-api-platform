@@ -21,19 +21,25 @@ final readonly class UpdateSiteIdentity
     }
 
     /**
-     * Les couleurs sont vérifiées avant l'encodage du logo : une saisie refusée ne laisse aucun fichier.
+     * Les couleurs sont vérifiées avant l'encodage des images : une couleur refusée ne laisse aucun fichier.
      *
      * @throws SiteRuleViolation  une seule couleur, couleur invalide ou illisible
-     * @throws MediaRuleViolation logo refusé
+     * @throws MediaRuleViolation logo, image de partage ou icône refusé
      */
     public function __invoke(SiteIdentityData $data): void
     {
         $identity = ($this->getSiteIdentity)();
-        $colors = BrandColors::fromInput($data->primaryColor, $data->secondaryColor);
-        $alt = '' === trim($data->imageAlt) ? $data->name : $data->imageAlt;
-        $logo = $data->removeLogo ? null : ($this->changeImage)($identity->getLogo(), $data->imageContent, $alt, false, ImageUsage::Logo);
+        $colors = $data->useLibraryColors ? null : BrandColors::fromInput($data->primaryColor, $data->secondaryColor);
+        $logo = $data->removeLogo ? null : ($this->changeImage)($identity->getLogo(), $data->imageContent, self::altOrName($data->imageAlt, $data->name), false, ImageUsage::Logo);
+        $shareImage = $data->removeShareImage ? null : ($this->changeImage)($identity->getShareImage(), $data->shareImageContent, self::altOrName($data->shareImageAlt, $data->name), false, ImageUsage::Share);
+        $icon = $data->removeIcon ? null : ($this->changeImage)($identity->getIcon(), $data->iconContent, '', true, ImageUsage::Icon);
 
-        $identity->update($data->name, $data->tagline, $logo, $colors, $data->defaultColorScheme);
+        $identity->update($data->name, $data->tagline, $logo, $colors, $data->defaultColorScheme, $shareImage, $icon);
         $this->identities->save($identity);
+    }
+
+    private static function altOrName(string $alt, string $name): string
+    {
+        return '' === trim($alt) ? $name : $alt;
     }
 }

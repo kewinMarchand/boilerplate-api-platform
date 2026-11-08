@@ -36,8 +36,11 @@ final class DashboardController extends AbstractDashboardController
         yield MenuItem::linkTo(ProductAttributeCrudController::class, 'Attributs', 'fa fa-tags');
         yield MenuItem::section('Contenus');
         yield MenuItem::linkTo(ArticleCrudController::class, 'Articles', 'fa fa-newspaper');
+        yield MenuItem::linkTo(ArticleSectionCrudController::class, 'Rubriques', 'fa fa-folder-open');
+        yield MenuItem::linkTo(ArticleFormatCrudController::class, 'Formats', 'fa fa-shapes');
         yield MenuItem::linkTo(LegalPageCrudController::class, 'Pages légales', 'fa fa-scale-balanced');
         yield MenuItem::section('Site');
         yield MenuItem::linkTo(SiteIdentityCrudController::class, 'Identité du site', 'fa fa-palette');
+        yield MenuItem::linkTo(PageMetaCrudController::class, 'Référencement', 'fa fa-magnifying-glass');
     }
 }

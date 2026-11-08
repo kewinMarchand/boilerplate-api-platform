@@ -12,6 +12,7 @@ use App\Catalog\Domain\Price;
 use App\Catalog\Domain\Product;
 use App\Catalog\Domain\ProductAttribute;
 use App\Catalog\Domain\Size;
+use App\Media\Domain\Image;
 use App\Media\Domain\ImageUsage;
 use App\Media\Infrastructure\Fixtures\DemoImages;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -19,7 +20,8 @@ use Doctrine\Persistence\ObjectManager;
 
 /**
  * Jardinerie tropicale fictive : arbre de catégories sur 3 niveaux, 24 produits répartis dans les feuilles,
- * deux attributs de démonstration renseignés sur quelques plantes (section 23 de la spec commune).
+ * deux attributs de démonstration renseignés sur quelques plantes (section 23 de la spec commune), deux galeries
+ * (section 24).
  */
 final class CatalogFixtures extends Fixture
 {
@@ -94,6 +96,12 @@ final class CatalogFixtures extends Fixture
         'lotus-sacre' => ['feuillage' => 'caduc', 'hauteur-adulte' => '150'],
     ];
 
+    /** Galeries de démonstration (ADR 0009), par slug : photos de fixtures/images, dans l'ordre. */
+    private const array GALLERIES = [
+        'monstera-deliciosa' => ['product-2', 'product-3'],
+        'strelitzia-reginae' => ['product-11', 'product-12', 'product-1'],
+    ];
+
     /** Description de chaque produit, par slug. */
     private const array DESCRIPTIONS = [
         'monstera-deliciosa' => "Grandes feuilles vert profond, découpées et perforées avec l’âge : le monstera deliciosa habille une pièce à lui seul.\n\nLumière vive sans soleil direct, arrosage quand le terreau a séché sur deux centimètres. Un tuteur en mousse l’aide à grimper.",
@@ -152,6 +160,7 @@ final class CatalogFixtures extends Fixture
                 self::DESCRIPTIONS[$slug],
             );
             $product->changeAttributeValues(self::ATTRIBUTE_VALUES[$slug] ?? []);
+            $product->changeGallery(array_map(fn (string $photo): Image => $this->images->import($photo, ImageUsage::Product, $name), self::GALLERIES[$slug] ?? []));
             $manager->persist($product);
         }
 

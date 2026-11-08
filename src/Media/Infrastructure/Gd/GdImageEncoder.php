@@ -20,6 +20,7 @@ final readonly class GdImageEncoder implements ImageEncoder
     private const int AVIF_QUALITY = 50;
     private const int AVIF_SPEED = 6;
     private const int WEBP_QUALITY = 75;
+    private const int PNG_COMPRESSION = 9;
 
     public function inspect(string $content): ?SourceImage
     {
@@ -36,7 +37,7 @@ final readonly class GdImageEncoder implements ImageEncoder
         return new SourceImage($mimeType, $width, $height);
     }
 
-    public function variants(string $content, string $key, ImageUsage $usage): iterable
+    public function variants(string $content, string $key, ImageUsage $usage, array $widths): iterable
     {
         $source = $this->load($content);
         $sourceWidth = imagesx($source);
@@ -47,7 +48,7 @@ final readonly class GdImageEncoder implements ImageEncoder
         $cropX = intdiv($sourceWidth - $cropWidth, 2);
         $cropY = intdiv($sourceHeight - $cropHeight, 2);
 
-        foreach ($usage->widths() as $width) {
+        foreach ($widths as $width) {
             $height = $usage->heightFor($width, [$sourceWidth, $sourceHeight]);
             $variant = imagecreatetruecolor($width, $height);
             if (false === $variant) {
@@ -56,7 +57,7 @@ final readonly class GdImageEncoder implements ImageEncoder
             imagealphablending($variant, false);
             imagesavealpha($variant, true);
             imagecopyresampled($variant, $source, 0, 0, $cropX, $cropY, $width, $height, $cropWidth, $cropHeight);
-            foreach (ImageFormat::cases() as $format) {
+            foreach ($usage->formats() as $format) {
                 yield Image::fileName($key, $width, $format) => $this->encode($variant, $format);
             }
         }
@@ -140,6 +141,7 @@ final readonly class GdImageEncoder implements ImageEncoder
         $written = match ($format) {
             ImageFormat::Avif => imageavif($image, null, self::AVIF_QUALITY, self::AVIF_SPEED),
             ImageFormat::Webp => imagewebp($image, null, self::WEBP_QUALITY),
+            ImageFormat::Png => imagepng($image, null, self::PNG_COMPRESSION),
         };
         $bytes = (string) ob_get_clean();
         if (!$written || '' === $bytes) {

@@ -7,6 +7,8 @@ namespace App\Media\Domain;
 /**
  * Image stockée, désignée par l'empreinte de son contenu. Un texte de remplacement vide la déclare décorative.
  * Pour un usage sans recadrage (logo), la hauteur de la plus grande variante dépend du fichier : l'image la porte.
+ * Une source plus étroite que la plus grande variante de son usage la porte aussi, ramenée à sa largeur (ADR 0009) ;
+ * null : la plus grande variante de l'usage.
  */
 final readonly class Image
 {
@@ -18,6 +20,7 @@ final readonly class Image
         public string $key,
         string $alt,
         public ?int $height = null,
+        public ?int $width = null,
     ) {
         if (1 !== preg_match(self::KEY_PATTERN, $key)) {
             throw new MediaRuleViolation(\sprintf('Empreinte d\'image invalide : « %s ».', $key));
@@ -27,7 +30,7 @@ final readonly class Image
 
     public function withAlt(string $alt): self
     {
-        return new self($this->key, $alt, $this->height);
+        return new self($this->key, $alt, $this->height, $this->width);
     }
 
     public function isDecorative(): bool

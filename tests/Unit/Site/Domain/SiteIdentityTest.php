@@ -28,7 +28,7 @@ final class SiteIdentityTest extends TestCase
     public function testUpdatesEveryField(): void
     {
         $identity = SiteIdentity::byDefault();
-        $identity->update('Oraki', 'Plantes rares.', TestImages::image('Oraki'), new BrandColors(new HexColor('#c2410c'), new HexColor('#ffffff')), DefaultColorScheme::Dark);
+        $identity->update('Oraki', 'Plantes rares.', TestImages::image('Oraki'), new BrandColors(new HexColor('#c2410c'), new HexColor('#ffffff')), DefaultColorScheme::Dark, null, null);
 
         self::assertSame(['Oraki', 'Plantes rares.', 'Oraki', '#c2410c', '#ffffff', DefaultColorScheme::Dark], [
             $identity->getName(),

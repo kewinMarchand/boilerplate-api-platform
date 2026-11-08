@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Media\Infrastructure;
 
+use App\Media\Domain\Audio;
+use App\Media\Domain\AudioFormat;
+use App\Media\Domain\Image;
 use App\Media\Domain\ImageUsage;
+use App\Media\Infrastructure\ApiPlatform\AudioView;
 use App\Media\Infrastructure\ApiPlatform\ImageSource;
 use App\Media\Infrastructure\ApiPlatform\ImageView;
 use App\Media\Infrastructure\ApiPlatform\ImageViews;
@@ -35,11 +39,30 @@ final class ImageViewsTest extends TestCase
     {
         $view = new ImageViews('http://localhost:8090')->view(TestImages::image(), ImageUsage::Article);
 
-        self::assertSame([960, 540], [$view?->width, $view?->height]);
+        self::assertSame([960, 540], [$view->width, $view->height]);
+    }
+
+    public function testANarrowProductSourceStopsAtItsWidth(): void
+    {
+        $view = new ImageViews('http://localhost:8090')->view(new Image(str_repeat('a', 32), 'Fleur', null, 600), ImageUsage::Product);
+        $media = 'http://localhost:8090/media/'.str_repeat('a', 32);
+
+        self::assertSame([600, 600], [$view->width, $view->height]);
+        self::assertSame($media.'-400.webp 400w, '.$media.'-600.webp 600w', $view->sources[1]->srcset);
+    }
+
+    public function testAnAudioFileIsServedUnderMedia(): void
+    {
+        $view = new ImageViews('http://localhost:8090/')->audio(new Audio(str_repeat('b', 32), AudioFormat::M4a, 1560));
+
+        self::assertEquals(new AudioView('http://localhost:8090/media/'.str_repeat('b', 32).'.m4a', 'audio/mp4', 1560), $view);
     }
 
     public function testNoImageGivesNull(): void
     {
-        self::assertNull(new ImageViews('http://localhost:8090')->view(null, ImageUsage::Article));
+        /** @var Image|null $none */
+        $none = null;
+
+        self::assertNull(new ImageViews('http://localhost:8090')->view($none, ImageUsage::Article));
     }
 }

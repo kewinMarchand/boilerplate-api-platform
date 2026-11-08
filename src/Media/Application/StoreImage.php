@@ -6,13 +6,12 @@ namespace App\Media\Application;
 
 use App\Media\Domain\Image;
 use App\Media\Domain\ImageEncoder;
-use App\Media\Domain\ImageFormat;
 use App\Media\Domain\ImageUsage;
 use App\Media\Domain\MediaRuleViolation;
 use App\Media\Domain\MediaStorage;
 
 /**
- * Contrôle un fichier envoyé, génère ses variantes et les stocke (ADR 0002). Le même contenu pour le même usage donne
+ * Contrôle un fichier envoyé, génère ses variantes et les stocke (ADR 0002), sans jamais agrandir la source (ADR 0009). Le même contenu pour le même usage donne
  * la même empreinte : ses variantes déjà stockées ne sont pas réencodées.
  */
 final readonly class StoreImage
@@ -44,31 +43,43 @@ final readonly class StoreImage
             throw new MediaRuleViolation('Formats acceptés : JPEG, PNG, WebP ou AVIF.');
         }
         $ratio = $usage->ratio();
-        if (null === $ratio && $source->width < $usage->largestWidth()) {
-            throw new MediaRuleViolation(\sprintf('L\'image doit faire au moins %d px de large : elle fait %d × %d px.', $usage->largestWidth(), $source->width, $source->height));
+        if (null === $ratio && $source->width < $usage->minimumWidth()) {
+            throw new MediaRuleViolation(\sprintf('L\'image doit faire au moins %d px de large : elle fait %d × %d px.', $usage->minimumWidth(), $source->width, $source->height));
         }
+        $croppedWidth = $source->width;
         if (null !== $ratio) {
             [$ratioWidth, $ratioHeight] = $ratio;
             $croppedWidth = min($source->width, intdiv($source->height * $ratioWidth, $ratioHeight));
-            if ($croppedWidth < $usage->largestWidth()) {
-                throw new MediaRuleViolation(\sprintf('Recadrée au format %d:%d, l\'image doit faire au moins %d × %d px : elle fait %d × %d px.', $ratioWidth, $ratioHeight, $usage->largestWidth(), $usage->heightFor($usage->largestWidth()), $source->width, $source->height));
+            if ($croppedWidth < $usage->minimumWidth()) {
+                throw new MediaRuleViolation(\sprintf('Recadrée au format %d:%d, l\'image doit faire au moins %d × %d px : elle fait %d × %d px.', $ratioWidth, $ratioHeight, $usage->minimumWidth(), $usage->heightFor($usage->minimumWidth()), $source->width, $source->height));
             }
         }
+        \assert($croppedWidth >= 1);
+        $widths = $usage->widthsUpTo($croppedWidth);
+        $largest = $widths[\count($widths) - 1];
 
         $key = substr(hash('sha256', $usage->value."\n".$upload->content), 0, 32);
-        if (!$this->isStored($key, $usage)) {
-            foreach ($this->encoder->variants($upload->content, $key, $usage) as $fileName => $content) {
+        if (!$this->isStored($key, $usage, $widths)) {
+            foreach ($this->encoder->variants($upload->content, $key, $usage, $widths) as $fileName => $content) {
                 $this->storage->put($fileName, $content);
             }
         }
 
-        return new Image($key, $alt, null === $ratio ? $usage->heightFor($usage->largestWidth(), [$source->width, $source->height]) : null);
+        return new Image(
+            $key,
+            $alt,
+            null === $ratio ? $usage->heightFor($largest, [$source->width, $source->height]) : null,
+            $largest < $usage->largestWidth() ? $largest : null,
+        );
     }
 
-    private function isStored(string $key, ImageUsage $usage): bool
+    /**
+     * @param list<positive-int> $widths
+     */
+    private function isStored(string $key, ImageUsage $usage, array $widths): bool
     {
-        foreach ($usage->widths() as $width) {
-            foreach (ImageFormat::cases() as $format) {
+        foreach ($widths as $width) {
+            foreach ($usage->formats() as $format) {
                 if (!$this->storage->has(Image::fileName($key, $width, $format))) {
                     return false;
                 }

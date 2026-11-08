@@ -1,6 +1,6 @@
 # 0003 — Variante intermédiaire de 640 px pour les images des produits
 
-- **Statut** : Acceptée
+- **Statut** : Acceptée, modifiée par l'[ADR 0009](0009-galerie-et-sources-plus-petites-des-produits.md) (largeur minimale à l'envoi : 400 px au lieu de 800)
 - **Date** : 2026-11-07
 - **Décideurs** : Kewin Marchand
 - **Complète** : l'[ADR 0002](0002-images-envoyees-par-l-admin.md), dont elle ne change que les largeurs des produits.

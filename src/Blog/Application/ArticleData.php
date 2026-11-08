@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Blog\Application;
 
 use App\Blog\Domain\Article;
+use App\Media\Domain\Audio;
 use App\Media\Domain\Image;
 
 /**
@@ -23,6 +24,16 @@ final class ArticleData
     public string $imageAlt = '';
     public bool $imageDecorative = false;
     public ?Image $currentImage = null;
+    public ?int $sectionId = null;
+    public ?int $formatId = null;
+    /** Chemin du fichier audio envoyé (fichier temporaire de la requête), null pour garder l'audio actuel. */
+    public ?string $audioPath = null;
+    /** Retire l'audio actuel ; un fichier envoyé en même temps est ignoré. */
+    public bool $removeAudio = false;
+    public ?Audio $currentAudio = null;
+    public string $speaker = '';
+    public string $metaTitle = '';
+    public string $metaDescription = '';
 
     public function __construct()
     {
@@ -40,6 +51,12 @@ final class ArticleData
         $data->currentImage = $article->getImage();
         $data->imageAlt = $data->currentImage->alt ?? '';
         $data->imageDecorative = $data->currentImage?->isDecorative() ?? false;
+        $data->sectionId = $article->getSection()?->getId();
+        $data->formatId = $article->getFormat()?->getId();
+        $data->currentAudio = $article->getAudio();
+        $data->speaker = $article->getSpeaker();
+        $data->metaTitle = $article->getMetaTitle();
+        $data->metaDescription = $article->getMetaDescription();
 
         return $data;
     }

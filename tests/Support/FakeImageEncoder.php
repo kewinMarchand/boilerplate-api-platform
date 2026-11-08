@@ -6,7 +6,6 @@ namespace App\Tests\Support;
 
 use App\Media\Domain\Image;
 use App\Media\Domain\ImageEncoder;
-use App\Media\Domain\ImageFormat;
 use App\Media\Domain\ImageUsage;
 use App\Media\Domain\SourceImage;
 
@@ -26,11 +25,11 @@ final class FakeImageEncoder implements ImageEncoder
         return new SourceImage($match[1], (int) $match[2], (int) $match[3]);
     }
 
-    public function variants(string $content, string $key, ImageUsage $usage): iterable
+    public function variants(string $content, string $key, ImageUsage $usage, array $widths): iterable
     {
         ++$this->encodings;
-        foreach ($usage->widths() as $width) {
-            foreach (ImageFormat::cases() as $format) {
+        foreach ($widths as $width) {
+            foreach ($usage->formats() as $format) {
                 yield Image::fileName($key, $width, $format) => $format->value;
             }
         }

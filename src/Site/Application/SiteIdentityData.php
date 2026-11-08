@@ -14,9 +14,11 @@ final class SiteIdentityData
 {
     public string $name = '';
     public string $tagline = '';
-    /** #rrggbb, vide avec la secondaire pour garder les couleurs de boilerplates-ui. */
+    /** Pas de couleurs de marque : les fronts gardent les jetons de boilerplates-ui ; les couleurs saisies sont ignorées. */
+    public bool $useLibraryColors = true;
+    /** #rrggbb. */
     public string $primaryColor = '';
-    /** #rrggbb, vide avec la principale. */
+    /** #rrggbb. */
     public string $secondaryColor = '';
     public DefaultColorScheme $defaultColorScheme = DefaultColorScheme::Auto;
     /** Contenu du logo envoyé, null pour garder le logo actuel. */
@@ -25,6 +27,14 @@ final class SiteIdentityData
     public string $imageAlt = '';
     /** Retire le logo actuel ; un fichier envoyé en même temps est ignoré. */
     public bool $removeLogo = false;
+    /** Contenu de l'image de partage envoyée, null pour garder l'actuelle. */
+    public ?string $shareImageContent = null;
+    /** Vide : le nom du site. */
+    public string $shareImageAlt = '';
+    public bool $removeShareImage = false;
+    /** Contenu de l'icône envoyée, null pour garder l'actuelle. */
+    public ?string $iconContent = null;
+    public bool $removeIcon = false;
 
     public static function fromSiteIdentity(SiteIdentity $identity): self
     {
@@ -32,10 +42,12 @@ final class SiteIdentityData
         $data->name = $identity->getName();
         $data->tagline = $identity->getTagline();
         $colors = $identity->getColors();
+        $data->useLibraryColors = null === $colors;
         $data->primaryColor = $colors->primary->value ?? '';
         $data->secondaryColor = $colors->secondary->value ?? '';
         $data->defaultColorScheme = $identity->getDefaultColorScheme();
         $data->imageAlt = $identity->getLogo()->alt ?? '';
+        $data->shareImageAlt = $identity->getShareImage()->alt ?? '';
 
         return $data;
     }

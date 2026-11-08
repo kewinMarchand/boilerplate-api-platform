@@ -7,13 +7,13 @@ namespace App\Site\Domain;
 /**
  * Couleurs de marque d'un thème : les douze jetons de boilerplates-ui, calculés depuis les couleurs principale et
  * secondaire (SPEC-COMMUNE, section 22). En sombre, chaque couleur est d'abord éclaircie, par pas de 5 % de blanc,
- * jusqu'à contraster à 7:1 avec le fond, comme les jetons sombres de la bibliothèque.
+ * jusqu'à contraster à 4,5:1 avec le fond : le minimum AA du texte courant, qui garde la couleur reconnaissable.
  */
 final readonly class BrandPalette
 {
     public const string LIGHT_BACKGROUND = '#ffffff';
     public const string DARK_BACKGROUND = '#0f141d';
-    public const float DARK_CONTRAST = 7.0;
+    public const float DARK_CONTRAST = 4.5;
     private const float LIGHTENING_STEP = 0.05;
 
     private function __construct(
@@ -40,7 +40,7 @@ final readonly class BrandPalette
     }
 
     /**
-     * Le blanc pur contraste à plus de 7:1 avec le fond sombre : la boucle s'arrête au plus tard au vingtième pas.
+     * Le blanc pur contraste à plus de 4,5:1 avec le fond sombre : la boucle s'arrête au plus tard au vingtième pas.
      */
     private static function readableOn(HexColor $color, HexColor $background): HexColor
     {

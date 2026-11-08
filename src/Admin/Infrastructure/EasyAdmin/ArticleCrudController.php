@@ -10,6 +10,9 @@ use App\Blog\Application\CreateArticle;
 use App\Blog\Application\DeleteArticle;
 use App\Blog\Application\UpdateArticle;
 use App\Blog\Domain\Article;
+use App\Blog\Domain\ArticleTerm;
+use App\Blog\Domain\ArticleTermKind;
+use App\Blog\Domain\ArticleTermRepository;
 use App\Blog\Domain\BlogRuleViolation;
 use App\Media\Domain\Image;
 use App\Media\Domain\ImageUsage;
@@ -38,9 +41,13 @@ final class ArticleCrudController extends AbstractCrudController
         private readonly CreateArticle $createArticle,
         private readonly UpdateArticle $updateArticle,
         private readonly DeleteArticle $deleteArticle,
+        private readonly ArticleTermRepository $terms,
         private readonly AdminUrlGenerator $urls,
     ) {
     }
+
+    /** Modèle texte imposé aux champs virtuels : sans lui, EasyAdmin les affiche « Inaccessible », avant même formatValue. */
+    private const TEXT_TEMPLATE = '@EasyAdmin/crud/field/text.html.twig';
 
     public static function getEntityFqcn(): string
     {
@@ -66,6 +73,10 @@ final class ArticleCrudController extends AbstractCrudController
         yield TextField::new('title', 'Titre');
         yield TextField::new('slug', 'Slug');
         yield DateField::new('publishedAt', 'Publication');
+        yield TextField::new('sectionName', 'Rubrique')
+            ->setVirtual(true)
+            ->setTemplatePath(self::TEXT_TEMPLATE)
+            ->formatValue(static fn (mixed $value, Article $article): string => $article->getSection()?->getName() ?? '—');
         yield TextField::new('excerpt', 'Résumé')->hideOnIndex();
         yield TextareaField::new('body', 'Texte (Markdown)')->onlyOnDetail();
     }
@@ -97,7 +108,8 @@ final class ArticleCrudController extends AbstractCrudController
      */
     private function form(AdminContext $context, ArticleData $data, ?int $id, string $title, ?Image $image = null): Response
     {
-        $form = $this->createForm(ArticleType::class, $data);
+        $choices = fn (ArticleTermKind $kind): array => array_column(array_map(static fn (ArticleTerm $term): array => [$term->getName(), $term->getId()], $this->terms->findByKind($kind)), 1, 0);
+        $form = $this->createForm(ArticleType::class, $data, ['sections' => $choices(ArticleTermKind::Section), 'formats' => $choices(ArticleTermKind::Format)]);
         $form->handleRequest($context->getRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -114,7 +126,11 @@ final class ArticleCrudController extends AbstractCrudController
         return $this->render('admin/form.html.twig', [
             'form' => $form,
             'title' => $title,
-            'image_preview' => ImagePreview::url($image, ImageUsage::Article),
+            'image_previews' => ['imageContent' => ImagePreview::figure($image, ImageUsage::Article)],
+            'audio_preview' => null === $data->currentAudio ? null : [
+                'src' => '/media/'.$data->currentAudio->fileName(),
+                'caption' => \sprintf('Fichier audio actuel, %s, %d s', strtoupper($data->currentAudio->format->value), $data->currentAudio->durationSeconds),
+            ],
             'cancel_url' => $this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl(),
         ]);
     }

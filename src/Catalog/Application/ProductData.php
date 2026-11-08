@@ -32,6 +32,10 @@ final class ProductData
     public ?Image $currentImage = null;
     /** @var array<string, ?string> valeur saisie par code d'attribut, vide ou null quand il n'est pas renseigné */
     public array $attributes = [];
+    public string $metaTitle = '';
+    public string $metaDescription = '';
+    /** @var list<GalleryImageData> images de la galerie, puis lignes d'ajout */
+    public array $gallery = [];
 
     public static function fromProduct(Product $product): self
     {
@@ -49,6 +53,11 @@ final class ProductData
         $data->imageAlt = $data->currentImage->alt ?? '';
         $data->imageDecorative = $data->currentImage?->isDecorative() ?? false;
         $data->attributes = $product->getAttributeValues();
+        $data->metaTitle = $product->getMetaTitle();
+        $data->metaDescription = $product->getMetaDescription();
+        foreach ($product->getGallery() as $index => $image) {
+            $data->gallery[] = GalleryImageData::fromImage($image, $index + 1);
+        }
 
         return $data;
     }

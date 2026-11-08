@@ -10,13 +10,14 @@ use ApiPlatform\Metadata\Get;
 use App\Blog\Domain\Article;
 use App\Blog\Infrastructure\ApiPlatform\State\ArticleDetailProvider;
 use App\Media\Domain\ImageUsage;
+use App\Media\Infrastructure\ApiPlatform\AudioView;
 use App\Media\Infrastructure\ApiPlatform\ImageView;
 use App\Media\Infrastructure\ApiPlatform\ImageViews;
 
 #[ApiResource(
     shortName: 'ArticleDetail',
-    description: 'Fiche d\'un article du blog : les champs de la liste, plus son texte en HTML.',
-    // image peut valoir null : sans cela, API Platform retire la clé alors que le schéma la déclare requise
+    description: 'Fiche d\'un article du blog : les champs de la liste, plus son texte en HTML et ses métadonnées.',
+    // image, section, format et audio peuvent valoir null : sans cela, API Platform retire la clé alors que le schéma la déclare requise
     normalizationContext: ['skip_null_values' => false],
     operations: [
         new Get(
@@ -43,6 +44,18 @@ final readonly class ArticleDetailResource
         public ?ImageView $image,
         #[ApiProperty(description: 'Texte de l\'article en HTML, converti du Markdown saisi (HTML saisi échappé, liens dangereux retirés). Vide s\'il n\'y en a pas.', required: true)]
         public string $html,
+        #[ApiProperty(description: 'Rubrique de l\'article, null s\'il n\'en a pas.', readableLink: true, required: true)]
+        public ?ArticleTermLink $section,
+        #[ApiProperty(description: 'Format de l\'article, null s\'il n\'en a pas.', readableLink: true, required: true)]
+        public ?ArticleTermLink $format,
+        #[ApiProperty(description: 'Fichier audio de l\'article, null s\'il n\'en a pas.', required: true)]
+        public ?AudioView $audio,
+        #[ApiProperty(description: 'Intervenant (« Présenté par … »), 80 caractères au plus ; chaîne vide s\'il n\'y en a pas.', required: true)]
+        public string $speaker,
+        #[ApiProperty(description: 'Titre pour les moteurs de recherche, 60 caractères au plus ; chaîne vide si l\'admin n\'en a pas saisi.', required: true)]
+        public string $metaTitle,
+        #[ApiProperty(description: 'Description pour les moteurs de recherche, 160 caractères au plus ; chaîne vide si l\'admin n\'en a pas saisi.', required: true)]
+        public string $metaDescription,
     ) {
     }
 
@@ -56,6 +69,12 @@ final readonly class ArticleDetailResource
             $article->getPublishedAt()->format('Y-m-d'),
             $images->view($article->getImage(), ImageUsage::Article),
             $html,
+            ArticleTermLink::fromModel($article->getSection()),
+            ArticleTermLink::fromModel($article->getFormat()),
+            $images->audio($article->getAudio()),
+            $article->getSpeaker(),
+            $article->getMetaTitle(),
+            $article->getMetaDescription(),
         );
     }
 }

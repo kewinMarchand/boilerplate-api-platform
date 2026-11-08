@@ -5,20 +5,28 @@ declare(strict_types=1);
 namespace App\Blog\Infrastructure\Doctrine\Fixtures;
 
 use App\Blog\Domain\Article;
+use App\Blog\Domain\ArticleTerm;
+use App\Blog\Domain\ArticleTermKind;
 use App\Media\Domain\ImageUsage;
+use App\Media\Infrastructure\Fixtures\DemoAudio;
 use App\Media\Infrastructure\Fixtures\DemoImages;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
+/**
+ * Trois articles, deux rubriques et un format affectés (ADR 0010), un fichier audio de démonstration avec son intervenant.
+ */
 final class ArticleFixtures extends Fixture
 {
-    public function __construct(private readonly DemoImages $images)
-    {
+    public function __construct(
+        private readonly DemoImages $images,
+        private readonly DemoAudio $audio,
+    ) {
     }
 
     public function load(ObjectManager $manager): void
     {
-        $manager->persist(new Article(
+        $serverRendering = new Article(
             'pourquoi-rendre-le-contenu-cote-serveur',
             'Pourquoi rendre le contenu côté serveur',
             'Le contenu éditorial arrive dans le HTML initial : meilleur référencement et LCP.',
@@ -39,8 +47,8 @@ final class ArticleFixtures extends Fixture
 
                 Le JavaScript n’ajoute que ce qui demande une interaction : un carrousel qu’on fait glisser, des filtres appliqués sans recharger la page. Sans lui, la page reste utilisable : c’est l’amélioration progressive.
                 MD,
-        ));
-        $manager->persist(new Article(
+        );
+        $carousel = new Article(
             'un-carrousel-accessible-sans-dependance',
             'Un carrousel accessible sans dépendance',
             'Défilement natif, boutons explicites, pas de lecture automatique.',
@@ -61,8 +69,8 @@ final class ArticleFixtures extends Fixture
 
                 Enfin, pas de lecture automatique : c’est le visiteur qui décide du rythme, et l’animation se coupe quand il demande moins de mouvement.
                 MD,
-        ));
-        $manager->persist(new Article(
+        );
+        $enhancedMode = new Article(
             'le-mode-accessibilite-renforcee',
             'Le mode accessibilité renforcée',
             'Texte agrandi, espacements WCAG 1.4.12 et contraste AAA, sans logique dupliquée.',
@@ -83,7 +91,17 @@ final class ArticleFixtures extends Fixture
 
                 Le choix est gardé dans le navigateur et appliqué avant le premier affichage : la page ne clignote pas d’un mode à l’autre.
                 MD,
-        ));
+        );
+        $advice = new ArticleTerm(ArticleTermKind::Section, 'conseils', 'Conseils', 1);
+        $news = new ArticleTerm(ArticleTermKind::Section, 'actualites', 'Actualités', 2);
+        $guide = new ArticleTerm(ArticleTermKind::Format, 'guide', 'Guide', 1);
+        $serverRendering->classify($advice, $guide);
+        $carousel->classify($advice, null);
+        $carousel->changeAudio($this->audio->import('article-demo'), 'Présenté par Hina Teriierooiterai');
+        $enhancedMode->classify($news, null);
+        foreach ([$advice, $news, $guide, $serverRendering, $carousel, $enhancedMode] as $entity) {
+            $manager->persist($entity);
+        }
         $manager->flush();
     }
 }

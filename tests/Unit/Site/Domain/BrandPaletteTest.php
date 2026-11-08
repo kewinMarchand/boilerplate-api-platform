@@ -23,16 +23,16 @@ final class BrandPaletteTest extends TestCase
         self::assertSame(['#f2b705', '#b68904', '#111827', '#fef9eb', '#fdf2d2', '#fbe8af'], $this->values($palette->secondary));
     }
 
-    public function testLightensEachColorInFivePercentStepsUntilSevenToOneOnTheDarkBackground(): void
+    public function testLightensEachColorInFivePercentStepsUntilFourAndAHalfToOneOnTheDarkBackground(): void
     {
         $palette = BrandPalette::dark(new HexColor('#1d4ed8'), new HexColor('#7c3aed'));
 
-        // 45 % de blanc pour les deux couleurs, -dark à 25 % de blanc en plus, texte de la couleur du fond
-        self::assertSame(['#839eea', '#a2b6ef', '#0f141d', '#181f2d', '#1d2536', '#252e44'], $this->values($palette->primary));
-        self::assertSame(['#b793f5', '#c9aef8', '#0f141d', '#1c1e2e', '#232337', '#2f2c46'], $this->values($palette->secondary));
+        // 25 % de blanc pour la principale, 20 % pour la secondaire, -dark à 25 % de blanc en plus, texte de la couleur du fond
+        self::assertSame(['#567ae2', '#809be9', '#0f141d', '#151c2d', '#182035', '#1c2742'], $this->values($palette->primary));
+        self::assertSame(['#9661f1', '#b088f4', '#0f141d', '#1a1a2e', '#1f1d36', '#292345'], $this->values($palette->secondary));
         $background = new HexColor(BrandPalette::DARK_BACKGROUND);
-        self::assertGreaterThanOrEqual(7.0, $palette->primary->color->contrastWith($background));
-        self::assertLessThan(7.0, new HexColor('#1d4ed8')->mix(new HexColor('#ffffff'), 0.40)->contrastWith($background));
+        self::assertGreaterThanOrEqual(4.5, $palette->primary->color->contrastWith($background));
+        self::assertLessThan(4.5, new HexColor('#1d4ed8')->mix(new HexColor('#ffffff'), 0.20)->contrastWith($background));
     }
 
     public function testTextOnADarkThemeColorIsAlwaysReadable(): void
@@ -51,9 +51,9 @@ final class BrandPaletteTest extends TestCase
         self::assertSame(['#ffffff', '#ffffff'], [$palette->secondary->color->value, $palette->secondary->dark->value]);
     }
 
-    public function testLightensBlackToLightGray(): void
+    public function testLightensBlackToMidGray(): void
     {
-        self::assertSame('#a6a6a6', BrandPalette::dark(new HexColor('#000000'), new HexColor('#000000'))->primary->color->value);
+        self::assertSame('#808080', BrandPalette::dark(new HexColor('#000000'), new HexColor('#000000'))->primary->color->value);
     }
 
     /**

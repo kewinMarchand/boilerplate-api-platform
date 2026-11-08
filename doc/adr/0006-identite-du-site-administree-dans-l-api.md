@@ -1,6 +1,6 @@
 # 0006 — Identité du site administrée dans l'API, couleurs de marque calculées par l'API
 
-- **Statut** : Acceptée
+- **Statut** : Acceptée, modifiée par l'[ADR 0008](0008-couleur-de-marque-sombre-a-4-5.md) (couleur sombre éclaircie jusqu'à 4,5:1 au lieu de 7:1), complétée par l'[ADR 0011](0011-metadonnees-administrables.md) (image de partage) et l'[ADR 0012](0012-favicons-administrables.md) (favicons)
 - **Décideurs** : Kewin Marchand
 - **Complète** : l'[ADR 0001](0001-administration-easyadmin-dans-l-api.md) (une section de plus dans l'admin) et l'[ADR 0002](0002-images-envoyees-par-l-admin.md) (un usage d'image sans recadrage). Contrat : section 22 de `boilerplates-commun/SPEC-COMMUNE.md`.
 

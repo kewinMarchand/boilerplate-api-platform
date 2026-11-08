@@ -25,8 +25,8 @@ final readonly class CreateProduct
     }
 
     /**
-     * @throws CatalogRuleViolation      slug déjà pris, catégorie introuvable, image absente, valeur d'attribut refusée
-     * @throws MediaRuleViolation        image refusée
+     * @throws CatalogRuleViolation      slug déjà pris, catégorie introuvable, image absente, valeur d'attribut refusée, plus de 8 images dans la galerie
+     * @throws MediaRuleViolation        image ou image de la galerie refusée
      * @throws \InvalidArgumentException prix négatif
      */
     public function __invoke(ProductData $data): Product
@@ -37,12 +37,15 @@ final readonly class CreateProduct
         $category = (null === $data->categoryId ? null : $this->categories->find($data->categoryId))
             ?? throw new CatalogRuleViolation('La catégorie du produit n\'existe pas.');
         $attributeValues = ProductAttributeValues::check($this->attributes->findAll(), $data->attributes);
+        $gallery = ProductGallery::change($this->changeImage, $data->gallery, $data->name);
         $alt = '' === trim($data->imageAlt) ? $data->name : $data->imageAlt;
         $image = ($this->changeImage)(null, $data->imageContent, $alt, $data->imageDecorative, ImageUsage::Product)
             ?? throw new CatalogRuleViolation('Un produit a besoin d\'une image.');
 
         $product = new Product($data->slug, $data->name, $category, Price::fromCents($data->price), $data->exposure, $data->size, $data->inStock, $image, $data->featured, $data->description);
         $product->changeAttributeValues($attributeValues);
+        $product->changeGallery($gallery);
+        $product->changeMeta($data->metaTitle, $data->metaDescription);
         $this->products->save($product);
 
         return $product;

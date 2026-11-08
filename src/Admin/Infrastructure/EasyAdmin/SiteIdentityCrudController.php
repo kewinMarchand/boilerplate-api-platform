@@ -77,7 +77,11 @@ final class SiteIdentityCrudController extends AbstractCrudController
         return $this->render('admin/form.html.twig', [
             'form' => $form,
             'title' => 'Identité du site',
-            'image_preview' => ImagePreview::url($identity->getLogo(), ImageUsage::Logo),
+            'image_previews' => [
+                'imageContent' => ImagePreview::figure($identity->getLogo(), ImageUsage::Logo, 'Logo actuel'),
+                'iconContent' => ImagePreview::figure($identity->getIcon(), ImageUsage::Icon, 'Icône actuelle (192 px)'),
+                'shareImageContent' => ImagePreview::figure($identity->getShareImage(), ImageUsage::Share, 'Image de partage actuelle'),
+            ],
             'cancel_url' => $this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl(),
         ]);
     }

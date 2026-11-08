@@ -69,7 +69,7 @@ final class ScenarioHeaderTest extends ApiTestCase
         self::assertInstanceOf(EntityManagerInterface::class, $entityManager);
         $identity = $entityManager->find(SiteIdentity::class, SiteIdentity::ID);
         self::assertInstanceOf(SiteIdentity::class, $identity);
-        $identity->update('Oraki', '', null, new BrandColors(new HexColor('#c2410c'), new HexColor('#ffffff')), DefaultColorScheme::Dark);
+        $identity->update('Oraki', '', null, new BrandColors(new HexColor('#c2410c'), new HexColor('#ffffff')), DefaultColorScheme::Dark, null, null);
         $entityManager->flush();
 
         try {
@@ -84,7 +84,7 @@ final class ScenarioHeaderTest extends ApiTestCase
             $identity = $entityManager->find(SiteIdentity::class, SiteIdentity::ID);
             self::assertInstanceOf(SiteIdentity::class, $identity);
             $default = SiteIdentity::byDefault();
-            $identity->update($default->getName(), $default->getTagline(), null, null, $default->getDefaultColorScheme());
+            $identity->update($default->getName(), $default->getTagline(), null, null, $default->getDefaultColorScheme(), null, null);
             $entityManager->flush();
         }
     }
@@ -117,5 +117,9 @@ final class ScenarioHeaderTest extends ApiTestCase
         yield 'catégories' => ['/api/categories'];
         yield 'produits' => ['/api/products'];
         yield 'produits à la une' => ['/api/featured-products'];
+        yield 'articles filtrés' => ['/api/articles?section=conseils'];
+        yield 'rubriques' => ['/api/article-sections'];
+        yield 'formats' => ['/api/article-formats'];
+        yield 'référencement des pages fixes' => ['/api/page-metas'];
     }
 }

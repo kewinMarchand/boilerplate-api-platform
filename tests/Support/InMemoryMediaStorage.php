@@ -20,4 +20,9 @@ final class InMemoryMediaStorage implements MediaStorage
     {
         $this->files[$fileName] = $content;
     }
+
+    public function putFile(string $fileName, string $sourcePath): void
+    {
+        $this->files[$fileName] = (string) file_get_contents($sourcePath);
+    }
 }

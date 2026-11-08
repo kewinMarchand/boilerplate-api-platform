@@ -9,6 +9,7 @@ use App\Site\Application\SiteIdentityData;
 use App\Site\Domain\DefaultColorScheme;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ColorType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -39,19 +40,37 @@ final class SiteIdentityType extends AbstractType
                 'label' => 'Retirer le logo',
                 'required' => false,
                 'help' => 'Le header affiche alors le pictogramme et le nom du site. Un fichier envoyé en même temps est ignoré.',
+            ]);
+        ImageFields::addFile($builder, 'iconContent', ImageUsage::Icon, 'Icône du site (favicons)');
+        $builder->add('removeIcon', CheckboxType::class, [
+            'label' => 'Retirer l\'icône',
+            'required' => false,
+            'help' => 'Les fronts servent alors leurs propres favicons. Un fichier envoyé en même temps est ignoré.',
+        ]);
+        ImageFields::add($builder, ImageUsage::Share, 'Vide : le nom du site.', 'Image de partage', decorative: false, prefix: 'shareImage');
+        $builder
+            ->add('removeShareImage', CheckboxType::class, [
+                'label' => 'Retirer l\'image de partage',
+                'required' => false,
+                'help' => 'Les fronts servent alors leur propre image de partage. Un fichier envoyé en même temps est ignoré.',
             ])
-            ->add('primaryColor', TextType::class, [
+            ->add('useLibraryColors', CheckboxType::class, [
+                'label' => 'Utiliser les couleurs de la bibliothèque',
+                'required' => false,
+                'help' => 'Cochée : pas de couleurs de marque, les fronts gardent les jetons de boilerplates-ui et les deux couleurs ci-dessous sont ignorées.',
+            ])
+            ->add('primaryColor', ColorType::class, [
                 'label' => 'Couleur principale',
                 'required' => false,
                 'empty_data' => '',
-                'attr' => ['placeholder' => '#rrggbb'],
-                'help' => 'Couleur des liens et des boutons : elle doit contraster à 4,5:1 au moins avec le fond blanc. Les deux couleurs vides : celles de la bibliothèque. Le thème sombre et les déclinaisons sont calculés.',
+                'html5' => true,
+                'help' => 'Couleur des liens et des boutons : elle doit contraster à 4,5:1 au moins avec le fond blanc. Le thème sombre et les déclinaisons sont calculés.',
             ])
-            ->add('secondaryColor', TextType::class, [
+            ->add('secondaryColor', ColorType::class, [
                 'label' => 'Couleur secondaire',
                 'required' => false,
                 'empty_data' => '',
-                'attr' => ['placeholder' => '#rrggbb'],
+                'html5' => true,
                 'help' => 'Elle doit porter un texte lisible (blanc ou quasi-noir à 4,5:1 au moins).',
             ])
             ->add('defaultColorScheme', EnumType::class, [

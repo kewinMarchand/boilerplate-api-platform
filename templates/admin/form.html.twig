@@ -1,17 +1,24 @@
 {% extends '@EasyAdmin/page/content.html.twig' %}
-{% form_theme form 'bootstrap_5_layout.html.twig' %}
+{% form_theme form 'bootstrap_5_layout.html.twig' 'admin/form_theme.html.twig' %}
 
 {% block content_title %}{{ title }}{% endblock %}
 
 {% block main %}
+    {# Aperçus par champ d'envoi : image actuelle et texte de remplacement, sur un damier qui montre la transparence #}
+    {% set previews = image_previews|default({}) %}
     {{ form_start(form) }}
         {{ form_errors(form) }}
         {% for child in form %}
-            {% if child.vars.name == 'imageContent' %}
-                {# Image actuelle, remplacée par le fichier choisi dès sa sélection (aperçu avant envoi) #}
-                <figure class="mb-3" data-image-preview {% if not image_preview|default(null) %}hidden{% endif %}>
-                    <img src="{{ image_preview|default('') }}" alt="" style="max-width: 320px; height: auto; border-radius: 4px">
-                    <figcaption class="form-text" data-image-preview-caption>Image actuelle</figcaption>
+            {% if child.vars.name in previews|keys %}
+                {% set preview = previews[child.vars.name] %}
+                <figure class="mb-3" data-image-preview="{{ child.vars.id }}" {% if not preview %}hidden{% endif %}>
+                    {{ include('admin/field/image_figure.html.twig', {src: preview.src|default(''), caption: preview.caption|default('')}) }}
+                </figure>
+            {% endif %}
+            {% if child.vars.name == 'audioPath' and audio_preview|default(null) %}
+                <figure class="mb-3" data-audio-preview>
+                    <audio controls preload="none" src="{{ audio_preview.src }}"></audio>
+                    <figcaption class="form-text">{{ audio_preview.caption }}</figcaption>
                 </figure>
             {% endif %}
             {{ form_row(child) }}
@@ -20,9 +27,9 @@
         <a href="{{ cancel_url }}" class="btn btn-secondary">Annuler</a>
     {{ form_end(form) }}
     <script>
-        document.querySelectorAll('input[type=file][name$="[imageContent]"]').forEach((input) => {
-            const preview = document.querySelector('[data-image-preview]');
-            if (!preview) return;
+        document.querySelectorAll('[data-image-preview]').forEach((preview) => {
+            const input = document.getElementById(preview.dataset.imagePreview);
+            if (!input) return;
             input.addEventListener('change', () => {
                 const [file] = input.files;
                 if (!file) return;

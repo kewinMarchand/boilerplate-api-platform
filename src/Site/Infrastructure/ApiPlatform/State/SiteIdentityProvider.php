@@ -9,6 +9,7 @@ use ApiPlatform\State\ProviderInterface;
 use App\Media\Domain\ImageUsage;
 use App\Media\Infrastructure\ApiPlatform\ImageViews;
 use App\Site\Application\GetSiteIdentity;
+use App\Site\Infrastructure\ApiPlatform\Resource\SiteIcon;
 use App\Site\Infrastructure\ApiPlatform\Resource\SiteIdentityResource;
 
 /**
@@ -26,6 +27,11 @@ final readonly class SiteIdentityProvider implements ProviderInterface
     {
         $identity = ($this->getSiteIdentity)();
 
-        return SiteIdentityResource::fromModel($identity, $this->images->view($identity->getLogo(), ImageUsage::Logo));
+        return SiteIdentityResource::fromModel(
+            $identity,
+            $this->images->view($identity->getLogo(), ImageUsage::Logo),
+            $this->images->view($identity->getShareImage(), ImageUsage::Share),
+            SiteIcon::fromModel($identity->getIcon(), $this->images),
+        );
     }
 }

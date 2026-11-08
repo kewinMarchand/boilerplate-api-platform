@@ -7,6 +7,7 @@ namespace App\Admin\Infrastructure\EasyAdmin;
 use App\Admin\Infrastructure\Form\ProductType;
 use App\Catalog\Application\CreateProduct;
 use App\Catalog\Application\DeleteProduct;
+use App\Catalog\Application\GalleryImageData;
 use App\Catalog\Application\ProductData;
 use App\Catalog\Application\UpdateProduct;
 use App\Catalog\Domain\CatalogRuleViolation;
@@ -45,6 +46,9 @@ final class ProductCrudController extends AbstractCrudController
         private readonly AdminUrlGenerator $urls,
     ) {
     }
+
+    /** Lignes d'ajout proposées sous les images de la galerie. */
+    private const int EMPTY_GALLERY_ROWS = 2;
 
     /** Modèle texte imposé aux champs virtuels : sans lui, EasyAdmin les affiche « Inaccessible », avant même formatValue. */
     private const TEXT_TEMPLATE = '@EasyAdmin/crud/field/text.html.twig';
@@ -127,6 +131,11 @@ final class ProductCrudController extends AbstractCrudController
         foreach ($this->categories->findAll() as $category) {
             $categories[str_repeat('— ', $category->depth() - 1).$category->getName()] = $category->getId();
         }
+        for ($row = 0; $row < self::EMPTY_GALLERY_ROWS; ++$row) {
+            $empty = new GalleryImageData();
+            $empty->position = \count($data->gallery) + 1;
+            $data->gallery[] = $empty;
+        }
         $form = $this->createForm(ProductType::class, $data, ['categories' => $categories, 'attributes' => $this->attributes->findAll()]);
         $form->handleRequest($context->getRequest());
 
@@ -144,7 +153,7 @@ final class ProductCrudController extends AbstractCrudController
         return $this->render('admin/form.html.twig', [
             'form' => $form,
             'title' => $title,
-            'image_preview' => ImagePreview::url($image, ImageUsage::Product),
+            'image_previews' => ['imageContent' => ImagePreview::figure($image, ImageUsage::Product)],
             'cancel_url' => $this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl(),
         ]);
     }

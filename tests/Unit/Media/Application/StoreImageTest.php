@@ -107,4 +107,51 @@ final class StoreImageTest extends TestCase
         $this->expectExceptionObject(new MediaRuleViolation('L\'image doit faire au moins 400 px de large : elle fait 399 × 2000 px.'));
         ($this->storeImage)(new ImageUpload('image/png 399x2000', 'Oraki'), ImageUsage::Logo);
     }
+
+    public function testANarrowProductSourceIsNeverEnlarged(): void
+    {
+        $image = ($this->storeImage)(new ImageUpload('image/jpeg 600x900', 'Fleur'), ImageUsage::Product);
+
+        self::assertSame(600, $image->width);
+        self::assertSame([$image->key.'-400.avif', $image->key.'-400.webp', $image->key.'-600.avif', $image->key.'-600.webp'], array_keys($this->storage->files));
+    }
+
+    public function testAProductSourceBetweenTwoWidthsKeepsTheSmallerOnes(): void
+    {
+        $image = ($this->storeImage)(new ImageUpload('image/png 700x700', 'Fleur'), ImageUsage::Product);
+
+        self::assertSame(700, $image->width);
+        self::assertSame([$image->key.'-400.avif', $image->key.'-400.webp', $image->key.'-640.avif', $image->key.'-640.webp', $image->key.'-700.avif', $image->key.'-700.webp'], array_keys($this->storage->files));
+    }
+
+    public function testAWideEnoughSourceKeepsTheWidthsOfItsUsage(): void
+    {
+        self::assertNull(($this->storeImage)(new ImageUpload('image/png 800x800', 'Fleur'), ImageUsage::Product)->width);
+    }
+
+    public function testRefusesAProductSourceUnderFourHundredPixelsOnceCropped(): void
+    {
+        $this->expectExceptionObject(new MediaRuleViolation('Recadrée au format 1:1, l\'image doit faire au moins 400 × 400 px : elle fait 1600 × 399 px.'));
+        ($this->storeImage)(new ImageUpload('image/jpeg 1600x399', 'A'), ImageUsage::Product);
+    }
+
+    public function testAnIconIsEncodedInPngOnly(): void
+    {
+        $image = ($this->storeImage)(new ImageUpload('image/png 512x512', '', decorative: true), ImageUsage::Icon);
+
+        self::assertSame([$image->key.'-32.png', $image->key.'-180.png', $image->key.'-192.png', $image->key.'-512.png'], array_keys($this->storage->files));
+    }
+
+    public function testRefusesAnIconUnder512Pixels(): void
+    {
+        $this->expectExceptionObject(new MediaRuleViolation('Recadrée au format 1:1, l\'image doit faire au moins 512 × 512 px : elle fait 511 × 511 px.'));
+        ($this->storeImage)(new ImageUpload('image/png 511x511', '', decorative: true), ImageUsage::Icon);
+    }
+
+    public function testAShareImageIsCroppedToTwelveHundredBySixHundredThirty(): void
+    {
+        $image = ($this->storeImage)(new ImageUpload('image/jpeg 1600x900', 'Oraki'), ImageUsage::Share);
+
+        self::assertSame([$image->key.'-1200.avif', $image->key.'-1200.webp'], array_keys($this->storage->files));
+    }
 }

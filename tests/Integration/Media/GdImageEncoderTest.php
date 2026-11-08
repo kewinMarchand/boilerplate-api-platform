@@ -34,7 +34,7 @@ final class GdImageEncoderTest extends TestCase
     public function testVariantsAreCroppedResizedAndStrippedOfMetadata(): void
     {
         $key = str_repeat('f', 32);
-        $variants = iterator_to_array(new GdImageEncoder()->variants($this->jpegWithExif(1600, 900, orientation: 6), $key, ImageUsage::Product));
+        $variants = iterator_to_array(new GdImageEncoder()->variants($this->jpegWithExif(1600, 900, orientation: 6), $key, ImageUsage::Product, ImageUsage::Product->widths()));
 
         self::assertSame([$key.'-400.avif', $key.'-400.webp', $key.'-640.avif', $key.'-640.webp', $key.'-800.avif', $key.'-800.webp'], array_keys($variants));
         foreach ($variants as $name => $content) {
@@ -50,7 +50,7 @@ final class GdImageEncoderTest extends TestCase
 
     public function testAnArticleImageIsCroppedToSixteenByNine(): void
     {
-        $variants = iterator_to_array(new GdImageEncoder()->variants($this->jpegWithExif(2000, 2000), str_repeat('e', 32), ImageUsage::Article));
+        $variants = iterator_to_array(new GdImageEncoder()->variants($this->jpegWithExif(2000, 2000), str_repeat('e', 32), ImageUsage::Article, ImageUsage::Article->widths()));
 
         $size = getimagesizefromstring($variants[str_repeat('e', 32).'-960.webp']);
         self::assertNotFalse($size);
@@ -69,7 +69,7 @@ final class GdImageEncoderTest extends TestCase
         imagepng($logo);
         $key = str_repeat('d', 32);
 
-        $variants = iterator_to_array(new GdImageEncoder()->variants((string) ob_get_clean(), $key, ImageUsage::Logo));
+        $variants = iterator_to_array(new GdImageEncoder()->variants((string) ob_get_clean(), $key, ImageUsage::Logo, ImageUsage::Logo->widths()));
 
         self::assertSame([$key.'-200.avif', $key.'-200.webp', $key.'-400.avif', $key.'-400.webp'], array_keys($variants));
         foreach (['200.webp' => [200, 60], '400.webp' => [400, 120], '400.avif' => [400, 120]] as $suffix => $dimensions) {
@@ -90,6 +90,40 @@ final class GdImageEncoderTest extends TestCase
 
         $this->expectExceptionObject(new MediaRuleViolation('Formats acceptés : JPEG, PNG, WebP ou AVIF.'));
         new StoreImage(new GdImageEncoder(), new InMemoryMediaStorage())(new ImageUpload($svg, 'Oraki'), ImageUsage::Logo);
+    }
+
+    public function testANarrowProductSourceStopsAtItsWidth(): void
+    {
+        $key = str_repeat('c', 32);
+
+        $variants = iterator_to_array(new GdImageEncoder()->variants($this->jpegWithExif(600, 900), $key, ImageUsage::Product, [400, 600]));
+
+        self::assertSame([$key.'-400.avif', $key.'-400.webp', $key.'-600.avif', $key.'-600.webp'], array_keys($variants));
+        $size = getimagesizefromstring($variants[$key.'-600.webp']);
+        self::assertNotFalse($size);
+        self::assertSame([600, 600], [$size[0], $size[1]]);
+    }
+
+    public function testAnIconIsASquarePngThatKeepsItsTransparency(): void
+    {
+        $icon = imagecreatetruecolor(600, 512);
+        self::assertNotFalse($icon);
+        imagealphablending($icon, false);
+        imagesavealpha($icon, true);
+        imagefill($icon, 0, 0, (int) imagecolorallocatealpha($icon, 0, 0, 0, 127));
+        ob_start();
+        imagepng($icon);
+        $key = str_repeat('b', 32);
+
+        $variants = iterator_to_array(new GdImageEncoder()->variants((string) ob_get_clean(), $key, ImageUsage::Icon, ImageUsage::Icon->widths()));
+
+        self::assertSame([$key.'-32.png', $key.'-180.png', $key.'-192.png', $key.'-512.png'], array_keys($variants));
+        $size = getimagesizefromstring($variants[$key.'-180.png']);
+        self::assertNotFalse($size);
+        self::assertSame([180, 180, 'image/png'], [$size[0], $size[1], $size['mime']]);
+        $png = imagecreatefromstring($variants[$key.'-32.png']);
+        self::assertNotFalse($png);
+        self::assertSame(127, (imagecolorat($png, 0, 0) >> 24) & 0x7F);
     }
 
     /**

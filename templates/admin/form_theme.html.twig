@@ -1,0 +1,13 @@
+{# Ligne de la galerie d'un produit (ADR 0009) : aperçu de l'image enregistrée, puis ses champs #}
+{% block gallery_image_row %}
+    <fieldset class="border rounded p-3 mb-3">
+        {% if image_preview %}
+            <figure class="mb-3" data-gallery-preview>
+                {{ include('admin/field/image_figure.html.twig', {src: image_preview.src, caption: image_preview.caption}) }}
+            </figure>
+        {% else %}
+            <legend class="form-text fs-6">Nouvelle image</legend>
+        {% endif %}
+        {{ form_widget(form) }}
+    </fieldset>
+{% endblock %}
