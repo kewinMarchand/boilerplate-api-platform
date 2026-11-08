@@ -38,7 +38,9 @@ final class ContactMessageResource
     #[Assert\Length(min: 10, max: 5000, minMessage: self::MESSAGE_ERROR, maxMessage: self::MESSAGE_MAX_ERROR, normalizer: 'trim')]
     public ?string $message = null;
 
+    // Sans contrainte, API Platform laisse passer l'erreur de type du serializer en 500 au lieu de la 422 des autres champs
     #[ApiProperty(description: 'Slug du produit d\'une demande de renseignement ; null ou absent pour un message de contact simple.')]
+    #[Assert\Type('string')]
     public ?string $product = null;
 
     #[ApiProperty(writable: false)]

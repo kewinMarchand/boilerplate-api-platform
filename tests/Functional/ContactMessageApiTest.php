@@ -10,6 +10,7 @@ use App\Tests\Support\FailingMailer;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
 final class ContactMessageApiTest extends ApiTestCase
@@ -90,6 +91,29 @@ final class ContactMessageApiTest extends ApiTestCase
         self::assertEmailCount(0);
     }
 
+    #[DataProvider('mistypedProducts')]
+    public function testRejectsAProductThatIsNotAString(mixed $product): void
+    {
+        $before = $this->lastMessage()->getId();
+        $response = $this->post(['name' => 'Camille Martin', 'email' => 'camille.martin@example.fr', 'message' => 'Est-il livré en pot ?', 'product' => $product]);
+
+        self::assertResponseStatusCodeSame(422);
+        /** @var array{violations: list<array{propertyPath: string, message: string, code: string}>} $body */
+        $body = $response->toArray(false);
+        self::assertSame([['propertyPath' => 'product', 'message' => 'This value should be of type null|string.', 'code' => Assert\Type::INVALID_TYPE_ERROR]], $body['violations']);
+        self::assertSame($before, $this->lastMessage()->getId());
+    }
+
+    /**
+     * @return iterable<string, array{mixed}>
+     */
+    public static function mistypedProducts(): iterable
+    {
+        yield 'nombre' => [42];
+        yield 'objet' => [['slug' => 'monstera-deliciosa']];
+        yield 'booléen' => [true];
+    }
+
     public function testKeepsTheMessageAndAnswers201WhenTheMailCannotBeSent(): void
     {
         FailingMailer::$failing = true;
@@ -154,7 +178,7 @@ final class ContactMessageApiTest extends ApiTestCase
     }
 
     /**
-     * @param array<string, string> $payload
+     * @param array<string, mixed> $payload
      */
     private function post(array $payload): ResponseInterface
     {
