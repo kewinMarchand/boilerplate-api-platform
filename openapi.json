@@ -2034,7 +2034,7 @@
             },
             "ContactMessage": {
                 "type": "object",
-                "description": "Enregistre un message de contact. R\u00e9pond 422 avec la liste des violations si un champ est invalide.",
+                "description": "Enregistre un message de contact, ou une demande de renseignement sur un produit, puis l'envoie par mail. R\u00e9pond 422 avec la liste des violations si un champ est invalide ou si le produit n'existe pas ; un mail non envoy\u00e9 ne change pas la r\u00e9ponse.",
                 "properties": {
                     "id": {
                         "readOnly": true,
@@ -2065,6 +2065,13 @@
                     "message": {
                         "minLength": 10,
                         "maxLength": 5000,
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "product": {
+                        "description": "Slug du produit d'une demande de renseignement ; null ou absent pour un message de contact simple.",
                         "type": [
                             "string",
                             "null"
@@ -2127,6 +2134,13 @@
                                     "null"
                                 ]
                             },
+                            "product": {
+                                "description": "Slug du produit d'une demande de renseignement ; null ou absent pour un message de contact simple.",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
                             "receivedAt": {
                                 "readOnly": true,
                                 "type": [
@@ -2143,7 +2157,7 @@
                         ]
                     }
                 ],
-                "description": "Enregistre un message de contact. R\u00e9pond 422 avec la liste des violations si un champ est invalide."
+                "description": "Enregistre un message de contact, ou une demande de renseignement sur un produit, puis l'envoie par mail. R\u00e9pond 422 avec la liste des violations si un champ est invalide ou si le produit n'existe pas ; un mail non envoy\u00e9 ne change pas la r\u00e9ponse."
             },
             "Error": {
                 "type": "object",
@@ -3225,7 +3239,8 @@
                     "shareImage",
                     "icon",
                     "defaultColorScheme",
-                    "theme"
+                    "theme",
+                    "salesEnabled"
                 ],
                 "properties": {
                     "name": {
@@ -3287,6 +3302,10 @@
                                 "type": "null"
                             }
                         ]
+                    },
+                    "salesEnabled": {
+                        "description": "Vente en ligne : false, les fronts n'affichent ni prix ni panier et chaque produit propose une demande de renseignement.",
+                        "type": "boolean"
                     }
                 }
             },
@@ -3304,7 +3323,8 @@
                             "shareImage",
                             "icon",
                             "defaultColorScheme",
-                            "theme"
+                            "theme",
+                            "salesEnabled"
                         ],
                         "properties": {
                             "name": {
@@ -3366,6 +3386,10 @@
                                         "type": "null"
                                     }
                                 ]
+                            },
+                            "salesEnabled": {
+                                "description": "Vente en ligne : false, les fronts n'affichent ni prix ni panier et chaque produit propose une demande de renseignement.",
+                                "type": "boolean"
                             }
                         }
                     }
@@ -3639,7 +3663,7 @@
         },
         {
             "name": "SiteIdentity",
-            "description": "Identit\u00e9 du site, saisie dans l'admin : nom, accroche, logo, image de partage, favicons, couleurs de marque calcul\u00e9es (ou null) et th\u00e8me par d\u00e9faut."
+            "description": "Identit\u00e9 du site, saisie dans l'admin : nom, accroche, logo, image de partage, favicons, couleurs de marque calcul\u00e9es (ou null), th\u00e8me par d\u00e9faut et vente en ligne."
         },
         {
             "name": "Task",

@@ -16,6 +16,8 @@
         <field name="shareImageKey" column="share_image_key" type="string" length="32" nullable="true"/>
         <field name="shareImageAlt" column="share_image_alt" type="string" length="255"/>
         <field name="iconKey" column="icon_key" type="string" length="32" nullable="true"/>
+        <field name="salesEnabled" column="sales_enabled" type="boolean"/>
+        <field name="contactRecipient" column="contact_recipient" type="string" length="255"/>
         <field name="defaultColorScheme" column="default_color_scheme" type="string" length="5" enum-type="App\Site\Domain\DefaultColorScheme"/>
     </entity>
 </doctrine-mapping>

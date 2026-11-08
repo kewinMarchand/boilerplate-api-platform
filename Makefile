@@ -21,7 +21,7 @@ install: build up ## Construit l'image, lance les conteneurs et installe les dé
 build: ## Construit l'image Docker de développement
 	$(COMPOSE) build
 
-up: ## Lance l'API (http://localhost:8090) et PostgreSQL
+up: ## Lance l'API (http://localhost:8090), PostgreSQL et Mailpit (http://localhost:8026)
 	$(COMPOSE) up -d --wait
 
 down: ## Arrête les conteneurs (la base est conservée dans son volume)

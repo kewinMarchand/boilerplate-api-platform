@@ -35,6 +35,7 @@ final readonly class UpdateSiteIdentity
         $icon = $data->removeIcon ? null : ($this->changeImage)($identity->getIcon(), $data->iconContent, '', true, ImageUsage::Icon);
 
         $identity->update($data->name, $data->tagline, $logo, $colors, $data->defaultColorScheme, $shareImage, $icon);
+        $identity->changeSales($data->salesEnabled, $data->contactRecipient);
         $this->identities->save($identity);
     }
 

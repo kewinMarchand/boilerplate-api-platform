@@ -11,7 +11,8 @@ final class SiteIdentityApiTest extends ApiTestCase
     protected static ?bool $alwaysBootKernel = false;
 
     /**
-     * Fixtures : valeurs du modèle, sans logo, image de partage, icône ni couleurs (le front garde les jetons de boilerplates-ui).
+     * Fixtures : valeurs du modèle, sans logo, image de partage, icône ni couleurs (le front garde les jetons de boilerplates-ui),
+     * vente en ligne active. L'adresse qui reçoit les messages n'est pas exposée.
      */
     public const array DEFAULT = [
         'name' => 'Boilerplate',
@@ -21,6 +22,7 @@ final class SiteIdentityApiTest extends ApiTestCase
         'icon' => null,
         'defaultColorScheme' => 'auto',
         'theme' => null,
+        'salesEnabled' => true,
     ];
 
     public function testReadsTheIdentityOfTheFixtures(): void

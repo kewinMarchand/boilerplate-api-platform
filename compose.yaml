@@ -10,8 +10,12 @@ services:
     depends_on:
       database:
         condition: service_healthy
+      mailpit:
+        condition: service_started
     environment:
       DATABASE_URL: postgresql://app:app@database:5432/app?serverVersion=18&charset=utf8
+      # Mails de contact capturés par Mailpit (http://localhost:8026), jamais délivrés
+      MAILER_DSN: smtp://mailpit:1025
     volumes:
       - ./:/app
     ports:
@@ -30,6 +34,11 @@ services:
       retries: 20
     volumes:
       - database_data:/var/lib/postgresql
+
+  mailpit:
+    image: axllent/mailpit:v1.31.5
+    ports:
+      - '127.0.0.1:${MAILPIT_PORT:-8026}:8025'
 
 volumes:
   database_data:

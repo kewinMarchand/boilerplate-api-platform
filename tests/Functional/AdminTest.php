@@ -397,6 +397,40 @@ final class AdminTest extends WebTestCase
         self::assertSelectorExists('input[type="checkbox"][name="site_identity[useLibraryColors]"][checked]');
     }
 
+    public function testTurnsSalesOffAndChangesTheContactRecipient(): void
+    {
+        $client = $this->loggedIn('admin-vente@example.fr');
+
+        try {
+            $client->request('GET', '/admin/site-identity');
+            self::assertSelectorTextContains('label[for="site_identity_salesEnabled"]', 'Vente en ligne (prix, panier et commande)');
+            self::assertSelectorExists('input[type="checkbox"][name="site_identity[salesEnabled]"][checked]');
+            self::assertSelectorExists('input[type="email"][name="site_identity[contactRecipient]"][value="contact@example.com"]');
+            $client->submitForm('Enregistrer', ['site_identity[salesEnabled]' => false, 'site_identity[contactRecipient]' => 'ventes@oraki.fr']);
+            self::assertResponseRedirects('/admin/site-identity');
+
+            $client->request('GET', '/api/site-identity', [], [], ['HTTP_ACCEPT' => 'application/json']);
+            /** @var array<string, mixed> $identity */
+            $identity = json_decode((string) $client->getResponse()->getContent(), true);
+            self::assertFalse($identity['salesEnabled']);
+            self::assertArrayNotHasKey('contactRecipient', $identity);
+            self::assertSame('ventes@oraki.fr', $this->entityManager()->find(SiteIdentity::class, SiteIdentity::ID)?->getContactRecipient());
+        } finally {
+            $this->resetSiteIdentity();
+        }
+    }
+
+    public function testRequiresAValidContactRecipient(): void
+    {
+        $client = $this->loggedIn('admin-destinataire@example.fr');
+
+        $client->request('GET', '/admin/site-identity');
+        $client->submitForm('Enregistrer', ['site_identity[contactRecipient]' => 'pas-une-adresse']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSame(SiteIdentity::DEFAULT_CONTACT_RECIPIENT, $this->entityManager()->find(SiteIdentity::class, SiteIdentity::ID)?->getContactRecipient());
+    }
+
     public function testSavesAndRemovesTheIconAndTheShareImage(): void
     {
         $client = $this->loggedIn('admin-favicons@example.fr');
@@ -658,6 +692,7 @@ final class AdminTest extends WebTestCase
         self::assertInstanceOf(SiteIdentity::class, $saved);
         $default = SiteIdentity::byDefault();
         $saved->update($default->getName(), $default->getTagline(), null, null, $default->getDefaultColorScheme(), null, null);
+        $saved->changeSales($default->isSalesEnabled(), $default->getContactRecipient());
         $this->entityManager()->flush();
     }
 

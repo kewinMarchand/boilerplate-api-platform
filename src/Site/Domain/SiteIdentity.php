@@ -8,14 +8,16 @@ use App\Media\Domain\Image;
 
 /**
  * Identité du site, une seule par API (SPEC-COMMUNE, section 22) : nom, accroche, logo, couleurs de marque et thème par
- * défaut, icône (favicons, ADR 0012) et image de partage (section 26, ADR 0011). Sans couleurs de marque, les fronts
- * gardent les jetons de boilerplates-ui ; sans icône ni image de partage, leurs propres fichiers.
+ * défaut, icône (favicons, ADR 0012) et image de partage (section 26, ADR 0011), vente en ligne et adresse qui reçoit les
+ * messages de contact (section 27, ADR 0014). Sans couleurs de marque, les fronts gardent les jetons de boilerplates-ui ;
+ * sans icône ni image de partage, leurs propres fichiers.
  */
 class SiteIdentity
 {
     public const int ID = 1;
     public const string DEFAULT_NAME = 'Boilerplate';
     public const string DEFAULT_TAGLINE = 'Modèle de site avec boilerplates-ui, outillé pour la QA et les tests end-to-end.';
+    public const string DEFAULT_CONTACT_RECIPIENT = 'contact@example.com';
 
     private int $id = self::ID;
     private string $name;
@@ -29,6 +31,8 @@ class SiteIdentity
     private ?string $shareImageKey;
     private string $shareImageAlt;
     private ?string $iconKey;
+    private bool $salesEnabled = true;
+    private string $contactRecipient = self::DEFAULT_CONTACT_RECIPIENT;
 
     public function __construct(string $name, string $tagline, ?Image $logo, ?BrandColors $colors, DefaultColorScheme $defaultColorScheme, ?Image $shareImage = null, ?Image $icon = null)
     {
@@ -59,6 +63,16 @@ class SiteIdentity
         $this->shareImageKey = $shareImage?->key;
         $this->shareImageAlt = $shareImage->alt ?? '';
         $this->iconKey = $icon?->key;
+    }
+
+    /**
+     * @param bool   $salesEnabled     false : pas de prix ni de panier, chaque produit propose une demande de renseignement
+     * @param string $contactRecipient adresse qui reçoit les messages de contact, jamais exposée par l'API
+     */
+    public function changeSales(bool $salesEnabled, string $contactRecipient): void
+    {
+        $this->salesEnabled = $salesEnabled;
+        $this->contactRecipient = $contactRecipient;
     }
 
     public function getId(): int
@@ -101,5 +115,15 @@ class SiteIdentity
     public function getDefaultColorScheme(): DefaultColorScheme
     {
         return $this->defaultColorScheme;
+    }
+
+    public function isSalesEnabled(): bool
+    {
+        return $this->salesEnabled;
+    }
+
+    public function getContactRecipient(): string
+    {
+        return $this->contactRecipient;
     }
 }

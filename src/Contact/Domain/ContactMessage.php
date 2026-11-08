@@ -12,6 +12,7 @@ class ContactMessage
         private string $name,
         private string $email,
         private string $message,
+        private ?string $productSlug,
         private \DateTimeImmutable $receivedAt,
     ) {
     }
@@ -34,6 +35,14 @@ class ContactMessage
     public function getMessage(): string
     {
         return $this->message;
+    }
+
+    /**
+     * Slug du produit d'une demande de renseignement, null pour un message de contact simple.
+     */
+    public function getProductSlug(): ?string
+    {
+        return $this->productSlug;
     }
 
     public function getReceivedAt(): \DateTimeImmutable

@@ -10,6 +10,7 @@ use App\Site\Domain\DefaultColorScheme;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ColorType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -82,6 +83,17 @@ final class SiteIdentityType extends AbstractType
                     DefaultColorScheme::Light => 'Clair',
                     DefaultColorScheme::Dark => 'Sombre',
                 },
+            ])
+            ->add('salesEnabled', CheckboxType::class, [
+                'label' => 'Vente en ligne (prix, panier et commande)',
+                'required' => false,
+                'help' => 'Décochée : les fronts n\'affichent ni prix ni panier, chaque produit propose une demande de renseignement envoyée par mail.',
+            ])
+            ->add('contactRecipient', EmailType::class, [
+                'label' => 'Adresse qui reçoit les messages',
+                'empty_data' => '',
+                'help' => 'Messages de contact et demandes de renseignement. Jamais affichée sur le site.',
+                'constraints' => [new Assert\NotBlank(), new Assert\Email(mode: Assert\Email::VALIDATION_MODE_STRICT), new Assert\Length(max: 255)],
             ]);
     }
 

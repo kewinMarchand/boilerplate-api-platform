@@ -32,3 +32,6 @@ when@test:
         logger:
             class: Psr\Log\NullLogger
         App\Tests\Support\RecordingSentryHttpClient: ~
+        App\Tests\Support\FailingMailer:
+            decorates: mailer.mailer
+            arguments: ['@.inner']

@@ -14,7 +14,7 @@ use App\Site\Infrastructure\ApiPlatform\State\SiteIdentityProvider;
 
 #[ApiResource(
     shortName: 'SiteIdentity',
-    description: 'Identité du site, saisie dans l\'admin : nom, accroche, logo, image de partage, favicons, couleurs de marque calculées (ou null) et thème par défaut.',
+    description: 'Identité du site, saisie dans l\'admin : nom, accroche, logo, image de partage, favicons, couleurs de marque calculées (ou null), thème par défaut et vente en ligne.',
     // logo, shareImage, icon et theme peuvent valoir null : sans cela, API Platform retire la clé alors que le schéma la déclare requise
     normalizationContext: ['skip_null_values' => false],
     operations: [
@@ -42,6 +42,8 @@ final readonly class SiteIdentityResource implements EmptyScenarioResult
         public string $defaultColorScheme,
         #[ApiProperty(description: 'Jetons de couleur de marque calculés, null sans couleurs saisies : le front garde alors ceux de boilerplates-ui.', required: true)]
         public ?SiteTheme $theme,
+        #[ApiProperty(description: 'Vente en ligne : false, les fronts n\'affichent ni prix ni panier et chaque produit propose une demande de renseignement.', required: true)]
+        public bool $salesEnabled,
     ) {
     }
 
@@ -55,6 +57,7 @@ final readonly class SiteIdentityResource implements EmptyScenarioResult
             $icon,
             $identity->getDefaultColorScheme()->value,
             SiteTheme::fromColors($identity->getColors()),
+            $identity->isSalesEnabled(),
         );
     }
 

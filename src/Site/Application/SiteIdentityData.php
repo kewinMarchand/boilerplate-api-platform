@@ -35,6 +35,8 @@ final class SiteIdentityData
     /** Contenu de l'icône envoyée, null pour garder l'actuelle. */
     public ?string $iconContent = null;
     public bool $removeIcon = false;
+    public bool $salesEnabled = true;
+    public string $contactRecipient = '';
 
     public static function fromSiteIdentity(SiteIdentity $identity): self
     {
@@ -48,6 +50,8 @@ final class SiteIdentityData
         $data->defaultColorScheme = $identity->getDefaultColorScheme();
         $data->imageAlt = $identity->getLogo()->alt ?? '';
         $data->shareImageAlt = $identity->getShareImage()->alt ?? '';
+        $data->salesEnabled = $identity->isSalesEnabled();
+        $data->contactRecipient = $identity->getContactRecipient();
 
         return $data;
     }

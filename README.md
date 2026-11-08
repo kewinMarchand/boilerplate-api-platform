@@ -8,14 +8,14 @@ API de test commune aux cinq boilerplates front (Next, Nuxt, SvelteKit, Symfony 
 | `Article`        | `GET /api/articles`          | 3 articles (`id`, `slug`, `title`, `excerpt`, `publishedAt`, `image`, `section`, `format`, `audio`, `speaker`), du plus récent au plus ancien ; filtres `section` et `format` (slug, inconnu : liste vide) |
 | `ArticleDetail`  | `GET /api/articles/{slug}`   | fiche d'un article : les mêmes champs, plus `html` (texte saisi en Markdown dans l'admin, converti en HTML), `metaTitle` et `metaDescription` ; 404 sinon |
 | `ArticleTerm`    | `GET /api/article-sections`, `GET /api/article-formats` | Rubriques et formats d'article (`slug`, `name`), par position, même sans article ([ADR 0010](doc/adr/0010-rubriques-formats-et-audio-des-articles.md)) |
-| `ContactMessage` | `POST /api/contact_messages` | 201 et le message enregistré, ou 422 avec les violations en français |
+| `ContactMessage` | `POST /api/contact_messages` | 201 et le message enregistré puis envoyé par mail, ou 422 avec les violations en français ; `product` facultatif (slug) pour une demande de renseignement ([ADR 0014](doc/adr/0014-demande-de-renseignement-envoyee-par-mail.md)) |
 | `Category`       | `GET /api/categories`        | L'arbre des 14 catégories du catalogue (`slug`, `name`, `parent`, `children`) |
 | `Product`        | `GET /api/products`          | Une page des 24 produits, filtrée et triée (tableau) |
 | `ProductFacets`  | `GET /api/product-facets`    | Le total des produits filtrés et les compteurs de facettes (dont les attributs filtrables), avec les mêmes filtres |
 | `ProductDetail`  | `GET /api/products/{slug}`   | fiche d'un produit : les champs de la liste, plus `categoryPath` (catégories de la racine à la sienne, `slug` et `name`), `description` (texte brut, paragraphes séparés par une ligne vide, chaîne vide si aucune), `gallery` (8 images au plus, dans l'ordre, [ADR 0009](doc/adr/0009-galerie-et-sources-plus-petites-des-produits.md)), `metaTitle` et `metaDescription` ; 404 sinon |
 | `Product`        | `GET /api/featured-products` | Les produits « À la une » (case de l'admin), par nom : le carrousel de l'accueil |
 | `LegalPage`      | `GET /api/legal_pages/{slug}` | `mentions-legales`, `donnees-personnelles` ou `accessibilite` : `title`, `introduction` et `sections` (`title`, `html`) ; 404 sinon |
-| `SiteIdentity`   | `GET /api/site-identity`     | L'identité du site saisie dans l'admin ([ADR 0006](doc/adr/0006-identite-du-site-administree-dans-l-api.md)) : `name`, `tagline`, `logo` (image ou `null`), `shareImage` (image 1200 × 630 ou `null`, [ADR 0011](doc/adr/0011-metadonnees-administrables.md)), `icon` (`null` ou `png32`, `png180`, `png192`, `png512`, [ADR 0012](doc/adr/0012-favicons-administrables.md)), `defaultColorScheme` (`auto`, `light`, `dark`) et `theme` (`null` sans couleurs saisies, sinon `light` et `dark` : les douze jetons de couleur de marque de boilerplates-ui, calculés par l'API ; en sombre, couleur éclaircie jusqu'à 4,5:1, [ADR 0008](doc/adr/0008-couleur-de-marque-sombre-a-4-5.md)) |
+| `SiteIdentity`   | `GET /api/site-identity`     | L'identité du site saisie dans l'admin ([ADR 0006](doc/adr/0006-identite-du-site-administree-dans-l-api.md)) : `name`, `tagline`, `logo` (image ou `null`), `shareImage` (image 1200 × 630 ou `null`, [ADR 0011](doc/adr/0011-metadonnees-administrables.md)), `icon` (`null` ou `png32`, `png180`, `png192`, `png512`, [ADR 0012](doc/adr/0012-favicons-administrables.md)), `defaultColorScheme` (`auto`, `light`, `dark`) , `theme` (`null` sans couleurs saisies, sinon `light` et `dark` : les douze jetons de couleur de marque de boilerplates-ui, calculés par l'API ; en sombre, couleur éclaircie jusqu'à 4,5:1, [ADR 0008](doc/adr/0008-couleur-de-marque-sombre-a-4-5.md)) et `salesEnabled` (vente en ligne ; `false` : ni prix ni panier dans les fronts, ADR 0014) |
 | `PageMeta`       | `GET /api/page-metas`        | Titre et description du référencement des pages fixes (`home`, `catalog`, `blog`, `contact`, `sitemap`, `legal-notice`, `privacy`, `accessibility`), toutes les clés, chaînes vides si non saisies (ADR 0011) |
 
 Tout est en lecture seule sauf le contact (un `POST` répond 405). Les collections ne sont pas paginées, sauf les produits qui ont leur propre pagination.
@@ -28,6 +28,7 @@ Tout est en lecture seule sauf le contact (un `POST` répond 405). Les collectio
 | Symfony 8.1                         | Framework                                             |
 | API Platform 5.0                    | Ressources, formats, OpenAPI, erreurs `problem+json`  |
 | Doctrine ORM 3, Migrations, Fixtures | Persistance, schéma versionné, données de démonstration |
+| Symfony Mailer, Mailpit (dev)       | Envoi des messages de contact, capturés par Mailpit en dev |
 | PostgreSQL 18                       | Base de données, non exposée sur la machine           |
 | nelmio/cors-bundle                  | CORS pour les origines locales des fronts             |
 | PHPUnit 13 + ApiTestCase            | Tests fonctionnels de chaque endpoint                 |
@@ -36,7 +37,7 @@ Tout est en lecture seule sauf le contact (un `POST` répond 405). Les collectio
 ## Prérequis
 
 - Docker avec Compose v2, `make` et git. Rien d'autre : PHP, Composer et PostgreSQL tournent dans les conteneurs.
-- Le port 8090 libre sur `127.0.0.1`.
+- Les ports 8090 (API) et 8026 (Mailpit) libres sur `127.0.0.1`.
 
 ## Démarrage
 
@@ -47,7 +48,7 @@ make install    # image, conteneurs, dépendances Composer
 make db-reset   # base, migrations, fixtures
 ```
 
-L'API répond sur http://localhost:8090/api. La documentation interactive (Swagger UI) est sur http://localhost:8090/api/docs dans un navigateur.
+L'API répond sur http://localhost:8090/api. La documentation interactive (Swagger UI) est sur http://localhost:8090/api/docs dans un navigateur. Les mails envoyés en dev (messages de contact) sont capturés par Mailpit, sur http://localhost:8026 : aucun n'est délivré.
 
 Le projet Compose s'appelle `boilerplate-api-platform` : ses conteneurs, son réseau et son volume (`boilerplate-api-platform_database_data`) ne touchent à aucun autre projet. Le conteneur PHP tourne avec l'UID de l'utilisateur courant, les fichiers créés dans le dépôt lui appartiennent.
 
@@ -116,6 +117,21 @@ Un payload invalide renvoie **422** en `application/problem+json`. Le tableau `v
 ```
 
 `title` reste en anglais (valeur d'API Platform) : il ne doit pas être affiché, seuls les `message` le sont.
+
+**Demande de renseignement** (section 27 de `SPEC-COMMUNE.md`, ADR 0014) : le champ facultatif `product` porte le slug d'un produit (`null` ou absent pour un message simple). Un slug inconnu renvoie 422 sur `product`, « Ce produit n'existe pas. ».
+
+**Envoi par mail** : une fois enregistré, le message part par SMTP (`MAILER_DSN`) vers l'« Adresse qui reçoit les messages » de la fiche « Identité du site » de l'admin (`contact@example.com` dans les fixtures), jamais exposée par l'API. Expéditeur `MAILER_FROM`, `Reply-To` : l'adresse du visiteur. Sujet « Demande de renseignement : <nom du produit> » ou « Message de contact : <nom saisi> », corps en texte brut :
+
+```text
+Nom : Camille Martin
+Adresse : camille.martin@example.fr
+Produit : Monstera deliciosa (monstera-deliciosa)
+
+Message :
+Bonjour, ce produit est-il disponible ?
+```
+
+La ligne `Produit` n'apparaît qu'avec un produit. Un envoi en échec est journalisé, le message reste enregistré et la réponse reste 201. En dev, le mail arrive dans Mailpit (http://localhost:8026, ou `curl localhost:8026/api/v1/messages`) ; en test, le transport `null://null` de Symfony (aucun mail réel). En production, renseigner `MAILER_DSN` (`smtp://utilisateur:motdepasse@serveur:587`) et `MAILER_FROM` dans `.env.local` ou l'environnement.
 
 ### Catalogue
 

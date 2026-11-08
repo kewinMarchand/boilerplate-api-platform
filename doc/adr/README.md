@@ -9,7 +9,7 @@ Une décision structurante par fichier, numérotée, jamais réécrite une fois 
 | [0003](0003-variante-intermediaire-des-produits.md)     | Variante intermédiaire de 640 px pour les images des produits    | Acceptée, modifiée par 0009 |
 | [0004](0004-carrousel-de-produits-a-la-une.md)          | Carrousel de l'accueil : produits à la une, diapositives retirées | Proposée |
 | [0005](0005-collection-de-produits-et-facettes-a-part.md) | Liste des produits en collection standard, facettes dans une ressource à part | Acceptée |
-| [0006](0006-identite-du-site-administree-dans-l-api.md)  | Identité du site administrée dans l'API, couleurs de marque calculées par l'API | Acceptée, modifiée par 0008, complétée par 0011 et 0012 |
+| [0006](0006-identite-du-site-administree-dans-l-api.md)  | Identité du site administrée dans l'API, couleurs de marque calculées par l'API | Acceptée, modifiée par 0008, complétée par 0011, 0012 et 0014 |
 | [0007](0007-attributs-de-produit-configurables.md)    | Attributs de produit configurables, définis dans l'admin, stockés en JSON | Acceptée |
 | [0008](0008-couleur-de-marque-sombre-a-4-5.md)        | Couleur de marque du thème sombre éclaircie jusqu'à 4,5:1         | Acceptée, modifiée par 0013 |
 | [0009](0009-galerie-et-sources-plus-petites-des-produits.md) | Galerie des produits en JSON, sources de 400 px acceptées, jamais agrandies | Acceptée |
@@ -17,3 +17,4 @@ Une décision structurante par fichier, numérotée, jamais réécrite une fois 
 | [0011](0011-metadonnees-administrables.md)            | Métadonnées administrables : pages fixes, produits, articles, image de partage | Acceptée |
 | [0012](0012-favicons-administrables.md)               | Favicons générés en PNG depuis l'icône du site                    | Acceptée |
 | [0013](0013-contraste-sombre-mesure-sur-la-surface.md) | Contraste de la couleur de marque sombre mesuré sur la surface secondaire | Acceptée |
+| [0014](0014-demande-de-renseignement-envoyee-par-mail.md) | Vente en ligne débrayable, demande de renseignement envoyée par mail | Acceptée |

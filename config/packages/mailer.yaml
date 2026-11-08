@@ -1,0 +1,9 @@
+framework:
+    mailer:
+        dsn: '%env(MAILER_DSN)%'
+
+when@test:
+    framework:
+        mailer:
+            # Le conteneur de dev pose MAILER_DSN vers Mailpit, et une variable réelle l'emporte sur .env.test
+            dsn: 'null://null'

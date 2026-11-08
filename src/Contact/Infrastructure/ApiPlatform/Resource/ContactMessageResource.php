@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     description: 'Message envoyé depuis le formulaire de contact.',
     operations: [
         new Post(
-            description: 'Enregistre un message de contact. Répond 422 avec la liste des violations si un champ est invalide.',
+            description: 'Enregistre un message de contact, ou une demande de renseignement sur un produit, puis l\'envoie par mail. Répond 422 avec la liste des violations si un champ est invalide ou si le produit n\'existe pas ; un mail non envoyé ne change pas la réponse.',
             processor: ContactMessageProcessor::class,
         ),
     ],
@@ -38,8 +38,13 @@ final class ContactMessageResource
     #[Assert\Length(min: 10, max: 5000, minMessage: self::MESSAGE_ERROR, maxMessage: self::MESSAGE_MAX_ERROR, normalizer: 'trim')]
     public ?string $message = null;
 
+    #[ApiProperty(description: 'Slug du produit d\'une demande de renseignement ; null ou absent pour un message de contact simple.')]
+    public ?string $product = null;
+
     #[ApiProperty(writable: false)]
     public ?\DateTimeImmutable $receivedAt = null;
+
+    public const string PRODUCT_ERROR = 'Ce produit n\'existe pas.';
 
     private const string NAME_ERROR = 'Indiquez votre nom (2 caractères minimum).';
     private const string EMAIL_ERROR = 'Indiquez une adresse e-mail valide, par exemple nom@domaine.fr.';

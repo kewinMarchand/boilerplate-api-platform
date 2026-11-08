@@ -46,6 +46,10 @@ deptrac:
           collectors:
             - type: classLike
               value: '^App\\Contact\\Domain\\'
+        - name: ContactApplication
+          collectors:
+            - type: classLike
+              value: '^App\\Contact\\Application\\'
         - name: ContactInfrastructure
           collectors:
             - type: classLike
@@ -107,7 +111,9 @@ deptrac:
         ContentApplication: [ContentDomain, MediaDomain, MediaApplication]
         ContentInfrastructure: [ContentDomain, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
         ContactDomain: ~
-        ContactInfrastructure: [ContactDomain, SharedInfrastructure, Framework]
+        ContactApplication: [ContactDomain]
+        # Adaptateurs du contact (ADR 0014) : produit lu dans le catalogue, destinataire dans l'identité du site
+        ContactInfrastructure: [ContactDomain, ContactApplication, CatalogDomain, SiteDomain, SiteApplication, SharedInfrastructure, Framework]
         TaskDomain: ~
         TaskInfrastructure: [TaskDomain, SharedInfrastructure, Framework]
         MediaDomain: ~

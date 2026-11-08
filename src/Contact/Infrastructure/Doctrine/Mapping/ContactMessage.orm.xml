@@ -9,6 +9,7 @@
         <field name="name" type="string" length="255"/>
         <field name="email" type="string" length="255"/>
         <field name="message" type="text"/>
+        <field name="productSlug" column="product_slug" type="string" length="255" nullable="true"/>
         <field name="receivedAt" type="datetimetz_immutable"/>
     </entity>
 </doctrine-mapping>
