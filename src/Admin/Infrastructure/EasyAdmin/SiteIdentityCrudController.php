@@ -35,6 +35,7 @@ final class SiteIdentityCrudController extends AbstractCrudController
         private readonly GetSiteIdentity $getSiteIdentity,
         private readonly UpdateSiteIdentity $updateSiteIdentity,
         private readonly AdminUrlGenerator $urls,
+        private readonly AdminMessages $messages,
     ) {
     }
 
@@ -46,8 +47,8 @@ final class SiteIdentityCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setEntityLabelInSingular('Identité du site')
-            ->setEntityLabelInPlural('Identité du site');
+            ->setEntityLabelInSingular('entity.site_identity')
+            ->setEntityLabelInPlural('entity.site_identity');
     }
 
     public function configureActions(Actions $actions): Actions
@@ -66,21 +67,21 @@ final class SiteIdentityCrudController extends AbstractCrudController
         if ($form->isSubmitted() && $form->isValid()) {
             try {
                 ($this->updateSiteIdentity)($data);
-                $this->addFlash('success', 'Identité du site enregistrée.');
+                $this->addFlash('success', $this->messages->trans('flash.site_identity_saved'));
 
                 return $this->redirect($this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl());
             } catch (SiteRuleViolation|MediaRuleViolation $violation) {
-                $form->addError(new FormError($violation->getMessage()));
+                $form->addError(new FormError($this->messages->violation($violation)));
             }
         }
 
         return $this->render('admin/form.html.twig', [
             'form' => $form,
-            'title' => 'Identité du site',
+            'title' => $this->messages->trans('entity.site_identity'),
             'image_previews' => [
-                'imageContent' => ImagePreview::figure($identity->getLogo(), ImageUsage::Logo, 'Logo actuel'),
-                'iconContent' => ImagePreview::figure($identity->getIcon(), ImageUsage::Icon, 'Icône actuelle (192 px)'),
-                'shareImageContent' => ImagePreview::figure($identity->getShareImage(), ImageUsage::Share, 'Image de partage actuelle'),
+                'imageContent' => ImagePreview::figure($identity->getLogo(), ImageUsage::Logo, 'image.current_logo'),
+                'iconContent' => ImagePreview::figure($identity->getIcon(), ImageUsage::Icon, 'image.current_icon'),
+                'shareImageContent' => ImagePreview::figure($identity->getShareImage(), ImageUsage::Share, 'image.current_share'),
             ],
             'cancel_url' => $this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl(),
         ]);

@@ -1,5 +1,9 @@
 framework:
+    # Langue de Symfony pour l'API (messages de validation du contrat, en anglais) ; l'admin choisit la sienne (ADR 0015)
     default_locale: en
     translator:
         default_path: '%kernel.project_dir%/translations'
+        # Le français est la langue source de l'admin : les règles du domaine ont leur modèle français pour clé, sans
+        # fichier français. Sans ce repli, une page en français prendrait la traduction anglaise.
+        fallbacks: ['fr']
         providers:

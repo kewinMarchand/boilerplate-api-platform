@@ -29,6 +29,7 @@ final class LegalPageCrudController extends AbstractCrudController
     public function __construct(
         private readonly UpdateLegalPage $updateLegalPage,
         private readonly AdminUrlGenerator $urls,
+        private readonly AdminMessages $messages,
     ) {
     }
 
@@ -40,8 +41,8 @@ final class LegalPageCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setEntityLabelInSingular('Page légale')
-            ->setEntityLabelInPlural('Pages légales')
+            ->setEntityLabelInSingular('entity.legal_page')
+            ->setEntityLabelInPlural('entity.legal_pages')
             ->setDefaultSort(['title' => 'ASC']);
     }
 
@@ -54,9 +55,9 @@ final class LegalPageCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        yield TextField::new('title', 'Titre');
-        yield TextField::new('slug', 'Slug');
-        yield TextField::new('body', 'Contenu (Markdown)')->onlyOnDetail();
+        yield TextField::new('title', 'field.title');
+        yield TextField::new('slug', 'field.slug');
+        yield TextField::new('body', 'field.markdown_body')->onlyOnDetail();
     }
 
     public function edit(AdminContext $context): Response
@@ -71,17 +72,17 @@ final class LegalPageCrudController extends AbstractCrudController
         if ($form->isSubmitted() && $form->isValid()) {
             try {
                 ($this->updateLegalPage)((int) $page->getId(), $data);
-                $this->addFlash('success', \sprintf('Page « %s » enregistrée.', $data->title));
+                $this->addFlash('success', $this->messages->trans('flash.page_saved', ['%name%' => $data->title]));
 
                 return $this->redirect($this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl());
             } catch (ContentRuleViolation $violation) {
-                $form->addError(new FormError($violation->getMessage()));
+                $form->addError(new FormError($this->messages->violation($violation)));
             }
         }
 
         return $this->render('admin/form.html.twig', [
             'form' => $form,
-            'title' => \sprintf('Modifier « %s »', $page->getTitle()),
+            'title' => $this->messages->trans('title.edit', ['%name%' => $page->getTitle()]),
             'cancel_url' => $this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl(),
         ]);
     }

@@ -45,6 +45,7 @@ final class ProductAttributeCrudController extends AbstractCrudController
         private readonly UpdateProductAttribute $updateAttribute,
         private readonly DeleteProductAttribute $deleteAttribute,
         private readonly AdminUrlGenerator $urls,
+        private readonly AdminMessages $messages,
     ) {
     }
 
@@ -56,8 +57,8 @@ final class ProductAttributeCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setEntityLabelInSingular('Attribut')
-            ->setEntityLabelInPlural('Attributs')
+            ->setEntityLabelInSingular('entity.attribute')
+            ->setEntityLabelInPlural('entity.attributes')
             ->setDefaultSort(['position' => 'ASC']);
     }
 
@@ -68,29 +69,29 @@ final class ProductAttributeCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        yield TextField::new('label', 'Libellé');
-        yield TextField::new('code', 'Code');
+        yield TextField::new('label', 'field.label');
+        yield TextField::new('code', 'field.code');
         // Champs virtuels formatés depuis l'entité : l'énumération et la liste ne se convertissent pas en texte
-        yield TextField::new('typeLabel', 'Type')
+        yield TextField::new('typeLabel', 'field.type')
             ->setVirtual(true)
             ->setTemplatePath(self::TEXT_TEMPLATE)
-            ->formatValue(static fn (mixed $value, ProductAttribute $attribute): string => ProductAttributeType::typeLabel($attribute->getType()));
-        yield TextField::new('unitLabel', 'Unité')
+            ->formatValue(fn (mixed $value, ProductAttribute $attribute): string => $this->messages->trans(ProductAttributeType::typeLabel($attribute->getType())));
+        yield TextField::new('unitLabel', 'field.unit')
             ->setVirtual(true)
             ->setTemplatePath(self::TEXT_TEMPLATE)
             ->formatValue(static fn (mixed $value, ProductAttribute $attribute): string => $attribute->getUnit() ?? '—');
-        yield TextField::new('choicesLabel', 'Valeurs')
+        yield TextField::new('choicesLabel', 'field.choices')
             ->setVirtual(true)
             ->setTemplatePath(self::TEXT_TEMPLATE)
             ->formatValue(static fn (mixed $value, ProductAttribute $attribute): string => implode(', ', array_map(static fn (AttributeChoice $choice): string => $choice->label, $attribute->getChoices())) ?: '—');
         // renderAsSwitch(false) : l'interrupteur d'EasyAdmin écrirait directement dans l'entité, sans le cas d'usage
-        yield BooleanField::new('filterable', 'Filtre du catalogue')->renderAsSwitch(false);
-        yield IntegerField::new('position', 'Position');
+        yield BooleanField::new('filterable', 'field.filterable')->renderAsSwitch(false);
+        yield IntegerField::new('position', 'field.position');
     }
 
     public function new(AdminContext $context): Response
     {
-        return $this->form($context, new ProductAttributeData(), null, 'Nouvel attribut');
+        return $this->form($context, new ProductAttributeData(), null, $this->messages->trans('title.new_attribute'));
     }
 
     public function edit(AdminContext $context): Response
@@ -98,7 +99,7 @@ final class ProductAttributeCrudController extends AbstractCrudController
         $attribute = $context->getEntity()->getInstance();
         \assert($attribute instanceof ProductAttribute);
 
-        return $this->form($context, ProductAttributeData::fromAttribute($attribute), $attribute->getId(), \sprintf('Modifier « %s »', $attribute->getLabel()));
+        return $this->form($context, ProductAttributeData::fromAttribute($attribute), $attribute->getId(), $this->messages->trans('title.edit', ['%name%' => $attribute->getLabel()]));
     }
 
     public function deleteEntity(EntityManagerInterface $entityManager, $entityInstance): void
@@ -106,7 +107,7 @@ final class ProductAttributeCrudController extends AbstractCrudController
         try {
             ($this->deleteAttribute)((int) $entityInstance->getId());
         } catch (CatalogRuleViolation $violation) {
-            $this->addFlash('danger', $violation->getMessage());
+            $this->addFlash('danger', $this->messages->violation($violation));
         }
     }
 
@@ -124,11 +125,11 @@ final class ProductAttributeCrudController extends AbstractCrudController
         if ($form->isSubmitted() && $form->isValid()) {
             try {
                 null === $id ? ($this->createAttribute)($data) : ($this->updateAttribute)($id, $data);
-                $this->addFlash('success', \sprintf('Attribut « %s » enregistré.', $data->label));
+                $this->addFlash('success', $this->messages->trans('flash.attribute_saved', ['%name%' => $data->label]));
 
                 return $this->redirect($this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl());
             } catch (CatalogRuleViolation $violation) {
-                $form->addError(new FormError($violation->getMessage()));
+                $form->addError(new FormError($this->messages->violation($violation)));
             }
         }
 

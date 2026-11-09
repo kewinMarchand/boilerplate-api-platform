@@ -1,0 +1,9 @@
+# Messages de validation des formulaires de l'admin (ADR 0015), à côté de ceux de Symfony.
+"constraint.attribute_code": "Lowercase letters, digits and hyphens, 40 characters at most, starting with a letter."
+"constraint.category": "Choose a category."
+"constraint.choice_value": "Lowercase letters, digits and hyphens, 40 characters at most, not starting with a hyphen."
+"constraint.price": "The price cannot be negative."
+"constraint.slug": "Lowercase letters, digits and hyphens only."
+"constraint.term_slug": "Lowercase letters, digits and hyphens, 60 characters at most, not starting with a hyphen."
+"upload.audio_failed": "The file could not be uploaded (100 MB at most)."
+"upload.image_failed": "The file could not be uploaded (10 MB at most)."

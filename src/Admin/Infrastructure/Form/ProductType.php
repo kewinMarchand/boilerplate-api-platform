@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Admin\Infrastructure\Form;
 
+use App\Admin\Infrastructure\EasyAdmin\AdminMessages;
 use App\Catalog\Application\ProductData;
 use App\Catalog\Domain\AttributeChoice;
 use App\Catalog\Domain\AttributeType;
@@ -36,48 +37,51 @@ final class ProductType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, ['label' => 'Nom', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 255)]])
+            ->add('name', TextType::class, ['label' => 'field.name', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 255)]])
             ->add('slug', TextType::class, [
-                'label' => 'Slug',
-                'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 255), new Assert\Regex(CategoryType::SLUG_PATTERN, 'Minuscules, chiffres et tirets seulement.')],
+                'label' => 'field.slug',
+                'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 255), new Assert\Regex(CategoryType::SLUG_PATTERN, 'constraint.slug')],
             ])
             ->add('categoryId', ChoiceType::class, [
-                'label' => 'Catégorie',
+                'label' => 'field.category',
                 'choices' => $options['categories'],
-                'placeholder' => 'Choisir une catégorie',
-                'constraints' => [new Assert\NotNull(message: 'Choisir une catégorie.')],
+                'choice_translation_domain' => false,
+                'placeholder' => 'product.choose_category',
+                'constraints' => [new Assert\NotNull(message: 'constraint.category')],
             ])
             ->add('price', MoneyType::class, [
-                'label' => 'Prix',
+                'label' => 'field.price',
                 'currency' => 'EUR',
                 'divisor' => 100,
                 'input' => 'integer',
-                'constraints' => [new Assert\PositiveOrZero(message: 'Le prix ne peut pas être négatif.')],
+                'constraints' => [new Assert\PositiveOrZero(message: 'constraint.price')],
             ])
             ->add('description', TextareaType::class, [
-                'label' => 'Description',
-                'help' => 'Texte brut, affiché sur la fiche du produit. Une ligne vide sépare deux paragraphes.',
+                'label' => 'field.description',
+                'help' => 'help.product_description',
                 'required' => false,
                 'empty_data' => '',
                 'attr' => ['rows' => 6],
                 'constraints' => [new Assert\Length(max: 2000)],
             ])
             ->add('exposure', EnumType::class, [
-                'label' => 'Exposition',
+                'label' => 'field.exposure',
                 'class' => Exposure::class,
-                'choice_label' => static fn (Exposure $exposure): string => $exposure->value,
+                'choice_label' => static fn (Exposure $exposure): string => 'exposure.'.$exposure->value,
             ])
             ->add('size', EnumType::class, [
-                'label' => 'Taille',
+                'label' => 'field.size',
                 'class' => Size::class,
                 'choice_label' => static fn (Size $size): string => $size->value,
+                'choice_translation_domain' => false,
             ])
-            ->add('inStock', CheckboxType::class, ['label' => 'En stock', 'required' => false])
-            ->add('featured', CheckboxType::class, ['label' => 'À la une', 'help' => 'Montré dans le carrousel de la page d\'accueil, par ordre alphabétique.', 'required' => false]);
-        ImageFields::add($builder, ImageUsage::Product, 'Vide : le nom du produit, qui suffit le plus souvent.');
+            ->add('inStock', CheckboxType::class, ['label' => 'field.in_stock', 'required' => false])
+            ->add('featured', CheckboxType::class, ['label' => 'field.featured', 'help' => 'help.featured', 'required' => false]);
+        ImageFields::add($builder, ImageUsage::Product, 'help.product_alt');
         $builder->add('gallery', CollectionType::class, [
-            'label' => 'Galerie',
-            'help' => \sprintf('%d images au plus, en plus de l\'image principale, par position croissante. Enregistrer propose de nouvelles lignes d\'ajout.', Product::MAX_GALLERY_IMAGES),
+            'label' => 'field.gallery',
+            'help' => 'help.gallery',
+            'help_translation_parameters' => ['%max%' => Product::MAX_GALLERY_IMAGES],
             'entry_type' => GalleryImageType::class,
             'allow_add' => true,
             'allow_delete' => true,
@@ -101,18 +105,22 @@ final class ProductType extends AbstractType
         if ([] === $attributes) {
             return;
         }
-        $fields = $builder->create('attributes', FormType::class, ['label' => 'Attributs', 'required' => false]);
+        $fields = $builder->create('attributes', FormType::class, ['label' => 'field.attributes', 'required' => false]);
         foreach ($attributes as $attribute) {
             $label = null === $attribute->getUnit() ? $attribute->getLabel() : \sprintf('%s (%s)', $attribute->getLabel(), $attribute->getUnit());
+            // Libellés saisis dans l'admin : du contenu, pas des clés de traduction. La liste garde le domaine pour son
+            // placeholder ; son libellé, qu'aucune clé ne nomme, s'affiche tel quel.
             match ($attribute->getType()) {
                 AttributeType::Choice => $fields->add($attribute->getCode(), ChoiceType::class, [
                     'label' => $label,
                     'required' => false,
-                    'placeholder' => 'Non renseigné',
+                    'placeholder' => 'product.attribute_unset',
+                    'choice_translation_domain' => false,
                     'choices' => array_column(array_map(static fn (AttributeChoice $choice): array => [$choice->label, $choice->value], $attribute->getChoices()), 1, 0),
                 ]),
                 AttributeType::Number => $fields->add($attribute->getCode(), NumberType::class, [
                     'label' => $label,
+                    'translation_domain' => false,
                     'required' => false,
                     'input' => 'string',
                     'html5' => true,
@@ -120,6 +128,7 @@ final class ProductType extends AbstractType
                 ]),
                 AttributeType::Text => $fields->add($attribute->getCode(), TextType::class, [
                     'label' => $label,
+                    'translation_domain' => false,
                     'required' => false,
                     'empty_data' => '',
                     'constraints' => [new Assert\Length(max: ProductAttribute::TEXT_MAX_LENGTH)],
@@ -131,7 +140,7 @@ final class ProductType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => ProductData::class, 'categories' => [], 'attributes' => []]);
+        $resolver->setDefaults(['translation_domain' => AdminMessages::DOMAIN, 'data_class' => ProductData::class, 'categories' => [], 'attributes' => []]);
         $resolver->setAllowedTypes('categories', 'array');
         $resolver->setAllowedTypes('attributes', 'array');
     }

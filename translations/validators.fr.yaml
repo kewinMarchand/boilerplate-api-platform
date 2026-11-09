@@ -1,0 +1,9 @@
+# Messages de validation des formulaires de l'admin (ADR 0015), à côté de ceux de Symfony.
+"constraint.attribute_code": "Minuscules, chiffres et tirets, 40 caractères au plus, commence par une lettre."
+"constraint.category": "Choisir une catégorie."
+"constraint.choice_value": "Minuscules, chiffres et tirets, 40 caractères au plus, sans tiret au début."
+"constraint.price": "Le prix ne peut pas être négatif."
+"constraint.slug": "Minuscules, chiffres et tirets seulement."
+"constraint.term_slug": "Minuscules, chiffres et tirets, 60 caractères au plus, sans tiret au début."
+"upload.audio_failed": "Le fichier n'a pas pu être envoyé (100 Mo au plus)."
+"upload.image_failed": "Le fichier n'a pas pu être envoyé (10 Mo au plus)."

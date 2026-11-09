@@ -37,6 +37,7 @@ final class CategoryCrudController extends AbstractCrudController
         private readonly UpdateCategory $updateCategory,
         private readonly DeleteCategory $deleteCategory,
         private readonly AdminUrlGenerator $urls,
+        private readonly AdminMessages $messages,
     ) {
     }
 
@@ -51,8 +52,8 @@ final class CategoryCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setEntityLabelInSingular('Catégorie')
-            ->setEntityLabelInPlural('Catégories')
+            ->setEntityLabelInSingular('entity.category')
+            ->setEntityLabelInPlural('entity.categories')
             ->setDefaultSort(['position' => 'ASC']);
     }
 
@@ -63,11 +64,11 @@ final class CategoryCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        yield TextField::new('name', 'Nom');
-        yield TextField::new('slug', 'Slug');
-        yield IntegerField::new('position', 'Position');
+        yield TextField::new('name', 'field.name');
+        yield TextField::new('slug', 'field.slug');
+        yield IntegerField::new('position', 'field.position');
         // Champ virtuel formaté depuis l'entité : sur une colonne liée, EasyAdmin devinerait un type et perdrait la mise en forme
-        yield TextField::new('parentName', 'Parent')
+        yield TextField::new('parentName', 'field.parent')
             ->setVirtual(true)
             ->setTemplatePath(self::TEXT_TEMPLATE)
             ->formatValue(static fn (mixed $value, Category $category): string => $category->getParent()?->getName() ?? '—');
@@ -75,7 +76,7 @@ final class CategoryCrudController extends AbstractCrudController
 
     public function new(AdminContext $context): Response
     {
-        return $this->form($context, new CategoryData(), null, 'Nouvelle catégorie');
+        return $this->form($context, new CategoryData(), null, $this->messages->trans('title.new_category'));
     }
 
     public function edit(AdminContext $context): Response
@@ -83,7 +84,7 @@ final class CategoryCrudController extends AbstractCrudController
         $category = $context->getEntity()->getInstance();
         \assert($category instanceof Category);
 
-        return $this->form($context, CategoryData::fromCategory($category), $category->getId(), \sprintf('Modifier « %s »', $category->getName()));
+        return $this->form($context, CategoryData::fromCategory($category), $category->getId(), $this->messages->trans('title.edit', ['%name%' => $category->getName()]));
     }
 
     public function deleteEntity(EntityManagerInterface $entityManager, $entityInstance): void
@@ -91,7 +92,7 @@ final class CategoryCrudController extends AbstractCrudController
         try {
             ($this->deleteCategory)((int) $entityInstance->getId());
         } catch (CatalogRuleViolation $violation) {
-            $this->addFlash('danger', $violation->getMessage());
+            $this->addFlash('danger', $this->messages->violation($violation));
         }
     }
 
@@ -112,11 +113,11 @@ final class CategoryCrudController extends AbstractCrudController
         if ($form->isSubmitted() && $form->isValid()) {
             try {
                 null === $id ? ($this->createCategory)($data) : ($this->updateCategory)($id, $data);
-                $this->addFlash('success', \sprintf('Catégorie « %s » enregistrée.', $data->name));
+                $this->addFlash('success', $this->messages->trans('flash.category_saved', ['%name%' => $data->name]));
 
                 return $this->redirect($this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl());
             } catch (CatalogRuleViolation $violation) {
-                $form->addError(new FormError($violation->getMessage()));
+                $form->addError(new FormError($this->messages->violation($violation)));
             }
         }
 

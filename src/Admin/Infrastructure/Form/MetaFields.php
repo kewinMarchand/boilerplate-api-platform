@@ -26,18 +26,20 @@ final class MetaFields
     {
         $builder
             ->add($titleField, TextType::class, [
-                'label' => 'Titre pour les moteurs de recherche',
+                'label' => 'field.meta_title',
                 'required' => false,
                 'empty_data' => '',
-                'help' => \sprintf('%d caractères au plus. Vide : le titre calculé par le front.', self::TITLE_MAX_LENGTH),
+                'help' => 'help.meta_title',
+                'help_translation_parameters' => ['%max%' => self::TITLE_MAX_LENGTH],
                 'attr' => ['maxlength' => self::TITLE_MAX_LENGTH],
                 'constraints' => [new Assert\Length(max: self::TITLE_MAX_LENGTH)],
             ])
             ->add($descriptionField, TextareaType::class, [
-                'label' => 'Description pour les moteurs de recherche',
+                'label' => 'field.meta_description',
                 'required' => false,
                 'empty_data' => '',
-                'help' => \sprintf('%d caractères au plus. Vide : la description calculée par le front.', self::DESCRIPTION_MAX_LENGTH),
+                'help' => 'help.meta_description',
+                'help_translation_parameters' => ['%max%' => self::DESCRIPTION_MAX_LENGTH],
                 'attr' => ['maxlength' => self::DESCRIPTION_MAX_LENGTH, 'rows' => 3],
                 'constraints' => [new Assert\Length(max: self::DESCRIPTION_MAX_LENGTH)],
             ]);

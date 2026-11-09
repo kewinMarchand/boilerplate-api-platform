@@ -29,20 +29,20 @@ final class GalleryImageType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        ImageFields::addFile($builder, 'content', ImageUsage::Product, 'Fichier');
+        ImageFields::addFile($builder, 'content', ImageUsage::Product, 'field.file');
         $builder
             ->add('alt', TextType::class, [
-                'label' => 'Texte de remplacement',
+                'label' => 'field.alt',
                 'required' => false,
                 'empty_data' => '',
-                'help' => 'Vide : le nom du produit.',
+                'help' => 'help.gallery_alt',
                 'constraints' => [new Assert\Length(max: 255)],
             ])
-            ->add('position', IntegerType::class, ['label' => 'Position', 'empty_data' => '0', 'constraints' => [new Assert\PositiveOrZero()]]);
+            ->add('position', IntegerType::class, ['label' => 'field.position', 'empty_data' => '0', 'constraints' => [new Assert\PositiveOrZero()]]);
         $builder->addEventListener(FormEvents::PRE_SET_DATA, static function (FormEvent $event): void {
             $data = $event->getData();
             if ($data instanceof GalleryImageData && null !== $data->current) {
-                $event->getForm()->add('remove', CheckboxType::class, ['label' => 'Retirer cette image', 'required' => false]);
+                $event->getForm()->add('remove', CheckboxType::class, ['label' => 'gallery.remove', 'required' => false]);
             }
         });
     }

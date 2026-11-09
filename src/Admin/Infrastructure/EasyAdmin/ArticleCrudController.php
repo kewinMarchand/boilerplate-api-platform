@@ -43,6 +43,7 @@ final class ArticleCrudController extends AbstractCrudController
         private readonly DeleteArticle $deleteArticle,
         private readonly ArticleTermRepository $terms,
         private readonly AdminUrlGenerator $urls,
+        private readonly AdminMessages $messages,
     ) {
     }
 
@@ -57,8 +58,8 @@ final class ArticleCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setEntityLabelInSingular('Article')
-            ->setEntityLabelInPlural('Articles')
+            ->setEntityLabelInSingular('entity.article')
+            ->setEntityLabelInPlural('entity.articles')
             ->setDefaultSort(['publishedAt' => 'DESC']);
     }
 
@@ -70,20 +71,20 @@ final class ArticleCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         yield ImagePreview::column(ImageUsage::Article, static fn (object $article): ?Image => $article instanceof Article ? $article->getImage() : null);
-        yield TextField::new('title', 'Titre');
-        yield TextField::new('slug', 'Slug');
-        yield DateField::new('publishedAt', 'Publication');
-        yield TextField::new('sectionName', 'Rubrique')
+        yield TextField::new('title', 'field.title');
+        yield TextField::new('slug', 'field.slug');
+        yield DateField::new('publishedAt', 'field.publication');
+        yield TextField::new('sectionName', 'field.section')
             ->setVirtual(true)
             ->setTemplatePath(self::TEXT_TEMPLATE)
             ->formatValue(static fn (mixed $value, Article $article): string => $article->getSection()?->getName() ?? '—');
-        yield TextField::new('excerpt', 'Résumé')->hideOnIndex();
-        yield TextareaField::new('body', 'Texte (Markdown)')->onlyOnDetail();
+        yield TextField::new('excerpt', 'field.excerpt')->hideOnIndex();
+        yield TextareaField::new('body', 'field.markdown_text')->onlyOnDetail();
     }
 
     public function new(AdminContext $context): Response
     {
-        return $this->form($context, new ArticleData(), null, 'Nouvel article');
+        return $this->form($context, new ArticleData(), null, $this->messages->trans('title.new_article'));
     }
 
     public function edit(AdminContext $context): Response
@@ -91,7 +92,7 @@ final class ArticleCrudController extends AbstractCrudController
         $article = $context->getEntity()->getInstance();
         \assert($article instanceof Article);
 
-        return $this->form($context, ArticleData::fromArticle($article), $article->getId(), \sprintf('Modifier « %s »', $article->getTitle()), $article->getImage());
+        return $this->form($context, ArticleData::fromArticle($article), $article->getId(), $this->messages->trans('title.edit', ['%name%' => $article->getTitle()]), $article->getImage());
     }
 
     public function deleteEntity(EntityManagerInterface $entityManager, $entityInstance): void
@@ -99,7 +100,7 @@ final class ArticleCrudController extends AbstractCrudController
         try {
             ($this->deleteArticle)((int) $entityInstance->getId());
         } catch (BlogRuleViolation $violation) {
-            $this->addFlash('danger', $violation->getMessage());
+            $this->addFlash('danger', $this->messages->violation($violation));
         }
     }
 
@@ -115,11 +116,11 @@ final class ArticleCrudController extends AbstractCrudController
         if ($form->isSubmitted() && $form->isValid()) {
             try {
                 null === $id ? ($this->createArticle)($data) : ($this->updateArticle)($id, $data);
-                $this->addFlash('success', \sprintf('Article « %s » enregistré.', $data->title));
+                $this->addFlash('success', $this->messages->trans('flash.article_saved', ['%name%' => $data->title]));
 
                 return $this->redirect($this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl());
             } catch (BlogRuleViolation|MediaRuleViolation $violation) {
-                $form->addError(new FormError($violation->getMessage()));
+                $form->addError(new FormError($this->messages->violation($violation)));
             }
         }
 
@@ -129,7 +130,7 @@ final class ArticleCrudController extends AbstractCrudController
             'image_previews' => ['imageContent' => ImagePreview::figure($image, ImageUsage::Article)],
             'audio_preview' => null === $data->currentAudio ? null : [
                 'src' => '/media/'.$data->currentAudio->fileName(),
-                'caption' => \sprintf('Fichier audio actuel, %s, %d s', strtoupper($data->currentAudio->format->value), $data->currentAudio->durationSeconds),
+                'caption' => $this->messages->trans('audio.current', ['%format%' => strtoupper($data->currentAudio->format->value), '%seconds%' => $data->currentAudio->durationSeconds]),
             ],
             'cancel_url' => $this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl(),
         ]);

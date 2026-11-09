@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Admin\Infrastructure\Form;
 
+use App\Admin\Infrastructure\EasyAdmin\AdminMessages;
 use App\Catalog\Application\ProductAttributeData;
 use App\Catalog\Domain\AttributeType;
 use Symfony\Component\Form\AbstractType;
@@ -30,29 +31,29 @@ final class ProductAttributeType extends AbstractType
     {
         $builder
             ->add('code', TextType::class, [
-                'label' => 'Code',
-                'help' => 'Minuscules, chiffres et tirets, commence par une lettre : il apparaît dans les filtres du catalogue. Il ne change plus après la création.',
+                'label' => 'field.code',
+                'help' => 'help.attribute_code',
                 'disabled' => $options['code_locked'],
-                'constraints' => [new Assert\NotBlank(), new Assert\Regex(self::CODE_PATTERN, 'Minuscules, chiffres et tirets, 40 caractères au plus, commence par une lettre.')],
+                'constraints' => [new Assert\NotBlank(), new Assert\Regex(self::CODE_PATTERN, 'constraint.attribute_code')],
             ])
-            ->add('label', TextType::class, ['label' => 'Libellé', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 60)]])
+            ->add('label', TextType::class, ['label' => 'field.label', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 60)]])
             ->add('type', EnumType::class, [
-                'label' => 'Type',
+                'label' => 'field.type',
                 'class' => AttributeType::class,
                 'choice_label' => static fn (AttributeType $type): string => self::typeLabel($type),
             ])
             ->add('unit', TextType::class, [
-                'label' => 'Unité',
-                'help' => 'Facultative : « mm », « km », « cm ».',
+                'label' => 'field.unit',
+                'help' => 'help.unit',
                 'required' => false,
                 'empty_data' => '',
                 'constraints' => [new Assert\Length(max: 10)],
             ])
-            ->add('filterable', CheckboxType::class, ['label' => 'Filtre du catalogue', 'help' => 'Liste de valeurs seulement : une facette du catalogue.', 'required' => false])
-            ->add('position', IntegerType::class, ['label' => 'Position', 'constraints' => [new Assert\PositiveOrZero()]])
+            ->add('filterable', CheckboxType::class, ['label' => 'field.filterable', 'help' => 'help.filterable', 'required' => false])
+            ->add('position', IntegerType::class, ['label' => 'field.position', 'constraints' => [new Assert\PositiveOrZero()]])
             ->add('choices', CollectionType::class, [
-                'label' => 'Valeurs',
-                'help' => 'Liste de valeurs seulement, dans l\'ordre d\'affichage. Vider une ligne retire la valeur ; enregistrer ajoute de nouvelles lignes vides.',
+                'label' => 'field.choices',
+                'help' => 'help.choices',
                 'entry_type' => AttributeChoiceType::class,
                 'entry_options' => ['label' => false],
                 'allow_add' => true,
@@ -62,16 +63,15 @@ final class ProductAttributeType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => ProductAttributeData::class, 'code_locked' => false]);
+        $resolver->setDefaults(['translation_domain' => AdminMessages::DOMAIN, 'data_class' => ProductAttributeData::class, 'code_locked' => false]);
         $resolver->setAllowedTypes('code_locked', 'bool');
     }
 
+    /**
+     * Clé de traduction du type.
+     */
     public static function typeLabel(AttributeType $type): string
     {
-        return match ($type) {
-            AttributeType::Choice => 'Liste de valeurs',
-            AttributeType::Number => 'Nombre',
-            AttributeType::Text => 'Texte',
-        };
+        return 'attribute_type.'.$type->value;
     }
 }

@@ -44,6 +44,7 @@ final class ProductCrudController extends AbstractCrudController
         private readonly UpdateProduct $updateProduct,
         private readonly DeleteProduct $deleteProduct,
         private readonly AdminUrlGenerator $urls,
+        private readonly AdminMessages $messages,
     ) {
     }
 
@@ -61,8 +62,8 @@ final class ProductCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setEntityLabelInSingular('Produit')
-            ->setEntityLabelInPlural('Produits')
+            ->setEntityLabelInSingular('entity.product')
+            ->setEntityLabelInPlural('entity.products')
             ->setDefaultSort(['name' => 'ASC']);
     }
 
@@ -74,35 +75,35 @@ final class ProductCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         yield ImagePreview::column(ImageUsage::Product, static fn (object $product): ?Image => $product instanceof Product ? $product->getImage() : null);
-        yield TextField::new('name', 'Nom');
-        yield TextField::new('slug', 'Slug');
+        yield TextField::new('name', 'field.name');
+        yield TextField::new('slug', 'field.slug');
         // Champs virtuels formatés depuis l'entité : sur une colonne liée, EasyAdmin devinerait un type et perdrait la mise en forme
-        yield TextField::new('categoryName', 'Catégorie')
+        yield TextField::new('categoryName', 'field.category')
             ->setVirtual(true)
             ->setTemplatePath(self::TEXT_TEMPLATE)
             ->formatValue(static fn (mixed $value, Product $product): string => $product->getCategory()->getName());
-        yield TextField::new('priceLabel', 'Prix')
+        yield TextField::new('priceLabel', 'field.price')
             ->setVirtual(true)
             ->setTemplatePath(self::TEXT_TEMPLATE)
             ->formatValue(static fn (mixed $value, Product $product): string => number_format($product->getPrice()->cents / 100, 2, ',', ' ').' €');
-        yield TextField::new('exposureLabel', 'Exposition')
+        yield TextField::new('exposureLabel', 'field.exposure')
             ->setVirtual(true)
             ->setTemplatePath(self::TEXT_TEMPLATE)
-            ->formatValue(static fn (mixed $value, Product $product): string => $product->getExposure()->value);
-        yield TextField::new('sizeLabel', 'Taille')
+            ->formatValue(fn (mixed $value, Product $product): string => $this->messages->trans('exposure.'.$product->getExposure()->value));
+        yield TextField::new('sizeLabel', 'field.size')
             ->setVirtual(true)
             ->setTemplatePath(self::TEXT_TEMPLATE)
             ->formatValue(static fn (mixed $value, Product $product): string => $product->getSize()->value);
         // renderAsSwitch(false) : l'interrupteur d'EasyAdmin écrirait directement dans l'entité, sans le cas d'usage
-        yield BooleanField::new('inStock', 'En stock')->renderAsSwitch(false);
-        yield BooleanField::new('featured', 'À la une')->renderAsSwitch(false);
-        yield TextareaField::new('description', 'Description')->onlyOnDetail();
-        yield TextField::new('imageAlt', 'Texte de remplacement')->hideOnIndex();
+        yield BooleanField::new('inStock', 'field.in_stock')->renderAsSwitch(false);
+        yield BooleanField::new('featured', 'field.featured')->renderAsSwitch(false);
+        yield TextareaField::new('description', 'field.description')->onlyOnDetail();
+        yield TextField::new('imageAlt', 'field.alt')->hideOnIndex();
     }
 
     public function new(AdminContext $context): Response
     {
-        return $this->form($context, new ProductData(), null, 'Nouveau produit');
+        return $this->form($context, new ProductData(), null, $this->messages->trans('title.new_product'));
     }
 
     public function edit(AdminContext $context): Response
@@ -110,7 +111,7 @@ final class ProductCrudController extends AbstractCrudController
         $product = $context->getEntity()->getInstance();
         \assert($product instanceof Product);
 
-        return $this->form($context, ProductData::fromProduct($product), $product->getId(), \sprintf('Modifier « %s »', $product->getName()), $product->getImage());
+        return $this->form($context, ProductData::fromProduct($product), $product->getId(), $this->messages->trans('title.edit', ['%name%' => $product->getName()]), $product->getImage());
     }
 
     public function deleteEntity(EntityManagerInterface $entityManager, $entityInstance): void
@@ -118,7 +119,7 @@ final class ProductCrudController extends AbstractCrudController
         try {
             ($this->deleteProduct)((int) $entityInstance->getId());
         } catch (CatalogRuleViolation $violation) {
-            $this->addFlash('danger', $violation->getMessage());
+            $this->addFlash('danger', $this->messages->violation($violation));
         }
     }
 
@@ -142,11 +143,11 @@ final class ProductCrudController extends AbstractCrudController
         if ($form->isSubmitted() && $form->isValid()) {
             try {
                 null === $id ? ($this->createProduct)($data) : ($this->updateProduct)($id, $data);
-                $this->addFlash('success', \sprintf('Produit « %s » enregistré.', $data->name));
+                $this->addFlash('success', $this->messages->trans('flash.product_saved', ['%name%' => $data->name]));
 
                 return $this->redirect($this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl());
             } catch (CatalogRuleViolation|MediaRuleViolation|\InvalidArgumentException $violation) {
-                $form->addError(new FormError($violation->getMessage()));
+                $form->addError(new FormError($this->messages->violation($violation)));
             }
         }
 

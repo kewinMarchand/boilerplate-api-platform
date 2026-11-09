@@ -24,13 +24,13 @@ final class AttributeChoiceType extends AbstractType
     {
         $builder
             ->add('value', TextType::class, [
-                'label' => 'Code',
+                'label' => 'field.code',
                 'required' => false,
                 'empty_data' => '',
-                'constraints' => [new Assert\Regex(self::VALUE_PATTERN, 'Minuscules, chiffres et tirets, 40 caractères au plus, sans tiret au début.')],
+                'constraints' => [new Assert\Regex(self::VALUE_PATTERN, 'constraint.choice_value')],
             ])
             ->add('label', TextType::class, [
-                'label' => 'Libellé',
+                'label' => 'field.label',
                 'required' => false,
                 'empty_data' => '',
                 'constraints' => [new Assert\Length(max: 60)],

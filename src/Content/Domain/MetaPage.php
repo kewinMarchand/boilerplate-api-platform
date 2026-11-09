@@ -18,18 +18,4 @@ enum MetaPage: string
     case LegalNotice = 'legal-notice';
     case Privacy = 'privacy';
     case Accessibility = 'accessibility';
-
-    public function label(): string
-    {
-        return match ($this) {
-            self::Home => 'Accueil',
-            self::Catalog => 'Catalogue',
-            self::Blog => 'Blog',
-            self::Contact => 'Contact',
-            self::Sitemap => 'Plan du site',
-            self::LegalNotice => 'Mentions légales',
-            self::Privacy => 'Données personnelles',
-            self::Accessibility => 'Accessibilité',
-        };
-    }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Admin\Infrastructure\Form;
 
+use App\Admin\Infrastructure\EasyAdmin\AdminMessages;
 use App\Media\Domain\ImageUsage;
 use App\Site\Application\SiteIdentityData;
 use App\Site\Domain\DefaultColorScheme;
@@ -27,78 +28,74 @@ final class SiteIdentityType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, ['label' => 'Nom du site', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 60)]])
+            ->add('name', TextType::class, ['label' => 'field.site_name', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 60)]])
             ->add('tagline', TextType::class, [
-                'label' => 'Accroche',
+                'label' => 'field.tagline',
                 'required' => false,
                 'empty_data' => '',
-                'help' => 'Texte du hero de l\'accueil et description par défaut des pages.',
+                'help' => 'help.tagline',
                 'constraints' => [new Assert\Length(max: 160)],
             ]);
-        ImageFields::add($builder, ImageUsage::Logo, 'Vide : le nom du site.', 'Logo', decorative: false);
+        ImageFields::add($builder, ImageUsage::Logo, 'help.site_alt', 'field.logo', decorative: false);
         $builder
             ->add('removeLogo', CheckboxType::class, [
-                'label' => 'Retirer le logo',
+                'label' => 'field.remove_logo',
                 'required' => false,
-                'help' => 'Le header affiche alors le pictogramme et le nom du site. Un fichier envoyé en même temps est ignoré.',
+                'help' => 'help.remove_logo',
             ]);
-        ImageFields::addFile($builder, 'iconContent', ImageUsage::Icon, 'Icône du site (favicons)');
+        ImageFields::addFile($builder, 'iconContent', ImageUsage::Icon, 'field.icon');
         $builder->add('removeIcon', CheckboxType::class, [
-            'label' => 'Retirer l\'icône',
+            'label' => 'field.remove_icon',
             'required' => false,
-            'help' => 'Les fronts servent alors leurs propres favicons. Un fichier envoyé en même temps est ignoré.',
+            'help' => 'help.remove_icon',
         ]);
-        ImageFields::add($builder, ImageUsage::Share, 'Vide : le nom du site.', 'Image de partage', decorative: false, prefix: 'shareImage');
+        ImageFields::add($builder, ImageUsage::Share, 'help.site_alt', 'field.share_image', decorative: false, prefix: 'shareImage');
         $builder
             ->add('removeShareImage', CheckboxType::class, [
-                'label' => 'Retirer l\'image de partage',
+                'label' => 'field.remove_share_image',
                 'required' => false,
-                'help' => 'Les fronts servent alors leur propre image de partage. Un fichier envoyé en même temps est ignoré.',
+                'help' => 'help.remove_share_image',
             ])
             ->add('useLibraryColors', CheckboxType::class, [
-                'label' => 'Utiliser les couleurs de la bibliothèque',
+                'label' => 'field.library_colors',
                 'required' => false,
-                'help' => 'Cochée : pas de couleurs de marque, les fronts gardent les jetons de boilerplates-ui et les deux couleurs ci-dessous sont ignorées.',
+                'help' => 'help.library_colors',
             ])
             ->add('primaryColor', ColorType::class, [
-                'label' => 'Couleur principale',
+                'label' => 'field.primary_color',
                 'required' => false,
                 'empty_data' => '',
                 'html5' => true,
-                'help' => 'Couleur des liens et des boutons : elle doit contraster à 4,5:1 au moins avec le fond blanc. Le thème sombre et les déclinaisons sont calculés.',
+                'help' => 'help.primary_color',
             ])
             ->add('secondaryColor', ColorType::class, [
-                'label' => 'Couleur secondaire',
+                'label' => 'field.secondary_color',
                 'required' => false,
                 'empty_data' => '',
                 'html5' => true,
-                'help' => 'Elle doit porter un texte lisible (blanc ou quasi-noir à 4,5:1 au moins).',
+                'help' => 'help.secondary_color',
             ])
             ->add('defaultColorScheme', EnumType::class, [
-                'label' => 'Thème par défaut',
+                'label' => 'field.color_scheme',
                 'class' => DefaultColorScheme::class,
-                'help' => 'Thème servi tant que le visiteur n\'a rien choisi.',
-                'choice_label' => static fn (DefaultColorScheme $scheme): string => match ($scheme) {
-                    DefaultColorScheme::Auto => 'Celui du système du visiteur',
-                    DefaultColorScheme::Light => 'Clair',
-                    DefaultColorScheme::Dark => 'Sombre',
-                },
+                'help' => 'help.color_scheme',
+                'choice_label' => static fn (DefaultColorScheme $scheme): string => 'color_scheme.'.$scheme->value,
             ])
             ->add('salesEnabled', CheckboxType::class, [
-                'label' => 'Vente en ligne (prix, panier et commande)',
+                'label' => 'field.sales',
                 'required' => false,
-                'help' => 'Décochée : les fronts n\'affichent ni prix ni panier, chaque produit propose une demande de renseignement envoyée par mail.',
+                'help' => 'help.sales',
             ])
             ->add('contactRecipient', EmailType::class, [
-                'label' => 'Adresse qui reçoit les messages',
+                'label' => 'field.contact_recipient',
                 'empty_data' => '',
-                'help' => 'Messages de contact et demandes de renseignement. Jamais affichée sur le site.',
+                'help' => 'help.contact_recipient',
                 'constraints' => [new Assert\NotBlank(), new Assert\Email(mode: Assert\Email::VALIDATION_MODE_STRICT), new Assert\Length(max: 255)],
             ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => SiteIdentityData::class]);
+        $resolver->setDefaults(['translation_domain' => AdminMessages::DOMAIN, 'data_class' => SiteIdentityData::class]);
     }
 }

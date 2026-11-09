@@ -24,6 +24,10 @@ final class ContactMessageCrudController extends AbstractCrudController
     /** Modèle texte imposé aux champs virtuels : sans lui, EasyAdmin les affiche « Inaccessible », avant même formatValue. */
     private const TEXT_TEMPLATE = '@EasyAdmin/crud/field/text.html.twig';
 
+    public function __construct(private readonly AdminMessages $messages)
+    {
+    }
+
     public static function getEntityFqcn(): string
     {
         return ContactMessage::class;
@@ -32,9 +36,9 @@ final class ContactMessageCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setEntityLabelInSingular('Message')
-            ->setEntityLabelInPlural('Messages')
-            ->setPageTitle(Crud::PAGE_DETAIL, static fn (ContactMessage $message): string => \sprintf('Message de %s', $message->getName()))
+            ->setEntityLabelInSingular('entity.message')
+            ->setEntityLabelInPlural('entity.messages')
+            ->setPageTitle(Crud::PAGE_DETAIL, fn (ContactMessage $message): string => $this->messages->trans('title.message', ['%name%' => $message->getName()]))
             ->setDefaultSort(['receivedAt' => 'DESC', 'id' => 'DESC']);
     }
 
@@ -47,14 +51,14 @@ final class ContactMessageCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        yield DateTimeField::new('receivedAt', 'Reçu le')->setFormat('dd/MM/yyyy HH:mm')->setTimezone('Europe/Paris');
-        yield TextField::new('name', 'Nom');
-        yield TextField::new('email', 'Adresse e-mail');
+        yield DateTimeField::new('receivedAt', 'field.received_at')->setFormat('dd/MM/yyyy HH:mm')->setTimezone('Europe/Paris');
+        yield TextField::new('name', 'field.name');
+        yield TextField::new('email', 'field.email');
         // Champ virtuel : « Aucun » plutôt que le badge « Aucun(e) » d'EasyAdmin, comme l'admin Hono
-        yield TextField::new('productLabel', 'Produit')
+        yield TextField::new('productLabel', 'field.product')
             ->setVirtual(true)
             ->setTemplatePath(self::TEXT_TEMPLATE)
-            ->formatValue(static fn (mixed $value, ContactMessage $message): string => $message->getProductSlug() ?? 'Aucun');
-        yield TextareaField::new('message', 'Message');
+            ->formatValue(fn (mixed $value, ContactMessage $message): string => $message->getProductSlug() ?? $this->messages->trans('message.no_product'));
+        yield TextareaField::new('message', 'field.message');
     }
 }

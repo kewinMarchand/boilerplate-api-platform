@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Admin\Infrastructure\Form;
 
+use App\Admin\Infrastructure\EasyAdmin\AdminMessages;
 use App\Catalog\Application\CategoryData;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -25,24 +26,25 @@ final class CategoryType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, ['label' => 'Nom', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 255)]])
+            ->add('name', TextType::class, ['label' => 'field.name', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 255)]])
             ->add('slug', TextType::class, [
-                'label' => 'Slug',
-                'help' => 'Minuscules, chiffres et tirets : il apparaît dans les adresses du site (?category=…).',
-                'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 255), new Assert\Regex(self::SLUG_PATTERN, 'Minuscules, chiffres et tirets seulement.')],
+                'label' => 'field.slug',
+                'help' => 'help.category_slug',
+                'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 255), new Assert\Regex(self::SLUG_PATTERN, 'constraint.slug')],
             ])
-            ->add('position', IntegerType::class, ['label' => 'Position', 'constraints' => [new Assert\PositiveOrZero()]])
+            ->add('position', IntegerType::class, ['label' => 'field.position', 'constraints' => [new Assert\PositiveOrZero()]])
             ->add('parentId', ChoiceType::class, [
-                'label' => 'Parent',
+                'label' => 'field.parent',
                 'choices' => $options['parents'],
+                'choice_translation_domain' => false,
                 'required' => false,
-                'placeholder' => 'Aucun (catégorie racine)',
+                'placeholder' => 'category.no_parent',
             ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => CategoryData::class, 'parents' => []]);
+        $resolver->setDefaults(['translation_domain' => AdminMessages::DOMAIN, 'data_class' => CategoryData::class, 'parents' => []]);
         $resolver->setAllowedTypes('parents', 'array');
     }
 }

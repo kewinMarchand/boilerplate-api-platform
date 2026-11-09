@@ -42,6 +42,7 @@ abstract class ArticleTermCrudController extends AbstractCrudController
         private readonly UpdateArticleTerm $updateTerm,
         private readonly DeleteArticleTerm $deleteTerm,
         private readonly AdminUrlGenerator $urls,
+        private readonly AdminMessages $messages,
     ) {
     }
 
@@ -55,8 +56,8 @@ abstract class ArticleTermCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setEntityLabelInSingular(ArticleTermKind::Section === static::kind() ? 'Rubrique' : 'Format')
-            ->setEntityLabelInPlural(ArticleTermKind::Section === static::kind() ? 'Rubriques' : 'Formats')
+            ->setEntityLabelInSingular(ArticleTermKind::Section === static::kind() ? 'entity.section' : 'entity.format')
+            ->setEntityLabelInPlural(ArticleTermKind::Section === static::kind() ? 'entity.sections' : 'entity.formats')
             ->setDefaultSort(['position' => 'ASC', 'name' => 'ASC']);
     }
 
@@ -74,14 +75,14 @@ abstract class ArticleTermCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
-        yield TextField::new('name', 'Nom');
-        yield TextField::new('slug', 'Slug');
-        yield IntegerField::new('position', 'Position');
+        yield TextField::new('name', 'field.name');
+        yield TextField::new('slug', 'field.slug');
+        yield IntegerField::new('position', 'field.position');
     }
 
     public function new(AdminContext $context): Response
     {
-        return $this->form($context, new ArticleTermData(), null, ArticleTermKind::Section === static::kind() ? 'Nouvelle rubrique' : 'Nouveau format');
+        return $this->form($context, new ArticleTermData(), null, $this->messages->trans(ArticleTermKind::Section === static::kind() ? 'title.new_section' : 'title.new_format'));
     }
 
     public function edit(AdminContext $context): Response
@@ -89,7 +90,7 @@ abstract class ArticleTermCrudController extends AbstractCrudController
         $term = $context->getEntity()->getInstance();
         \assert($term instanceof ArticleTerm);
 
-        return $this->form($context, ArticleTermData::fromTerm($term), $term->getId(), \sprintf('Modifier « %s »', $term->getName()));
+        return $this->form($context, ArticleTermData::fromTerm($term), $term->getId(), $this->messages->trans('title.edit', ['%name%' => $term->getName()]));
     }
 
     public function deleteEntity(EntityManagerInterface $entityManager, $entityInstance): void
@@ -97,7 +98,7 @@ abstract class ArticleTermCrudController extends AbstractCrudController
         try {
             ($this->deleteTerm)((int) $entityInstance->getId(), static::kind());
         } catch (BlogRuleViolation $violation) {
-            $this->addFlash('danger', $violation->getMessage());
+            $this->addFlash('danger', $this->messages->violation($violation));
         }
     }
 
@@ -112,11 +113,11 @@ abstract class ArticleTermCrudController extends AbstractCrudController
         if ($form->isSubmitted() && $form->isValid()) {
             try {
                 null === $id ? ($this->createTerm)(static::kind(), $data) : ($this->updateTerm)($id, static::kind(), $data);
-                $this->addFlash('success', \sprintf('« %s » enregistré.', $data->name));
+                $this->addFlash('success', $this->messages->trans('flash.term_saved', ['%name%' => $data->name]));
 
                 return $this->redirect($this->urls->setController(static::class)->setAction(Action::INDEX)->generateUrl());
             } catch (BlogRuleViolation $violation) {
-                $form->addError(new FormError($violation->getMessage()));
+                $form->addError(new FormError($this->messages->violation($violation)));
             }
         }
 

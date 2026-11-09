@@ -32,6 +32,7 @@ final class PageMetaCrudController extends AbstractCrudController
     public function __construct(
         private readonly UpdatePageMeta $updatePageMeta,
         private readonly AdminUrlGenerator $urls,
+        private readonly AdminMessages $messages,
     ) {
     }
 
@@ -43,8 +44,8 @@ final class PageMetaCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setEntityLabelInSingular('Référencement')
-            ->setEntityLabelInPlural('Référencement')
+            ->setEntityLabelInSingular('entity.page_meta')
+            ->setEntityLabelInPlural('entity.page_metas')
             ->setDefaultSort(['id' => 'ASC']);
     }
 
@@ -58,12 +59,12 @@ final class PageMetaCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         // Champ virtuel : l'énumération ne se convertit pas en texte
-        yield TextField::new('pageLabel', 'Page')
+        yield TextField::new('pageLabel', 'field.page')
             ->setVirtual(true)
             ->setTemplatePath(self::TEXT_TEMPLATE)
-            ->formatValue(static fn (mixed $value, PageMeta $meta): string => $meta->getPage()->label());
-        yield TextField::new('title', 'Titre');
-        yield TextField::new('description', 'Description');
+            ->formatValue(fn (mixed $value, PageMeta $meta): string => $this->pageLabel($meta));
+        yield TextField::new('title', 'field.title');
+        yield TextField::new('description', 'field.description');
     }
 
     public function edit(AdminContext $context): Response
@@ -78,18 +79,23 @@ final class PageMetaCrudController extends AbstractCrudController
         if ($form->isSubmitted() && $form->isValid()) {
             try {
                 ($this->updatePageMeta)((int) $meta->getId(), $data);
-                $this->addFlash('success', \sprintf('Référencement de « %s » enregistré.', $meta->getPage()->label()));
+                $this->addFlash('success', $this->messages->trans('flash.page_meta_saved', ['%name%' => $this->pageLabel($meta)]));
 
                 return $this->redirect($this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl());
             } catch (ContentRuleViolation $violation) {
-                $form->addError(new FormError($violation->getMessage()));
+                $form->addError(new FormError($this->messages->violation($violation)));
             }
         }
 
         return $this->render('admin/form.html.twig', [
             'form' => $form,
-            'title' => \sprintf('Référencement de « %s »', $meta->getPage()->label()),
+            'title' => $this->messages->trans('title.page_meta', ['%name%' => $this->pageLabel($meta)]),
             'cancel_url' => $this->urls->setController(self::class)->setAction(Action::INDEX)->generateUrl(),
         ]);
+    }
+
+    private function pageLabel(PageMeta $meta): string
+    {
+        return $this->messages->trans('meta_page.'.$meta->getPage()->value);
     }
 }

@@ -14,8 +14,10 @@ use Symfony\Component\HttpFoundation\Response;
 #[AdminDashboard(routePath: '/admin', routeName: 'admin', routeOptions: ['defaults' => ['_locale' => 'fr']])]
 final class DashboardController extends AbstractDashboardController
 {
-    public function __construct(private readonly AdminUrlGenerator $urls)
-    {
+    public function __construct(
+        private readonly AdminUrlGenerator $urls,
+        private readonly AdminMessages $messages,
+    ) {
     }
 
     public function index(): Response
@@ -25,24 +27,28 @@ final class DashboardController extends AbstractDashboardController
 
     public function configureDashboard(): Dashboard
     {
-        return Dashboard::new()->setTitle('Administration')->setLocales(['fr']);
+        // Langues de l'interface, chacune écrite dans sa langue ; le choix est gardé en session (AdminLocaleSubscriber)
+        return Dashboard::new()
+            ->setTitle($this->messages->trans('dashboard.title'))
+            ->setTranslationDomain(AdminMessages::DOMAIN)
+            ->setLocales(AdminLocaleSubscriber::LOCALES);
     }
 
     public function configureMenuItems(): iterable
     {
-        yield MenuItem::section('Catalogue');
-        yield MenuItem::linkTo(CategoryCrudController::class, 'Catégories', 'fa fa-folder-tree');
-        yield MenuItem::linkTo(ProductCrudController::class, 'Produits', 'fa fa-seedling');
-        yield MenuItem::linkTo(ProductAttributeCrudController::class, 'Attributs', 'fa fa-tags');
-        yield MenuItem::section('Contenus');
-        yield MenuItem::linkTo(ArticleCrudController::class, 'Articles', 'fa fa-newspaper');
-        yield MenuItem::linkTo(ArticleSectionCrudController::class, 'Rubriques', 'fa fa-folder-open');
-        yield MenuItem::linkTo(ArticleFormatCrudController::class, 'Formats', 'fa fa-shapes');
-        yield MenuItem::linkTo(LegalPageCrudController::class, 'Pages légales', 'fa fa-scale-balanced');
-        yield MenuItem::section('Site');
-        yield MenuItem::linkTo(SiteIdentityCrudController::class, 'Identité du site', 'fa fa-palette');
-        yield MenuItem::linkTo(PageMetaCrudController::class, 'Référencement', 'fa fa-magnifying-glass');
-        yield MenuItem::section('Contact');
-        yield MenuItem::linkTo(ContactMessageCrudController::class, 'Messages', 'fa fa-envelope');
+        yield MenuItem::section('menu.catalog');
+        yield MenuItem::linkTo(CategoryCrudController::class, 'menu.categories', 'fa fa-folder-tree');
+        yield MenuItem::linkTo(ProductCrudController::class, 'menu.products', 'fa fa-seedling');
+        yield MenuItem::linkTo(ProductAttributeCrudController::class, 'menu.attributes', 'fa fa-tags');
+        yield MenuItem::section('menu.contents');
+        yield MenuItem::linkTo(ArticleCrudController::class, 'menu.articles', 'fa fa-newspaper');
+        yield MenuItem::linkTo(ArticleSectionCrudController::class, 'menu.sections', 'fa fa-folder-open');
+        yield MenuItem::linkTo(ArticleFormatCrudController::class, 'menu.formats', 'fa fa-shapes');
+        yield MenuItem::linkTo(LegalPageCrudController::class, 'menu.legal_pages', 'fa fa-scale-balanced');
+        yield MenuItem::section('menu.site');
+        yield MenuItem::linkTo(SiteIdentityCrudController::class, 'menu.site_identity', 'fa fa-palette');
+        yield MenuItem::linkTo(PageMetaCrudController::class, 'menu.page_metas', 'fa fa-magnifying-glass');
+        yield MenuItem::section('menu.contact');
+        yield MenuItem::linkTo(ContactMessageCrudController::class, 'menu.messages', 'fa fa-envelope');
     }
 }

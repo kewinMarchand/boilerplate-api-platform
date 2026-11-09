@@ -1,4 +1,5 @@
 {% extends '@EasyAdmin/page/content.html.twig' %}
+{% trans_default_domain 'admin' %}
 {% form_theme form 'bootstrap_5_layout.html.twig' 'admin/form_theme.html.twig' %}
 
 {% block content_title %}{{ title }}{% endblock %}
@@ -23,8 +24,8 @@
             {% endif %}
             {{ form_row(child) }}
         {% endfor %}
-        <button type="submit" class="btn btn-primary">Enregistrer</button>
-        <a href="{{ cancel_url }}" class="btn btn-secondary">Annuler</a>
+        <button type="submit" class="btn btn-primary">{{ 'form.save'|trans }}</button>
+        <a href="{{ cancel_url }}" class="btn btn-secondary">{{ 'form.cancel'|trans }}</a>
     {{ form_end(form) }}
     <script>
         document.querySelectorAll('[data-image-preview]').forEach((preview) => {
@@ -34,7 +35,7 @@
                 const [file] = input.files;
                 if (!file) return;
                 preview.querySelector('img').src = URL.createObjectURL(file);
-                preview.querySelector('[data-image-preview-caption]').textContent = 'Image choisie, enregistrée à l’envoi du formulaire';
+                preview.querySelector('[data-image-preview-caption]').textContent = '{{ 'image.chosen'|trans|e('js') }}';
                 preview.hidden = false;
             });
         });

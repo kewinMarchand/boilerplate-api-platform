@@ -6,7 +6,7 @@
                 {{ include('admin/field/image_figure.html.twig', {src: image_preview.src, caption: image_preview.caption}) }}
             </figure>
         {% else %}
-            <legend class="form-text fs-6">Nouvelle image</legend>
+            <legend class="form-text fs-6">{{ 'gallery.new_image'|trans({}, 'admin') }}</legend>
         {% endif %}
         {{ form_widget(form) }}
     </fieldset>

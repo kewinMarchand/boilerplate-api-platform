@@ -22,17 +22,18 @@ final class ImageFields
 {
     /**
      * Champs d'une image : fichier, texte de remplacement et, sauf exception, case « décorative ». Le préfixe nomme les
-     * champs ({prefix}Content, {prefix}Alt, {prefix}Decorative) quand un formulaire porte plusieurs images.
+     * champs ({prefix}Content, {prefix}Alt, {prefix}Decorative) quand un formulaire porte plusieurs images. Libellés et
+     * aides : clés du domaine admin.
      *
      * @template TData
      *
      * @param FormBuilderInterface<TData> $builder
      */
-    public static function add(FormBuilderInterface $builder, ImageUsage $usage, string $altHelp, string $label = 'Image', bool $decorative = true, string $prefix = 'image'): void
+    public static function add(FormBuilderInterface $builder, ImageUsage $usage, string $altHelp, string $label = 'field.image', bool $decorative = true, string $prefix = 'image'): void
     {
         self::addFile($builder, $prefix.'Content', $usage, $label);
         $builder->add($prefix.'Alt', TextType::class, [
-            'label' => 'Texte de remplacement',
+            'label' => 'field.alt',
             'required' => false,
             'empty_data' => '',
             'help' => $altHelp,
@@ -40,7 +41,7 @@ final class ImageFields
         ]);
         if ($decorative) {
             $builder->add($prefix.'Decorative', CheckboxType::class, [
-                'label' => 'Image décorative (aucun texte de remplacement)',
+                'label' => 'field.decorative',
                 'required' => false,
             ]);
         }
@@ -61,7 +62,8 @@ final class ImageFields
             'data_class' => null,
             'attr' => ['accept' => 'image/jpeg,image/png,image/webp,image/avif'],
             'help' => self::help($usage),
-            'invalid_message' => 'Le fichier n\'a pas pu être envoyé (10 Mo au plus).',
+            'help_translation_parameters' => self::helpParameters($usage),
+            'invalid_message' => 'upload.image_failed',
         ]);
         $builder->get($name)->addModelTransformer(new CallbackTransformer(
             static fn (?string $content): null => null,
@@ -84,20 +86,21 @@ final class ImageFields
 
     private static function help(ImageUsage $usage): string
     {
-        $ratio = $usage->ratio();
-        if (null === $ratio) {
-            return \sprintf('PNG, WebP ou AVIF (transparence gardée) ou JPEG, 10 Mo au plus, sans recadrage, %d px de large au moins. Pas de SVG. Sans fichier, l\'image actuelle est gardée.', $usage->minimumWidth());
-        }
-        if (ImageUsage::Icon === $usage) {
-            return \sprintf('PNG, WebP ou AVIF (transparence gardée), carrée, %d px de large au moins, recadrée au centre. Pas de SVG ni d\'ICO. Les favicons sont générés en PNG de 32, 180, 192 et 512 px.', $usage->minimumWidth());
-        }
+        return match (true) {
+            null === $usage->ratio() => 'help.image_uncropped',
+            ImageUsage::Icon === $usage => 'help.image_icon',
+            $usage->minimumWidth() < $usage->largestWidth() => 'help.image_cropped_sharpest',
+            default => 'help.image_cropped',
+        };
+    }
 
-        return \sprintf(
-            'JPEG, PNG, WebP ou AVIF, 10 Mo au plus, recadrée au centre au format %d:%d, %d px de large au moins%s. Sans fichier, l\'image actuelle est gardée.',
-            $ratio[0],
-            $ratio[1],
-            $usage->minimumWidth(),
-            $usage->minimumWidth() < $usage->largestWidth() ? \sprintf(', %d px pour la meilleure netteté (jamais agrandie)', $usage->largestWidth()) : '',
-        );
+    /**
+     * @return array<string, int>
+     */
+    private static function helpParameters(ImageUsage $usage): array
+    {
+        $ratio = $usage->ratio() ?? [0, 0];
+
+        return ['%min%' => $usage->minimumWidth(), '%largest%' => $usage->largestWidth(), '%ratioWidth%' => $ratio[0], '%ratioHeight%' => $ratio[1]];
     }
 }

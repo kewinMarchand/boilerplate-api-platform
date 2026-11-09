@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Admin\Infrastructure\Form;
 
+use App\Admin\Infrastructure\EasyAdmin\AdminMessages;
 use App\Content\Application\PageMetaData;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -21,6 +22,6 @@ final class PageMetaType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => PageMetaData::class]);
+        $resolver->setDefaults(['translation_domain' => AdminMessages::DOMAIN, 'data_class' => PageMetaData::class]);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Admin\Infrastructure\Form;
 
+use App\Admin\Infrastructure\EasyAdmin\AdminMessages;
 use App\Blog\Application\ArticleTermData;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
@@ -25,17 +26,17 @@ final class ArticleTermType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, ['label' => 'Nom', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 60)]])
+            ->add('name', TextType::class, ['label' => 'field.name', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 60)]])
             ->add('slug', TextType::class, [
-                'label' => 'Slug',
-                'help' => 'Minuscules, chiffres et tirets, 60 caractères au plus : il apparaît dans les adresses du blog.',
-                'constraints' => [new Assert\NotBlank(), new Assert\Regex(self::SLUG_PATTERN, 'Minuscules, chiffres et tirets, 60 caractères au plus, sans tiret au début.')],
+                'label' => 'field.slug',
+                'help' => 'help.term_slug',
+                'constraints' => [new Assert\NotBlank(), new Assert\Regex(self::SLUG_PATTERN, 'constraint.term_slug')],
             ])
-            ->add('position', IntegerType::class, ['label' => 'Position', 'constraints' => [new Assert\PositiveOrZero()]]);
+            ->add('position', IntegerType::class, ['label' => 'field.position', 'constraints' => [new Assert\PositiveOrZero()]]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => ArticleTermData::class]);
+        $resolver->setDefaults(['translation_domain' => AdminMessages::DOMAIN, 'data_class' => ArticleTermData::class]);
     }
 }

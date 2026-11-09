@@ -7,6 +7,7 @@ namespace App\Admin\Infrastructure\EasyAdmin;
 use App\Media\Domain\Image;
 use App\Media\Domain\ImageUsage;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use Symfony\Component\Translation\TranslatableMessage;
 
 /**
  * Aperçu d'une image de l'admin (ADR 0002) : sa plus petite variante WebP (PNG pour une icône), servie par Caddy sous /media/ sur le même hôte
@@ -20,20 +21,24 @@ final class ImagePreview
     }
 
     /**
-     * Aperçu d'un formulaire : l'image actuelle et son texte de remplacement, null sans image.
+     * Aperçu d'un formulaire : l'image actuelle et son texte de remplacement, null sans image. La légende est traduite
+     * au rendu, dans la langue de l'interface.
      *
-     * @return array{src: string, caption: string}|null
+     * @param string $label clé de traduction du domaine admin
+     *
+     * @return array{src: string, caption: TranslatableMessage}|null
      */
-    public static function figure(?Image $image, ImageUsage $usage, string $label = 'Image actuelle'): ?array
+    public static function figure(?Image $image, ImageUsage $usage, string $label = 'image.current'): ?array
     {
         $url = self::url($image, $usage);
         if (null === $image || null === $url) {
             return null;
         }
+        $label = new TranslatableMessage($label, [], AdminMessages::DOMAIN);
         $caption = match (true) {
             ImageUsage::Icon === $usage => $label,
-            $image->isDecorative() => $label.', décorative (sans texte de remplacement)',
-            default => \sprintf('%s, texte de remplacement : « %s »', $label, $image->alt),
+            $image->isDecorative() => new TranslatableMessage('image.caption_decorative', ['%label%' => $label], AdminMessages::DOMAIN),
+            default => new TranslatableMessage('image.caption_alt', ['%label%' => $label, '%alt%' => $image->alt], AdminMessages::DOMAIN),
         };
 
         return ['src' => $url, 'caption' => $caption];
@@ -54,7 +59,7 @@ final class ImagePreview
      */
     public static function column(ImageUsage $usage, callable $image): TextField
     {
-        return TextField::new('imagePreview', 'Image')
+        return TextField::new('imagePreview', 'field.image')
             ->setVirtual(true)
             ->onlyOnIndex()
             ->formatValue(static fn (mixed $value, object $entity): ?string => self::url($image($entity), $usage))
