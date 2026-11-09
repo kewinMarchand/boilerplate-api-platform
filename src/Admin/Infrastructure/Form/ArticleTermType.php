@@ -26,10 +26,11 @@ final class ArticleTermType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, ['label' => 'field.name', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 60)]])
+            ->add('name', TextType::class, ['label' => 'field.name', 'empty_data' => '', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 60)]])
             ->add('slug', TextType::class, [
                 'label' => 'field.slug',
                 'help' => 'help.term_slug',
+                'empty_data' => '',
                 'constraints' => [new Assert\NotBlank(), new Assert\Regex(self::SLUG_PATTERN, 'constraint.term_slug')],
             ])
             ->add('position', IntegerType::class, ['label' => 'field.position', 'constraints' => [new Assert\PositiveOrZero()]]);

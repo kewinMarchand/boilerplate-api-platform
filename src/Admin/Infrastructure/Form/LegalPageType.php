@@ -21,11 +21,12 @@ final class LegalPageType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('title', TextType::class, ['label' => 'field.title', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 255)]])
+            ->add('title', TextType::class, ['label' => 'field.title', 'empty_data' => '', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 255)]])
             ->add('body', TextareaType::class, [
                 'label' => 'field.markdown_body',
                 'help' => 'help.legal_body',
                 'attr' => ['rows' => 24],
+                'empty_data' => '',
                 'constraints' => [new Assert\NotBlank()],
             ]);
         TranslationFields::add($builder, $options, static function (FormBuilderInterface $group): void {

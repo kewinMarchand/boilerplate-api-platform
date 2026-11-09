@@ -29,7 +29,7 @@ final class SiteIdentityType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, ['label' => 'field.site_name', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 60)]])
+            ->add('name', TextType::class, ['label' => 'field.site_name', 'empty_data' => '', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 60)]])
             ->add('tagline', TextType::class, [
                 'label' => 'field.tagline',
                 'required' => false,

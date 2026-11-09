@@ -33,9 +33,10 @@ final class ArticleType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('title', TextType::class, ['label' => 'field.title', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 255)]])
+            ->add('title', TextType::class, ['label' => 'field.title', 'empty_data' => '', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 255)]])
             ->add('slug', TextType::class, [
                 'label' => 'field.slug',
+                'empty_data' => '',
                 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 255), new Assert\Regex(CategoryType::SLUG_PATTERN, 'constraint.slug')],
             ])
             ->add('excerpt', TextareaType::class, ['label' => 'field.excerpt', 'empty_data' => '', 'required' => false])

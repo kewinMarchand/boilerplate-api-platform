@@ -34,9 +34,10 @@ final class ProductAttributeType extends AbstractType
                 'label' => 'field.code',
                 'help' => 'help.attribute_code',
                 'disabled' => $options['code_locked'],
+                'empty_data' => '',
                 'constraints' => [new Assert\NotBlank(), new Assert\Regex(self::CODE_PATTERN, 'constraint.attribute_code')],
             ])
-            ->add('label', TextType::class, ['label' => 'field.label', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 60)]])
+            ->add('label', TextType::class, ['label' => 'field.label', 'empty_data' => '', 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 60)]])
             ->add('type', EnumType::class, [
                 'label' => 'field.type',
                 'class' => AttributeType::class,

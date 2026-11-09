@@ -20,6 +20,7 @@ use App\Media\Domain\Image;
 use App\Site\Domain\DefaultColorScheme;
 use App\Site\Domain\SiteIdentity;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -178,6 +179,57 @@ final class AdminTest extends WebTestCase
                 $this->entityManager()->flush();
             }
         }
+    }
+
+    /**
+     * @param class-string|null    $entity   fiche modifiée, la première trouvée ; null : page sans identifiant
+     * @param array<string, mixed> $criteria
+     */
+    #[DataProvider('requiredFields')]
+    public function testShowsAValidationErrorWhenARequiredFieldIsEmptied(string $section, ?string $entity, array $criteria, string $field, string $value = ''): void
+    {
+        $client = $this->loggedIn('admin-champ-vide@example.fr');
+        $url = \sprintf('/admin/%s', $section);
+        if (null !== $entity) {
+            $record = $this->entityManager()->getRepository($entity)->findOneBy($criteria, ['id' => 'ASC']);
+            self::assertNotNull($record);
+            self::assertTrue(method_exists($record, 'getId'));
+            $id = $record->getId();
+            self::assertIsInt($id);
+            $url = \sprintf('/admin/%s/%d/edit', $section, $id);
+        }
+
+        $client->request('GET', $url);
+        $client->submitForm('Enregistrer', [$field => $value]);
+
+        self::assertResponseStatusCodeSame(422);
+        $fieldId = str_replace(['][', '[', ']'], ['_', '_', ''], $field);
+        self::assertSelectorTextContains(\sprintf('#%s ~ .invalid-feedback, #%s + .invalid-feedback', $fieldId, $fieldId), 'Cette valeur ne doit pas être vide.');
+    }
+
+    /**
+     * Un champ texte vidé, ou rempli d'espaces que le formulaire retire, arrive à null sans `empty_data` : la propriété
+     * typée `string` de l'objet de saisie le refuse (500) avant toute validation.
+     *
+     * @return iterable<string, array{0: string, 1: class-string|null, 2: array<string, mixed>, 3: string, 4?: string}>
+     */
+    public static function requiredFields(): iterable
+    {
+        yield 'nom du produit' => ['product', Product::class, [], 'product[name]'];
+        yield 'nom du produit en espaces seuls' => ['product', Product::class, [], 'product[name]', '   '];
+        yield 'slug du produit' => ['product', Product::class, [], 'product[slug]'];
+        yield 'nom de la catégorie' => ['category', Category::class, [], 'category[name]'];
+        yield 'slug de la catégorie' => ['category', Category::class, [], 'category[slug]'];
+        yield 'code de l\'attribut' => ['product-attribute/new', null, [], 'product_attribute[code]'];
+        yield 'libellé de l\'attribut' => ['product-attribute', ProductAttribute::class, [], 'product_attribute[label]'];
+        yield 'titre de l\'article' => ['article', Article::class, [], 'article[title]'];
+        yield 'slug de l\'article' => ['article', Article::class, [], 'article[slug]'];
+        yield 'nom de la rubrique' => ['article-section', ArticleTerm::class, ['kind' => ArticleTermKind::Section], 'article_term[name]'];
+        yield 'slug du format' => ['article-format', ArticleTerm::class, ['kind' => ArticleTermKind::Format], 'article_term[slug]'];
+        yield 'titre de la page légale' => ['legal-page', LegalPage::class, [], 'legal_page[title]'];
+        yield 'texte de la page légale' => ['legal-page', LegalPage::class, [], 'legal_page[body]'];
+        yield 'nom du site' => ['site-identity', null, [], 'site_identity[name]'];
+        yield 'adresse des messages' => ['site-identity', null, [], 'site_identity[contactRecipient]'];
     }
 
     public function testRefusesToRemoveAnAttributeValueCarriedByProducts(): void
