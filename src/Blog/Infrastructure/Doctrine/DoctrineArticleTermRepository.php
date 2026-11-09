@@ -25,9 +25,18 @@ final readonly class DoctrineArticleTermRepository implements ArticleTermReposit
         return $this->entityManager->find(ArticleTerm::class, $id);
     }
 
-    public function findBySlug(ArticleTermKind $kind, string $slug): ?ArticleTerm
+    public function findBySlug(ArticleTermKind $kind, string $slug, ?string $locale = null): ?ArticleTerm
     {
-        return $this->entityManager->getRepository(ArticleTerm::class)->findOneBy(['kind' => $kind, 'slug' => $slug]);
+        if (null === $locale) {
+            return $this->entityManager->getRepository(ArticleTerm::class)->findOneBy(['kind' => $kind, 'slug' => $slug]);
+        }
+        // Les traductions vides ne sont pas gardées : sans slug traduit, celui de la langue par défaut
+        $id = $this->entityManager->getConnection()->fetchOne(
+            "SELECT id FROM article_term WHERE kind = :kind AND COALESCE(translations -> CAST(:locale AS text) ->> 'slug', slug) = :slug ORDER BY id LIMIT 1",
+            ['kind' => $kind->value, 'locale' => $locale, 'slug' => $slug],
+        );
+
+        return is_numeric($id) ? $this->find((int) $id) : null;
     }
 
     public function save(ArticleTerm $term): void

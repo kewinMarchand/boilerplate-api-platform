@@ -19,6 +19,7 @@
         <field name="speaker" type="string" length="80"/>
         <field name="metaTitle" column="meta_title" type="string" length="60"/>
         <field name="metaDescription" column="meta_description" type="string" length="160"/>
+        <field name="translations" type="json"/>
         <many-to-one field="section" target-entity="App\Blog\Domain\ArticleTerm">
             <join-column name="section_id" referenced-column-name="id" nullable="true"/>
         </many-to-one>

@@ -32,7 +32,7 @@ final readonly class UpdateProductAttribute
         $carried = array_values(array_filter($this->products->findAll(), static fn (Product $product): bool => null !== $product->getAttributeValue($code)));
 
         if ($data->type !== $attribute->getType() && [] !== $carried) {
-            throw new CatalogRuleViolation(\sprintf('Le type de « %s » ne peut plus changer : il est renseigné sur %s.', $attribute->getLabel(), self::products(\count($carried))));
+            throw new CatalogRuleViolation(1 === \count($carried) ? 'Le type de « %label% » ne peut plus changer : il est renseigné sur 1 produit.' : 'Le type de « %label% » ne peut plus changer : il est renseigné sur %count% produits.', ['%label%' => $attribute->getLabel(), '%count%' => \count($carried)]);
         }
         $choices = $data->attributeChoices();
         $kept = array_map(static fn (AttributeChoice $choice): string => $choice->value, $choices);
@@ -42,16 +42,12 @@ final readonly class UpdateProductAttribute
             }
             $count = \count(array_filter($carried, static fn (Product $product): bool => $product->getAttributeValue($code) === $choice->value));
             if ($count > 0) {
-                throw new CatalogRuleViolation(\sprintf('La valeur « %s » est utilisée par %s.', $choice->label, self::products($count)));
+                throw new CatalogRuleViolation(1 === $count ? 'La valeur « %label% » est utilisée par 1 produit.' : 'La valeur « %label% » est utilisée par %count% produits.', ['%label%' => $choice->label, '%count%' => $count]);
             }
         }
 
         $attribute->update($data->label, $data->type, $data->unit, $data->filterable, $data->position, $choices);
+        $attribute->changeTranslations($data->translationsWithChoices());
         $this->attributes->save($attribute);
-    }
-
-    private static function products(int $count): string
-    {
-        return \sprintf(1 === $count ? '%d produit' : '%d produits', $count);
     }
 }

@@ -11,6 +11,7 @@ use App\Media\Application\ChangeImage;
 use App\Media\Application\StoreAudio;
 use App\Media\Domain\ImageUsage;
 use App\Media\Domain\MediaRuleViolation;
+use App\Shared\Domain\TranslatedSlugs;
 
 final readonly class UpdateArticle
 {
@@ -29,9 +30,9 @@ final readonly class UpdateArticle
     public function __invoke(int $id, ArticleData $data): void
     {
         $article = $this->articles->find($id) ?? throw new BlogRuleViolation('Cet article n\'existe plus.');
-        $sameSlug = $this->articles->findBySlug($data->slug);
-        if (null !== $sameSlug && $sameSlug !== $article) {
-            throw new BlogRuleViolation(\sprintf('Le slug « %s » est déjà pris par un autre article.', $data->slug));
+        $taken = TranslatedSlugs::taken($data->slug, $data->translations, $this->articles->findBySlug(...), $article);
+        if (null !== $taken) {
+            throw new BlogRuleViolation('Le slug « %slug% » est déjà pris par un autre article.', ['%slug%' => $taken]);
         }
         [$section, $format] = ArticleTerms::chosen($this->terms, $data);
 
@@ -47,6 +48,7 @@ final readonly class UpdateArticle
         $article->classify($section, $format);
         $article->changeAudio($audio, $data->speaker);
         $article->changeMeta($data->metaTitle, $data->metaDescription);
+        $article->changeTranslations($data->translations);
         $this->articles->save($article);
     }
 }

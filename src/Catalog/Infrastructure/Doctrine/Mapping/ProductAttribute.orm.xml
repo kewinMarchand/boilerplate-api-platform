@@ -13,5 +13,6 @@
         <field name="filterable" type="boolean"/>
         <field name="position" type="integer"/>
         <field name="choices" type="json"/>
+        <field name="translations" type="json"/>
     </entity>
 </doctrine-mapping>

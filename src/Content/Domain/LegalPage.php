@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace App\Content\Domain;
 
+use App\Shared\Domain\Translatable;
+
 /**
  * Page légale (mentions légales, données personnelles, déclaration d'accessibilité). Son slug est fixé par les
- * routes des fronts : l'admin modifie le titre et le corps, sans créer ni supprimer de page.
+ * routes des fronts, commun aux langues : l'admin modifie le titre et le corps (traduisibles, ADR 0015), sans créer ni
+ * supprimer de page.
  */
 class LegalPage
 {
+    use Translatable;
+
     private ?int $id = null;
 
     /**
@@ -38,13 +43,27 @@ class LegalPage
         return $this->slug;
     }
 
-    public function getTitle(): string
+    public function getTitle(?string $locale = null): string
     {
-        return $this->title;
+        return $this->translated('title', $this->title, $locale);
     }
 
-    public function getBody(): string
+    public function getBody(?string $locale = null): string
     {
-        return $this->body;
+        return $this->translated('body', $this->body, $locale);
+    }
+
+    private function defaultTexts(): array
+    {
+        return [
+            'title' => $this->title,
+            'body' => $this->body,
+        ];
+    }
+
+    private function applyDefaultTexts(array $texts): void
+    {
+        $this->title = $texts['title'];
+        $this->body = $texts['body'];
     }
 }

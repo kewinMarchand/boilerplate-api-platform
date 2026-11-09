@@ -21,11 +21,11 @@ final readonly class BrandColors
     ) {
         $onLight = $primary->contrastWith(new HexColor(BrandPalette::LIGHT_BACKGROUND));
         if ($onLight < self::MIN_CONTRAST) {
-            throw new SiteRuleViolation(\sprintf('La couleur principale doit contraster à 4,5:1 au moins avec le fond clair (actuellement %s:1).', self::ratio($onLight)));
+            throw new SiteRuleViolation('La couleur principale doit contraster à 4,5:1 au moins avec le fond clair (actuellement %ratio%:1).', ['%ratio%' => self::ratio($onLight)]);
         }
         $text = BrandPalette::light($primary, $secondary)->secondary->on->contrastWith($secondary);
         if ($text < self::MIN_CONTRAST) {
-            throw new SiteRuleViolation(\sprintf('La couleur secondaire ne permet pas de texte lisible dessus (au mieux %s:1, 4,5:1 au minimum).', self::ratio($text)));
+            throw new SiteRuleViolation('La couleur secondaire ne permet pas de texte lisible dessus (au mieux %ratio%:1, 4,5:1 au minimum).', ['%ratio%' => self::ratio($text)]);
         }
     }
 

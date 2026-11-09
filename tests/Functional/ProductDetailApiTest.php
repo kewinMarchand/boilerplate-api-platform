@@ -40,6 +40,7 @@ final class ProductDetailApiTest extends ApiTestCase
             ],
             'metaTitle' => '',
             'metaDescription' => '',
+            'alternates' => [],
         ], $response->toArray());
     }
 

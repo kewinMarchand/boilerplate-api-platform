@@ -34,6 +34,8 @@ final class ArticleData
     public string $speaker = '';
     public string $metaTitle = '';
     public string $metaDescription = '';
+    /** @var array<string, array<string, string|null>> traductions (ADR 0015), par langue puis par champ ; vide sur un site monolingue */
+    public array $translations = [];
 
     public function __construct()
     {
@@ -57,6 +59,7 @@ final class ArticleData
         $data->speaker = $article->getSpeaker();
         $data->metaTitle = $article->getMetaTitle();
         $data->metaDescription = $article->getMetaDescription();
+        $data->translations = $article->getTranslations();
 
         return $data;
     }

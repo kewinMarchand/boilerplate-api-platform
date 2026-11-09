@@ -23,6 +23,7 @@ final class SiteIdentityApiTest extends ApiTestCase
         'defaultColorScheme' => 'auto',
         'theme' => null,
         'salesEnabled' => true,
+        'locales' => ['fr'],
     ];
 
     public function testReadsTheIdentityOfTheFixtures(): void

@@ -38,10 +38,10 @@ final class InMemoryArticleRepository implements ArticleRepository
         return null;
     }
 
-    public function findBySlug(string $slug): ?Article
+    public function findBySlug(string $slug, ?string $locale = null): ?Article
     {
         foreach ($this->articles as $article) {
-            if ($article->getSlug() === $slug) {
+            if ($article->getSlug($locale) === $slug) {
                 return $article;
             }
         }

@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use App\Catalog\Infrastructure\ApiPlatform\State\CategoryTreeProvider;
+use App\Shared\Infrastructure\Locale\Alternate;
 
 #[ApiResource(
     shortName: 'Category',
@@ -24,6 +25,7 @@ final readonly class CategoryResource
 {
     /**
      * @param list<CategoryResource> $children
+     * @param list<Alternate>        $alternates
      */
     public function __construct(
         #[ApiProperty(identifier: true, required: true)]
@@ -34,6 +36,8 @@ final readonly class CategoryResource
         public ?string $parent,
         #[ApiProperty(readableLink: true, required: true)]
         public array $children,
+        #[ApiProperty(description: 'La catégorie dans chaque langue activée, langue demandée comprise ; tableau vide sur un site monolingue.', readableLink: true, required: true)]
+        public array $alternates,
     ) {
     }
 }

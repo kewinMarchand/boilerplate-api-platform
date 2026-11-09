@@ -13,7 +13,11 @@ interface CategoryRepository
 
     public function find(int $id): ?Category;
 
-    public function findBySlug(string $slug): ?Category;
+    /**
+     * @param string|null $locale langue du slug (le sien, ou celui de la langue par défaut s'il n'est pas traduit) ;
+     *                            null : la langue par défaut
+     */
+    public function findBySlug(string $slug, ?string $locale = null): ?Category;
 
     public function save(Category $category): void;
 

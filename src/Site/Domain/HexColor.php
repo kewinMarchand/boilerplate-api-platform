@@ -21,7 +21,7 @@ final readonly class HexColor
     {
         $value = strtolower(trim($value));
         if (1 !== preg_match(self::PATTERN, $value)) {
-            throw new SiteRuleViolation(\sprintf('Couleur invalide : « %s ». Format attendu : #rrggbb.', $value));
+            throw new SiteRuleViolation('Couleur invalide : « %value% ». Format attendu : #rrggbb.', ['%value%' => $value]);
         }
         $this->value = $value;
     }

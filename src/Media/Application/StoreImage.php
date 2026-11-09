@@ -44,14 +44,14 @@ final readonly class StoreImage
         }
         $ratio = $usage->ratio();
         if (null === $ratio && $source->width < $usage->minimumWidth()) {
-            throw new MediaRuleViolation(\sprintf('L\'image doit faire au moins %d px de large : elle fait %d × %d px.', $usage->minimumWidth(), $source->width, $source->height));
+            throw new MediaRuleViolation('L\'image doit faire au moins %min% px de large : elle fait %width% × %height% px.', ['%min%' => $usage->minimumWidth(), '%width%' => $source->width, '%height%' => $source->height]);
         }
         $croppedWidth = $source->width;
         if (null !== $ratio) {
             [$ratioWidth, $ratioHeight] = $ratio;
             $croppedWidth = min($source->width, intdiv($source->height * $ratioWidth, $ratioHeight));
             if ($croppedWidth < $usage->minimumWidth()) {
-                throw new MediaRuleViolation(\sprintf('Recadrée au format %d:%d, l\'image doit faire au moins %d × %d px : elle fait %d × %d px.', $ratioWidth, $ratioHeight, $usage->minimumWidth(), $usage->heightFor($usage->minimumWidth()), $source->width, $source->height));
+                throw new MediaRuleViolation('Recadrée au format %ratioWidth%:%ratioHeight%, l\'image doit faire au moins %minWidth% × %minHeight% px : elle fait %width% × %height% px.', ['%ratioWidth%' => $ratioWidth, '%ratioHeight%' => $ratioHeight, '%minWidth%' => $usage->minimumWidth(), '%minHeight%' => $usage->heightFor($usage->minimumWidth()), '%width%' => $source->width, '%height%' => $source->height]);
             }
         }
         \assert($croppedWidth >= 1);

@@ -24,9 +24,18 @@ final readonly class DoctrineCategoryRepository implements CategoryRepository
         return $this->entityManager->find(Category::class, $id);
     }
 
-    public function findBySlug(string $slug): ?Category
+    public function findBySlug(string $slug, ?string $locale = null): ?Category
     {
-        return $this->entityManager->getRepository(Category::class)->findOneBy(['slug' => $slug]);
+        if (null === $locale) {
+            return $this->entityManager->getRepository(Category::class)->findOneBy(['slug' => $slug]);
+        }
+        // Les traductions vides ne sont pas gardées : sans slug traduit, celui de la langue par défaut
+        $id = $this->entityManager->getConnection()->fetchOne(
+            "SELECT id FROM category WHERE COALESCE(translations -> CAST(:locale AS text) ->> 'slug', slug) = :slug ORDER BY id LIMIT 1",
+            ['locale' => $locale, 'slug' => $slug],
+        );
+
+        return is_numeric($id) ? $this->find((int) $id) : null;
     }
 
     public function save(Category $category): void

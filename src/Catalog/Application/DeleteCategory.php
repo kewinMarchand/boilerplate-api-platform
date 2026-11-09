@@ -24,11 +24,11 @@ final readonly class DeleteCategory
     {
         $category = $this->categories->find($id) ?? throw new CatalogRuleViolation('Cette catégorie n\'existe plus.');
         if ([] !== new CategoryTree($this->categories->findAll())->childrenOf($category)) {
-            throw new CatalogRuleViolation(\sprintf('« %s » contient des sous-catégories : les déplacer ou les supprimer d\'abord.', $category->getName()));
+            throw new CatalogRuleViolation('« %name% » contient des sous-catégories : les déplacer ou les supprimer d\'abord.', ['%name%' => $category->getName()]);
         }
         $count = $this->products->countInCategory($category);
         if ($count > 0) {
-            throw new CatalogRuleViolation(\sprintf('« %s » contient %d produit(s) : les déplacer ou les supprimer d\'abord.', $category->getName(), $count));
+            throw new CatalogRuleViolation('« %name% » contient %count% produit(s) : les déplacer ou les supprimer d\'abord.', ['%name%' => $category->getName(), '%count%' => $count]);
         }
 
         $this->categories->remove($category);

@@ -13,7 +13,11 @@ interface ArticleRepository
 
     public function find(int $id): ?Article;
 
-    public function findBySlug(string $slug): ?Article;
+    /**
+     * @param string|null $locale langue du slug (le sien, ou celui de la langue par défaut s'il n'est pas traduit) ;
+     *                            null : la langue par défaut
+     */
+    public function findBySlug(string $slug, ?string $locale = null): ?Article;
 
     public function save(Article $article): void;
 

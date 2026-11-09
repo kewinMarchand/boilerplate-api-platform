@@ -19,7 +19,7 @@ final class ProductSearch
      */
     public function search(array $products, CategoryTree $tree, ProductCriteria $criteria, array $attributes): ProductSearchResult
     {
-        $current = null === $criteria->categorySlug ? null : $tree->find($criteria->categorySlug);
+        $current = null === $criteria->categorySlug ? null : $tree->find($criteria->categorySlug, $criteria->locale);
         $branch = $tree->branchSlugs($current);
         $facets = array_values(array_filter($attributes, static fn (ProductAttribute $attribute): bool => $attribute->isFacet()));
         $attributeFilters = $this->attributeFilters($facets, $criteria->attributes);
@@ -88,7 +88,7 @@ final class ProductSearch
             $attributeCounts[] = ['attribute' => $attribute, 'counts' => $counts];
         }
 
-        $sorted = $this->sort($results, $criteria->sort);
+        $sorted = $this->sort($results, $criteria->sort, $criteria->locale);
         $items = \array_slice($sorted, ($criteria->page - 1) * $criteria->itemsPerPage, $criteria->itemsPerPage);
 
         return new ProductSearchResult($items, \count($results), $exposureCounts, $sizeCounts, $categoryCounts, $attributeCounts);
@@ -121,18 +121,19 @@ final class ProductSearch
      *
      * @return list<Product>
      */
-    private function sort(array $products, ?ProductSort $sort): array
+    private function sort(array $products, ?ProductSort $sort, ?string $locale): array
     {
         if (null === $sort) {
             return $products;
         }
 
-        $collator = new \Collator('fr_FR');
+        // Noms dans la langue demandée, comparés selon ses règles (le français par défaut)
+        $collator = new \Collator($locale ?? 'fr');
         usort($products, static fn (Product $a, Product $b): int => match ($sort) {
             ProductSort::PriceAsc => $a->getPrice()->compareTo($b->getPrice()),
             ProductSort::PriceDesc => $b->getPrice()->compareTo($a->getPrice()),
-            ProductSort::NameAsc => (int) $collator->compare($a->getName(), $b->getName()),
-            ProductSort::NameDesc => (int) $collator->compare($b->getName(), $a->getName()),
+            ProductSort::NameAsc => (int) $collator->compare($a->getName($locale), $b->getName($locale)),
+            ProductSort::NameDesc => (int) $collator->compare($b->getName($locale), $a->getName($locale)),
         });
 
         return $products;

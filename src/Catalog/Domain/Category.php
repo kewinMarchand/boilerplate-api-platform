@@ -4,12 +4,17 @@ declare(strict_types=1);
 
 namespace App\Catalog\Domain;
 
+use App\Shared\Domain\Translatable;
+
 /**
  * Agrégat : une catégorie protège sa place dans l'arbre (pas de cycle, 3 niveaux au plus).
- * L'unicité du slug et la suppression se vérifient dans les cas d'usage, qui voient les autres catégories.
+ * L'unicité du slug (dans chaque langue) et la suppression se vérifient dans les cas d'usage, qui voient les autres
+ * catégories. Traduisibles (ADR 0015) : nom et slug.
  */
 class Category
 {
+    use Translatable;
+
     public const int MAX_DEPTH = 3;
 
     private ?int $id = null;
@@ -50,14 +55,14 @@ class Category
         return $this->id;
     }
 
-    public function getSlug(): string
+    public function getSlug(?string $locale = null): string
     {
-        return $this->slug;
+        return $this->translated('slug', $this->slug, $locale);
     }
 
-    public function getName(): string
+    public function getName(?string $locale = null): string
     {
-        return $this->name;
+        return $this->translated('name', $this->name, $locale);
     }
 
     public function getPosition(): int
@@ -70,6 +75,20 @@ class Category
         return $this->parent;
     }
 
+    private function defaultTexts(): array
+    {
+        return [
+            'name' => $this->name,
+            'slug' => $this->slug,
+        ];
+    }
+
+    private function applyDefaultTexts(array $texts): void
+    {
+        $this->name = $texts['name'];
+        $this->slug = $texts['slug'];
+    }
+
     private function guardParent(?self $parent, int $levelsBelow): void
     {
         for ($ancestor = $parent; null !== $ancestor; $ancestor = $ancestor->parent) {
@@ -79,7 +98,7 @@ class Category
         }
         $depth = (null === $parent ? 0 : $parent->depth()) + 1 + $levelsBelow;
         if ($depth > self::MAX_DEPTH) {
-            throw new CatalogRuleViolation(\sprintf('Le catalogue a %d niveaux au plus : cette place en donnerait %d.', self::MAX_DEPTH, $depth));
+            throw new CatalogRuleViolation('Le catalogue a %max% niveaux au plus : cette place en donnerait %depth%.', ['%max%' => self::MAX_DEPTH, '%depth%' => $depth]);
         }
     }
 }

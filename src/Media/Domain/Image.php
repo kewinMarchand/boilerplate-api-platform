@@ -23,7 +23,7 @@ final readonly class Image
         public ?int $width = null,
     ) {
         if (1 !== preg_match(self::KEY_PATTERN, $key)) {
-            throw new MediaRuleViolation(\sprintf('Empreinte d\'image invalide : « %s ».', $key));
+            throw new MediaRuleViolation('Empreinte d\'image invalide : « %key% ».', ['%key%' => $key]);
         }
         $this->alt = trim($alt);
     }

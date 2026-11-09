@@ -5,19 +5,27 @@ declare(strict_types=1);
 namespace App\Site\Domain;
 
 use App\Media\Domain\Image;
+use App\Shared\Domain\Translatable;
 
 /**
  * Identité du site, une seule par API (SPEC-COMMUNE, section 22) : nom, accroche, logo, couleurs de marque et thème par
  * défaut, icône (favicons, ADR 0012) et image de partage (section 26, ADR 0011), vente en ligne et adresse qui reçoit les
  * messages de contact (section 27, ADR 0014). Sans couleurs de marque, les fronts gardent les jetons de boilerplates-ui ;
- * sans icône ni image de partage, leurs propres fichiers.
+ * sans icône ni image de partage, leurs propres fichiers. Langues du site (section 29, ADR 0015) : la première est la
+ * langue par défaut, celle des colonnes des entités traduisibles ; nom et accroche sont traduisibles.
  */
 class SiteIdentity
 {
+    use Translatable;
+
     public const int ID = 1;
     public const string DEFAULT_NAME = 'Boilerplate';
     public const string DEFAULT_TAGLINE = 'Modèle de site avec boilerplates-ui, outillé pour la QA et les tests end-to-end.';
     public const string DEFAULT_CONTACT_RECIPIENT = 'contact@example.com';
+    /** Un site n'a qu'une langue tant que l'admin n'en active pas d'autre. */
+    public const array DEFAULT_LOCALES = ['fr'];
+    /** Code BCP 47 court : la langue seule, sans région. */
+    public const string LOCALE_PATTERN = '/^[a-z]{2}$/';
 
     private int $id = self::ID;
     private string $name;
@@ -33,6 +41,8 @@ class SiteIdentity
     private ?string $iconKey;
     private bool $salesEnabled = true;
     private string $contactRecipient = self::DEFAULT_CONTACT_RECIPIENT;
+    /** @var non-empty-list<string> colonne JSON, langue par défaut en premier */
+    private array $locales = self::DEFAULT_LOCALES;
 
     public function __construct(string $name, string $tagline, ?Image $logo, ?BrandColors $colors, DefaultColorScheme $defaultColorScheme, ?Image $shareImage = null, ?Image $icon = null)
     {
@@ -75,19 +85,56 @@ class SiteIdentity
         $this->contactRecipient = $contactRecipient;
     }
 
+    /**
+     * Langues du site, la langue par défaut en premier. Changer la langue par défaut ne déplace pas les textes : c'est
+     * le rôle des cas d'usage, qui appellent switchDefaultLocale sur chaque entité traduisible.
+     *
+     * @param list<string> $locales
+     *
+     * @throws SiteRuleViolation aucune langue, code invalide ou en double
+     */
+    public function changeLocales(array $locales): void
+    {
+        if ([] === $locales) {
+            throw new SiteRuleViolation('Activer au moins une langue.');
+        }
+        foreach ($locales as $locale) {
+            if (1 !== preg_match(self::LOCALE_PATTERN, $locale)) {
+                throw new SiteRuleViolation('Code de langue invalide : « %locale% ».', ['%locale%' => $locale]);
+            }
+        }
+        if (\count(array_unique($locales)) !== \count($locales)) {
+            throw new SiteRuleViolation('Une langue est activée deux fois.');
+        }
+        $this->locales = $locales;
+    }
+
+    /**
+     * @return non-empty-list<string>
+     */
+    public function getLocales(): array
+    {
+        return $this->locales;
+    }
+
+    public function getDefaultLocale(): string
+    {
+        return $this->locales[0];
+    }
+
     public function getId(): int
     {
         return $this->id;
     }
 
-    public function getName(): string
+    public function getName(?string $locale = null): string
     {
-        return $this->name;
+        return $this->translated('name', $this->name, $locale);
     }
 
-    public function getTagline(): string
+    public function getTagline(?string $locale = null): string
     {
-        return $this->tagline;
+        return $this->translated('tagline', $this->tagline, $locale);
     }
 
     public function getLogo(): ?Image
@@ -125,5 +172,19 @@ class SiteIdentity
     public function getContactRecipient(): string
     {
         return $this->contactRecipient;
+    }
+
+    private function defaultTexts(): array
+    {
+        return [
+            'name' => $this->name,
+            'tagline' => $this->tagline,
+        ];
+    }
+
+    private function applyDefaultTexts(array $texts): void
+    {
+        $this->name = $texts['name'];
+        $this->tagline = $texts['tagline'];
     }
 }

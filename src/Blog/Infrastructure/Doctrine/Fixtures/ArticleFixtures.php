@@ -99,6 +99,13 @@ final class ArticleFixtures extends Fixture
         $carousel->classify($advice, null);
         $carousel->changeAudio($this->audio->import('article-demo'), 'Présenté par Hina Teriierooiterai');
         $enhancedMode->classify($news, null);
+        // Traductions anglaises dormantes (ADR 0015) : le texte de l'article reste en repli sur le français
+        $enhancedMode->changeTranslations(['en' => [
+            'slug' => 'enhanced-accessibility-mode',
+            'title' => 'The enhanced accessibility mode',
+            'excerpt' => 'Larger text, WCAG 1.4.12 spacing and AAA contrast, without duplicated logic.',
+        ]]);
+        $advice->changeTranslations(['en' => ['name' => 'Tips', 'slug' => 'tips']]);
         foreach ([$advice, $news, $guide, $serverRendering, $carousel, $enhancedMode] as $entity) {
             $manager->persist($entity);
         }

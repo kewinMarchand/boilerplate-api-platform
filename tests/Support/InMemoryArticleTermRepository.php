@@ -43,10 +43,10 @@ final class InMemoryArticleTermRepository implements ArticleTermRepository
         return null;
     }
 
-    public function findBySlug(ArticleTermKind $kind, string $slug): ?ArticleTerm
+    public function findBySlug(ArticleTermKind $kind, string $slug, ?string $locale = null): ?ArticleTerm
     {
         foreach ($this->terms as $term) {
-            if ($term->getKind() === $kind && $term->getSlug() === $slug) {
+            if ($term->getKind() === $kind && $term->getSlug($locale) === $slug) {
                 return $term;
             }
         }

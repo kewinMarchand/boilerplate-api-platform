@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use App\Content\Infrastructure\ApiPlatform\State\LegalPageProvider;
+use App\Shared\Infrastructure\Locale\Alternate;
 
 #[ApiResource(
     shortName: 'LegalPage',
@@ -15,7 +16,7 @@ use App\Content\Infrastructure\ApiPlatform\State\LegalPageProvider;
     operations: [
         new Get(
             uriTemplate: '/legal_pages/{slug}',
-            description: 'Lit une page légale par son slug (mentions-legales, donnees-personnelles, accessibilite).',
+            description: 'Lit une page légale par son slug (mentions-legales, donnees-personnelles, accessibilite), commun à toutes les langues.',
             provider: LegalPageProvider::class,
         ),
     ],
@@ -24,6 +25,7 @@ final readonly class LegalPageResource
 {
     /**
      * @param list<LegalSection> $sections
+     * @param list<Alternate>    $alternates
      */
     public function __construct(
         #[ApiProperty(identifier: true, required: true)]
@@ -34,6 +36,8 @@ final readonly class LegalPageResource
         public string $introduction,
         #[ApiProperty(required: true)]
         public array $sections,
+        #[ApiProperty(description: 'La page dans chaque langue activée, langue demandée comprise (même slug : il est fixé par les routes des fronts) ; tableau vide sur un site monolingue.', readableLink: true, required: true)]
+        public array $alternates,
     ) {
     }
 }

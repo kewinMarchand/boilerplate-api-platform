@@ -13,6 +13,7 @@ use App\Catalog\Domain\ProductRepository;
 use App\Media\Application\ChangeImage;
 use App\Media\Domain\ImageUsage;
 use App\Media\Domain\MediaRuleViolation;
+use App\Shared\Domain\TranslatedSlugs;
 
 final readonly class CreateProduct
 {
@@ -31,8 +32,9 @@ final readonly class CreateProduct
      */
     public function __invoke(ProductData $data): Product
     {
-        if (null !== $this->products->findBySlug($data->slug)) {
-            throw new CatalogRuleViolation(\sprintf('Le slug « %s » est déjà pris par un autre produit.', $data->slug));
+        $taken = TranslatedSlugs::taken($data->slug, $data->translations, $this->products->findBySlug(...), null);
+        if (null !== $taken) {
+            throw new CatalogRuleViolation('Le slug « %slug% » est déjà pris par un autre produit.', ['%slug%' => $taken]);
         }
         $category = (null === $data->categoryId ? null : $this->categories->find($data->categoryId))
             ?? throw new CatalogRuleViolation('La catégorie du produit n\'existe pas.');
@@ -44,7 +46,8 @@ final readonly class CreateProduct
 
         $product = new Product($data->slug, $data->name, $category, Price::fromCents($data->price), $data->exposure, $data->size, $data->inStock, $image, $data->featured, $data->description);
         $product->changeAttributeValues($attributeValues);
-        $product->changeGallery($gallery);
+        $product->changeGallery(array_column($gallery, 'image'));
+        $product->changeTranslations(ProductGallery::translations($data->translations, $gallery));
         $product->changeMeta($data->metaTitle, $data->metaDescription);
         $this->products->save($product);
 

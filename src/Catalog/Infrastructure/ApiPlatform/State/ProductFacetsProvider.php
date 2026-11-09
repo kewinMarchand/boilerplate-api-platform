@@ -13,6 +13,7 @@ use App\Catalog\Infrastructure\ApiPlatform\Resource\AttributeFacetValue;
 use App\Catalog\Infrastructure\ApiPlatform\Resource\CategoryFacetValue;
 use App\Catalog\Infrastructure\ApiPlatform\Resource\FacetValue;
 use App\Catalog\Infrastructure\ApiPlatform\Resource\ProductFacetsResource;
+use App\Shared\Infrastructure\Locale\ContentLocale;
 
 /**
  * @implements ProviderInterface<ProductFacetsResource>
@@ -21,28 +22,30 @@ final readonly class ProductFacetsProvider implements ProviderInterface
 {
     public function __construct(
         private SearchProducts $searchProducts,
+        private ContentLocale $contentLocale,
     ) {
     }
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): ProductFacetsResource
     {
-        $result = ($this->searchProducts)(ProductQuery::criteria($operation));
+        $locale = $this->contentLocale->current();
+        $result = ($this->searchProducts)(ProductQuery::criteria($operation, $locale));
 
         return new ProductFacetsResource(
             $result->totalItems,
             $this->facetValues($result->exposureCounts),
             $this->facetValues($result->sizeCounts),
             array_map(
-                static fn (array $entry): CategoryFacetValue => new CategoryFacetValue($entry['category']->getSlug(), $entry['category']->getName(), $entry['count']),
+                static fn (array $entry): CategoryFacetValue => new CategoryFacetValue($entry['category']->getSlug($locale), $entry['category']->getName($locale), $entry['count']),
                 $result->categoryCounts,
             ),
             array_map(
                 static fn (array $entry): AttributeFacet => new AttributeFacet(
                     $entry['attribute']->getCode(),
-                    $entry['attribute']->getLabel(),
+                    $entry['attribute']->getLabel($locale),
                     array_map(
                         static fn (AttributeChoice $choice): AttributeFacetValue => new AttributeFacetValue($choice->value, $choice->label, $entry['counts'][$choice->value] ?? 0),
-                        $entry['attribute']->getChoices(),
+                        $entry['attribute']->getChoices($locale),
                     ),
                 ),
                 $result->attributeCounts,

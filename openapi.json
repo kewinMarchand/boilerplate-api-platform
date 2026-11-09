@@ -55,6 +55,14 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "Content-Language": {
+                                "description": "Langue du contenu servi.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 },
@@ -84,6 +92,30 @@
                         },
                         "style": "form",
                         "explode": true
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Langue du contenu, code BCP 47 court (fr, en). L'emporte sur Accept-Language. Langue non activ\u00e9e : ignor\u00e9.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Langues accept\u00e9es : la premi\u00e8re langue activ\u00e9e du site qui y figure est servie, sinon la langue par d\u00e9faut. Champ non traduit : valeur de la langue par d\u00e9faut.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
                     }
                 ]
             }
@@ -106,6 +138,14 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ArticleDetail.jsonld"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Content-Language": {
+                                "description": "Langue du contenu servi.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -140,6 +180,30 @@
                         "in": "path",
                         "description": "ArticleDetail identifier",
                         "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Langue du contenu, code BCP 47 court (fr, en). L'emporte sur Accept-Language. Langue non activ\u00e9e : ignor\u00e9.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Langues accept\u00e9es : la premi\u00e8re langue activ\u00e9e du site qui y figure est servie, sinon la langue par d\u00e9faut. Champ non traduit : valeur de la langue par d\u00e9faut.",
+                        "required": false,
                         "deprecated": false,
                         "schema": {
                             "type": "string"
@@ -193,12 +257,45 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "Content-Language": {
+                                "description": "Langue du contenu servi.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 },
                 "summary": "Retrieves the collection of ArticleTerm resources.",
                 "description": "Retrieves the collection of ArticleTerm resources.",
-                "parameters": []
+                "parameters": [
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Langue du contenu, code BCP 47 court (fr, en). L'emporte sur Accept-Language. Langue non activ\u00e9e : ignor\u00e9.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Langues accept\u00e9es : la premi\u00e8re langue activ\u00e9e du site qui y figure est servie, sinon la langue par d\u00e9faut. Champ non traduit : valeur de la langue par d\u00e9faut.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
             }
         },
         "/api/article-sections": {
@@ -244,12 +341,45 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "Content-Language": {
+                                "description": "Langue du contenu servi.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 },
                 "summary": "Retrieves the collection of ArticleTerm resources.",
                 "description": "Retrieves the collection of ArticleTerm resources.",
-                "parameters": []
+                "parameters": [
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Langue du contenu, code BCP 47 court (fr, en). L'emporte sur Accept-Language. Langue non activ\u00e9e : ignor\u00e9.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Langues accept\u00e9es : la premi\u00e8re langue activ\u00e9e du site qui y figure est servie, sinon la langue par d\u00e9faut. Champ non traduit : valeur de la langue par d\u00e9faut.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
             }
         },
         "/api/categories": {
@@ -295,12 +425,45 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "Content-Language": {
+                                "description": "Langue du contenu servi.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 },
                 "summary": "Retrieves the collection of Category resources.",
                 "description": "Retrieves the collection of Category resources.",
-                "parameters": []
+                "parameters": [
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Langue du contenu, code BCP 47 court (fr, en). L'emporte sur Accept-Language. Langue non activ\u00e9e : ignor\u00e9.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Langues accept\u00e9es : la premi\u00e8re langue activ\u00e9e du site qui y figure est servie, sinon la langue par d\u00e9faut. Champ non traduit : valeur de la langue par d\u00e9faut.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
             }
         },
         "/api/contact_messages": {
@@ -410,6 +573,14 @@
                                     "$ref": "#/components/schemas/LegalPage.jsonld"
                                 }
                             }
+                        },
+                        "headers": {
+                            "Content-Language": {
+                                "description": "Langue du contenu servi.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "404": {
@@ -442,6 +613,30 @@
                         "in": "path",
                         "description": "LegalPage identifier",
                         "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Langue du contenu, code BCP 47 court (fr, en). L'emporte sur Accept-Language. Langue non activ\u00e9e : ignor\u00e9.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Langues accept\u00e9es : la premi\u00e8re langue activ\u00e9e du site qui y figure est servie, sinon la langue par d\u00e9faut. Champ non traduit : valeur de la langue par d\u00e9faut.",
+                        "required": false,
                         "deprecated": false,
                         "schema": {
                             "type": "string"
@@ -495,12 +690,45 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "Content-Language": {
+                                "description": "Langue du contenu servi.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 },
                 "summary": "Retrieves the collection of PageMeta resources.",
                 "description": "Retrieves the collection of PageMeta resources.",
-                "parameters": []
+                "parameters": [
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Langue du contenu, code BCP 47 court (fr, en). L'emporte sur Accept-Language. Langue non activ\u00e9e : ignor\u00e9.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Langues accept\u00e9es : la premi\u00e8re langue activ\u00e9e du site qui y figure est servie, sinon la langue par d\u00e9faut. Champ non traduit : valeur de la langue par d\u00e9faut.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
             }
         },
         "/api/featured-products": {
@@ -546,12 +774,45 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "Content-Language": {
+                                "description": "Langue du contenu servi.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 },
                 "summary": "Retrieves the collection of Product resources.",
                 "description": "Retrieves the collection of Product resources.",
-                "parameters": []
+                "parameters": [
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Langue du contenu, code BCP 47 court (fr, en). L'emporte sur Accept-Language. Langue non activ\u00e9e : ignor\u00e9.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Langues accept\u00e9es : la premi\u00e8re langue activ\u00e9e du site qui y figure est servie, sinon la langue par d\u00e9faut. Champ non traduit : valeur de la langue par d\u00e9faut.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
             }
         },
         "/api/products": {
@@ -595,6 +856,14 @@
                                             }
                                         }
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Content-Language": {
+                                "description": "Langue du contenu servi.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -758,6 +1027,30 @@
                         },
                         "style": "form",
                         "explode": true
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Langue du contenu, code BCP 47 court (fr, en). L'emporte sur Accept-Language. Langue non activ\u00e9e : ignor\u00e9.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Langues accept\u00e9es : la premi\u00e8re langue activ\u00e9e du site qui y figure est servie, sinon la langue par d\u00e9faut. Champ non traduit : valeur de la langue par d\u00e9faut.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
                     }
                 ]
             }
@@ -780,6 +1073,14 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ProductDetail.jsonld"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Content-Language": {
+                                "description": "Langue du contenu servi.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -820,6 +1121,30 @@
                         },
                         "style": "simple",
                         "explode": false
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Langue du contenu, code BCP 47 court (fr, en). L'emporte sur Accept-Language. Langue non activ\u00e9e : ignor\u00e9.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Langues accept\u00e9es : la premi\u00e8re langue activ\u00e9e du site qui y figure est servie, sinon la langue par d\u00e9faut. Champ non traduit : valeur de la langue par d\u00e9faut.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
                     }
                 ]
             }
@@ -842,6 +1167,14 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ProductFacets.jsonld"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Content-Language": {
+                                "description": "Langue du contenu servi.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -976,6 +1309,30 @@
                         },
                         "style": "form",
                         "explode": true
+                    },
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Langue du contenu, code BCP 47 court (fr, en). L'emporte sur Accept-Language. Langue non activ\u00e9e : ignor\u00e9.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Langues accept\u00e9es : la premi\u00e8re langue activ\u00e9e du site qui y figure est servie, sinon la langue par d\u00e9faut. Champ non traduit : valeur de la langue par d\u00e9faut.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
                     }
                 ]
             }
@@ -998,6 +1355,14 @@
                             "application/ld+json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/SiteIdentity.jsonld"
+                                }
+                            }
+                        },
+                        "headers": {
+                            "Content-Language": {
+                                "description": "Langue du contenu servi.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -1026,7 +1391,32 @@
                 },
                 "summary": "Retrieves a SiteIdentity resource.",
                 "description": "Retrieves a SiteIdentity resource.",
-                "parameters": []
+                "parameters": [
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Langue du contenu, code BCP 47 court (fr, en). L'emporte sur Accept-Language. Langue non activ\u00e9e : ignor\u00e9.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Langues accept\u00e9es : la premi\u00e8re langue activ\u00e9e du site qui y figure est servie, sinon la langue par d\u00e9faut. Champ non traduit : valeur de la langue par d\u00e9faut.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
             }
         },
         "/api/tasks": {
@@ -1072,17 +1462,84 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "Content-Language": {
+                                "description": "Langue du contenu servi.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 },
                 "summary": "Retrieves the collection of Task resources.",
                 "description": "Retrieves the collection of Task resources.",
-                "parameters": []
+                "parameters": [
+                    {
+                        "name": "locale",
+                        "in": "query",
+                        "description": "Langue du contenu, code BCP 47 court (fr, en). L'emporte sur Accept-Language. Langue non activ\u00e9e : ignor\u00e9.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "Accept-Language",
+                        "in": "header",
+                        "description": "Langues accept\u00e9es : la premi\u00e8re langue activ\u00e9e du site qui y figure est servie, sinon la langue par d\u00e9faut. Champ non traduit : valeur de la langue par d\u00e9faut.",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
             }
         }
     },
     "components": {
         "schemas": {
+            "Alternate": {
+                "type": "object",
+                "required": [
+                    "locale",
+                    "slug"
+                ],
+                "properties": {
+                    "locale": {
+                        "description": "Code de langue BCP 47 court (fr, en).",
+                        "type": "string"
+                    },
+                    "slug": {
+                        "description": "Slug de l'\u00e9l\u00e9ment dans cette langue : le sien, ou celui de la langue par d\u00e9faut s'il n'est pas traduit.",
+                        "type": "string"
+                    }
+                }
+            },
+            "Alternate.jsonld": {
+                "type": "object",
+                "required": [
+                    "locale",
+                    "slug"
+                ],
+                "properties": {
+                    "locale": {
+                        "description": "Code de langue BCP 47 court (fr, en).",
+                        "type": "string"
+                    },
+                    "slug": {
+                        "description": "Slug de l'\u00e9l\u00e9ment dans cette langue : le sien, ou celui de la langue par d\u00e9faut s'il n'est pas traduit.",
+                        "type": "string"
+                    }
+                }
+            },
             "Article": {
                 "type": "object",
                 "description": "Liste les articles, du plus r\u00e9cent au plus ancien, sans pagination.",
@@ -1256,7 +1713,7 @@
             },
             "ArticleDetail": {
                 "type": "object",
-                "description": "Lit un article par son slug.",
+                "description": "Lit un article par son slug dans la langue demand\u00e9e (le sien, ou celui de la langue par d\u00e9faut s'il n'est pas traduit). Slug d'une autre langue : 404.",
                 "required": [
                     "id",
                     "slug",
@@ -1270,7 +1727,8 @@
                     "audio",
                     "speaker",
                     "metaTitle",
-                    "metaDescription"
+                    "metaDescription",
+                    "alternates"
                 ],
                 "properties": {
                     "id": {
@@ -1348,6 +1806,13 @@
                     "metaDescription": {
                         "description": "Description pour les moteurs de recherche, 160 caract\u00e8res au plus ; cha\u00eene vide si l'admin n'en a pas saisi.",
                         "type": "string"
+                    },
+                    "alternates": {
+                        "description": "L'article dans chaque langue activ\u00e9e, langue demand\u00e9e comprise, pour les hreflang et le s\u00e9lecteur de langue ; tableau vide sur un site monolingue.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Alternate"
+                        }
                     }
                 }
             },
@@ -1371,7 +1836,8 @@
                             "audio",
                             "speaker",
                             "metaTitle",
-                            "metaDescription"
+                            "metaDescription",
+                            "alternates"
                         ],
                         "properties": {
                             "id": {
@@ -1449,11 +1915,18 @@
                             "metaDescription": {
                                 "description": "Description pour les moteurs de recherche, 160 caract\u00e8res au plus ; cha\u00eene vide si l'admin n'en a pas saisi.",
                                 "type": "string"
+                            },
+                            "alternates": {
+                                "description": "L'article dans chaque langue activ\u00e9e, langue demand\u00e9e comprise, pour les hreflang et le s\u00e9lecteur de langue ; tableau vide sur un site monolingue.",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Alternate.jsonld"
+                                }
                             }
                         }
                     }
                 ],
-                "description": "Lit un article par son slug."
+                "description": "Lit un article par son slug dans la langue demand\u00e9e (le sien, ou celui de la langue par d\u00e9faut s'il n'est pas traduit). Slug d'une autre langue : 404."
             },
             "ArticleTerm": {
                 "type": "object",
@@ -1757,7 +2230,8 @@
                     "slug",
                     "name",
                     "parent",
-                    "children"
+                    "children",
+                    "alternates"
                 ],
                 "properties": {
                     "slug": {
@@ -1778,6 +2252,13 @@
                         "items": {
                             "$ref": "#/components/schemas/Category"
                         }
+                    },
+                    "alternates": {
+                        "description": "La cat\u00e9gorie dans chaque langue activ\u00e9e, langue demand\u00e9e comprise ; tableau vide sur un site monolingue.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Alternate"
+                        }
                     }
                 }
             },
@@ -1792,7 +2273,8 @@
                             "slug",
                             "name",
                             "parent",
-                            "children"
+                            "children",
+                            "alternates"
                         ],
                         "properties": {
                             "slug": {
@@ -1817,6 +2299,13 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/Category.jsonld"
+                        }
+                    },
+                    "alternates": {
+                        "description": "La cat\u00e9gorie dans chaque langue activ\u00e9e, langue demand\u00e9e comprise ; tableau vide sur un site monolingue.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Alternate.jsonld"
                         }
                     }
                 }
@@ -2554,12 +3043,13 @@
             },
             "LegalPage": {
                 "type": "object",
-                "description": "Lit une page l\u00e9gale par son slug (mentions-legales, donnees-personnelles, accessibilite).",
+                "description": "Lit une page l\u00e9gale par son slug (mentions-legales, donnees-personnelles, accessibilite), commun \u00e0 toutes les langues.",
                 "required": [
                     "slug",
                     "title",
                     "introduction",
-                    "sections"
+                    "sections",
+                    "alternates"
                 ],
                 "properties": {
                     "slug": {
@@ -2577,6 +3067,13 @@
                         "items": {
                             "$ref": "#/components/schemas/LegalSection"
                         }
+                    },
+                    "alternates": {
+                        "description": "La page dans chaque langue activ\u00e9e, langue demand\u00e9e comprise (m\u00eame slug : il est fix\u00e9 par les routes des fronts) ; tableau vide sur un site monolingue.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Alternate"
+                        }
                     }
                 }
             },
@@ -2591,7 +3088,8 @@
                             "slug",
                             "title",
                             "introduction",
-                            "sections"
+                            "sections",
+                            "alternates"
                         ],
                         "properties": {
                             "slug": {
@@ -2609,11 +3107,18 @@
                                 "items": {
                                     "$ref": "#/components/schemas/LegalSection.jsonld"
                                 }
+                            },
+                            "alternates": {
+                                "description": "La page dans chaque langue activ\u00e9e, langue demand\u00e9e comprise (m\u00eame slug : il est fix\u00e9 par les routes des fronts) ; tableau vide sur un site monolingue.",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Alternate.jsonld"
+                                }
                             }
                         }
                     }
                 ],
-                "description": "Lit une page l\u00e9gale par son slug (mentions-legales, donnees-personnelles, accessibilite)."
+                "description": "Lit une page l\u00e9gale par son slug (mentions-legales, donnees-personnelles, accessibilite), commun \u00e0 toutes les langues."
             },
             "LegalSection": {
                 "type": "object",
@@ -2869,7 +3374,7 @@
             },
             "ProductDetail": {
                 "type": "object",
-                "description": "Lit un produit par son slug.",
+                "description": "Lit un produit par son slug dans la langue demand\u00e9e (le sien, ou celui de la langue par d\u00e9faut s'il n'est pas traduit). Slug d'une autre langue : 404.",
                 "required": [
                     "id",
                     "slug",
@@ -2885,7 +3390,8 @@
                     "attributes",
                     "gallery",
                     "metaTitle",
-                    "metaDescription"
+                    "metaDescription",
+                    "alternates"
                 ],
                 "properties": {
                     "id": {
@@ -2966,6 +3472,13 @@
                     "metaDescription": {
                         "description": "Description pour les moteurs de recherche, 160 caract\u00e8res au plus ; cha\u00eene vide si l'admin n'en a pas saisi.",
                         "type": "string"
+                    },
+                    "alternates": {
+                        "description": "Le produit dans chaque langue activ\u00e9e, langue demand\u00e9e comprise, pour les hreflang et le s\u00e9lecteur de langue ; tableau vide sur un site monolingue.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Alternate"
+                        }
                     }
                 }
             },
@@ -2991,7 +3504,8 @@
                             "attributes",
                             "gallery",
                             "metaTitle",
-                            "metaDescription"
+                            "metaDescription",
+                            "alternates"
                         ],
                         "properties": {
                             "id": {
@@ -3072,11 +3586,18 @@
                             "metaDescription": {
                                 "description": "Description pour les moteurs de recherche, 160 caract\u00e8res au plus ; cha\u00eene vide si l'admin n'en a pas saisi.",
                                 "type": "string"
+                            },
+                            "alternates": {
+                                "description": "Le produit dans chaque langue activ\u00e9e, langue demand\u00e9e comprise, pour les hreflang et le s\u00e9lecteur de langue ; tableau vide sur un site monolingue.",
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Alternate.jsonld"
+                                }
                             }
                         }
                     }
                 ],
-                "description": "Lit un produit par son slug."
+                "description": "Lit un produit par son slug dans la langue demand\u00e9e (le sien, ou celui de la langue par d\u00e9faut s'il n'est pas traduit). Slug d'une autre langue : 404."
             },
             "ProductFacets": {
                 "type": "object",
@@ -3240,7 +3761,8 @@
                     "icon",
                     "defaultColorScheme",
                     "theme",
-                    "salesEnabled"
+                    "salesEnabled",
+                    "locales"
                 ],
                 "properties": {
                     "name": {
@@ -3306,6 +3828,13 @@
                     "salesEnabled": {
                         "description": "Vente en ligne : false, les fronts n'affichent ni prix ni panier et chaque produit propose une demande de renseignement.",
                         "type": "boolean"
+                    },
+                    "locales": {
+                        "description": "Langues du site, codes BCP 47 courts, la langue par d\u00e9faut en premier ; [\"fr\"] tant qu'aucune autre n'est activ\u00e9e.",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },
@@ -3324,7 +3853,8 @@
                             "icon",
                             "defaultColorScheme",
                             "theme",
-                            "salesEnabled"
+                            "salesEnabled",
+                            "locales"
                         ],
                         "properties": {
                             "name": {
@@ -3390,6 +3920,13 @@
                             "salesEnabled": {
                                 "description": "Vente en ligne : false, les fronts n'affichent ni prix ni panier et chaque produit propose une demande de renseignement.",
                                 "type": "boolean"
+                            },
+                            "locales": {
+                                "description": "Langues du site, codes BCP 47 courts, la langue par d\u00e9faut en premier ; [\"fr\"] tant qu'aucune autre n'est activ\u00e9e.",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -3639,7 +4176,7 @@
         },
         {
             "name": "ProductDetail",
-            "description": "Fiche d'un produit : les champs de la liste, plus sa description, le chemin de sa cat\u00e9gorie, sa galerie et ses m\u00e9tadonn\u00e9es."
+            "description": "Fiche d'un produit : les champs de la liste, plus sa description, le chemin de sa cat\u00e9gorie, sa galerie, ses m\u00e9tadonn\u00e9es et ses versions dans les autres langues."
         },
         {
             "name": "ProductFacets",
@@ -3663,7 +4200,7 @@
         },
         {
             "name": "SiteIdentity",
-            "description": "Identit\u00e9 du site, saisie dans l'admin : nom, accroche, logo, image de partage, favicons, couleurs de marque calcul\u00e9es (ou null), th\u00e8me par d\u00e9faut et vente en ligne."
+            "description": "Identit\u00e9 du site, saisie dans l'admin : nom, accroche, logo, image de partage, favicons, couleurs de marque calcul\u00e9es (ou null), th\u00e8me par d\u00e9faut, vente en ligne et langues."
         },
         {
             "name": "Task",

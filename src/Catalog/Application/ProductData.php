@@ -36,6 +36,8 @@ final class ProductData
     public string $metaDescription = '';
     /** @var list<GalleryImageData> images de la galerie, puis lignes d'ajout */
     public array $gallery = [];
+    /** @var array<string, array<string, string|null>> traductions (ADR 0015), par langue puis par champ ; vide sur un site monolingue */
+    public array $translations = [];
 
     public static function fromProduct(Product $product): self
     {
@@ -56,8 +58,9 @@ final class ProductData
         $data->metaTitle = $product->getMetaTitle();
         $data->metaDescription = $product->getMetaDescription();
         foreach ($product->getGallery() as $index => $image) {
-            $data->gallery[] = GalleryImageData::fromImage($image, $index + 1);
+            $data->gallery[] = GalleryImageData::fromImage($image, $index + 1, $product->getTranslations());
         }
+        $data->translations = $product->getTranslations();
 
         return $data;
     }

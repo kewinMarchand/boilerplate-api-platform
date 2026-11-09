@@ -5,15 +5,21 @@ declare(strict_types=1);
 namespace App\Catalog\Domain;
 
 use App\Media\Domain\Image;
+use App\Shared\Domain\Translatable;
 
 /**
  * Agrégat : un produit garde un prix positif ou nul (Price), une image envoyée par l'admin (ADR 0002) et une galerie
  * de 8 images au plus, ordonnées (ADR 0009).
  * « À la une » : montré dans le carrousel de la page d'accueil.
- * L'unicité du slug se vérifie dans les cas d'usage.
+ * L'unicité du slug, dans chaque langue, se vérifie dans les cas d'usage.
+ * Traduisibles (ADR 0015) : nom, slug, description, métadonnées, textes de remplacement de l'image et de la galerie
+ * (clés `galleryAlt.<empreinte>`).
  */
 class Product
 {
+    use Translatable;
+
+    public const string GALLERY_ALT = 'galleryAlt.';
     private ?int $id = null;
     public const int MAX_GALLERY_IMAGES = 8;
 
@@ -83,14 +89,14 @@ class Product
         $this->metaDescription = trim($description);
     }
 
-    public function getMetaTitle(): string
+    public function getMetaTitle(?string $locale = null): string
     {
-        return $this->metaTitle;
+        return $this->translated('metaTitle', $this->metaTitle, $locale);
     }
 
-    public function getMetaDescription(): string
+    public function getMetaDescription(?string $locale = null): string
     {
-        return $this->metaDescription;
+        return $this->translated('metaDescription', $this->metaDescription, $locale);
     }
 
     /**
@@ -110,16 +116,16 @@ class Product
     public static function checkGallerySize(int $count): void
     {
         if ($count > self::MAX_GALLERY_IMAGES) {
-            throw new CatalogRuleViolation(\sprintf('La galerie compte %d images au plus (%d demandées).', self::MAX_GALLERY_IMAGES, $count));
+            throw new CatalogRuleViolation('La galerie compte %max% images au plus (%count% demandées).', ['%max%' => self::MAX_GALLERY_IMAGES, '%count%' => $count]);
         }
     }
 
     /**
      * @return list<Image> dans l'ordre d'affichage
      */
-    public function getGallery(): array
+    public function getGallery(?string $locale = null): array
     {
-        return array_map(static fn (array $image): Image => new Image($image['key'], $image['alt'], null, $image['width']), $this->gallery);
+        return array_map(fn (array $image): Image => new Image($image['key'], $this->translated(self::GALLERY_ALT.$image['key'], $image['alt'], $locale), null, $image['width']), $this->gallery);
     }
 
     public function removeAttributeValue(string $code): void
@@ -145,14 +151,14 @@ class Product
         return $this->id;
     }
 
-    public function getSlug(): string
+    public function getSlug(?string $locale = null): string
     {
-        return $this->slug;
+        return $this->translated('slug', $this->slug, $locale);
     }
 
-    public function getName(): string
+    public function getName(?string $locale = null): string
     {
-        return $this->name;
+        return $this->translated('name', $this->name, $locale);
     }
 
     public function getCategory(): Category
@@ -186,17 +192,50 @@ class Product
     }
 
     /** Texte brut, paragraphes séparés par une ligne vide ; vide tant que l'admin n'en a pas écrit. */
-    public function getDescription(): string
+    public function getDescription(?string $locale = null): string
     {
-        return $this->description;
+        return $this->translated('description', $this->description, $locale);
     }
 
     /**
      * Null pour un produit d'avant l'envoi des images (ligne migrée), jusqu'à ce que l'admin lui en donne une.
      */
-    public function getImage(): ?Image
+    public function getImage(?string $locale = null): ?Image
     {
-        return null === $this->imageKey ? null : new Image($this->imageKey, $this->imageAlt, null, $this->imageWidth);
+        // Une image décorative le reste dans toutes les langues
+        $alt = '' === $this->imageAlt ? '' : $this->translated('imageAlt', $this->imageAlt, $locale);
+
+        return null === $this->imageKey ? null : new Image($this->imageKey, $alt, null, $this->imageWidth);
+    }
+
+    private function defaultTexts(): array
+    {
+        $texts = [
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'description' => $this->description,
+            'metaTitle' => $this->metaTitle,
+            'metaDescription' => $this->metaDescription,
+            'imageAlt' => $this->imageAlt,
+        ];
+        foreach ($this->gallery as $image) {
+            $texts[self::GALLERY_ALT.$image['key']] = $image['alt'];
+        }
+
+        return $texts;
+    }
+
+    private function applyDefaultTexts(array $texts): void
+    {
+        $this->name = $texts['name'];
+        $this->slug = $texts['slug'];
+        $this->description = $texts['description'];
+        $this->metaTitle = $texts['metaTitle'];
+        $this->metaDescription = $texts['metaDescription'];
+        $this->imageAlt = $texts['imageAlt'];
+        foreach ($this->gallery as $index => $image) {
+            $this->gallery[$index]['alt'] = $texts[self::GALLERY_ALT.$image['key']];
+        }
     }
 
     /** Fins de ligne du formulaire (CRLF) ramenées à LF, blancs de début et de fin retirés. */

@@ -23,7 +23,10 @@ final class ProductQuery
     /** Borne qui garde le calcul de l'offset dans les entiers : au-delà, la page est simplement vide. */
     public const int MAX_PAGE = 1_000_000;
 
-    public static function criteria(Operation $operation): ProductCriteria
+    /**
+     * @param string $locale langue du contenu (ContentLocale) : slug de catégorie et tri par nom
+     */
+    public static function criteria(Operation $operation, string $locale): ProductCriteria
     {
         $value = static function (string $key) use ($operation): mixed {
             $value = $operation->getParameters()?->get($key, QueryParameter::class)?->getValue();
@@ -54,6 +57,7 @@ final class ProductQuery
             page: min(self::MAX_PAGE, max(1, self::toInt($value('page')) ?? 1)),
             itemsPerPage: self::itemsPerPage(self::toInt($value('itemsPerPage'))),
             attributes: self::attributeFilters($value('attributes')),
+            locale: $locale,
         );
     }
 

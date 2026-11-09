@@ -20,6 +20,7 @@ final readonly class UpdateLegalPage
     {
         $page = $this->pages->find($id) ?? throw new ContentRuleViolation('Cette page n\'existe plus.');
         $page->update($data->title, $data->body);
+        $page->changeTranslations($data->translations);
         $this->pages->save($page);
     }
 }

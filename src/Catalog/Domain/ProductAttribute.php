@@ -4,15 +4,21 @@ declare(strict_types=1);
 
 namespace App\Catalog\Domain;
 
+use App\Shared\Domain\Translatable;
+
 /**
  * Agrégat : caractéristique de produit définie dans l'admin (section 23 de la spec commune).
  * Il garde ses valeurs sans doublon, réserve les valeurs et le filtre au type « choice »,
  * et contrôle la valeur qu'un produit lui donne. Le code ne change pas après la création :
  * les produits et les filtres le portent. Son unicité, et les valeurs encore portées par
- * des produits, se vérifient dans les cas d'usage.
+ * des produits, se vérifient dans les cas d'usage. Traduisibles (ADR 0015) : libellé, unité et libellés des valeurs
+ * (clés `choice.<valeur>`).
  */
 class ProductAttribute
 {
+    use Translatable;
+
+    public const string CHOICE_LABEL = 'choice.';
     public const int TEXT_MAX_LENGTH = 120;
 
     private ?int $id = null;
@@ -53,7 +59,7 @@ class ProductAttribute
         $seen = [];
         foreach ($choices as $choice) {
             if (isset($seen[$choice->value])) {
-                throw new CatalogRuleViolation(\sprintf('La valeur « %s » est en double.', $choice->value));
+                throw new CatalogRuleViolation('La valeur « %value% » est en double.', ['%value%' => $choice->value]);
             }
             $seen[$choice->value] = true;
         }
@@ -80,20 +86,22 @@ class ProductAttribute
 
         return match ($this->type) {
             AttributeType::Choice => null !== $this->choiceLabel($value) ? $value
-                : throw new CatalogRuleViolation(\sprintf('« %s » n\'est pas une valeur de l\'attribut « %s ».', $value, $this->label)),
+                : throw new CatalogRuleViolation('« %value% » n\'est pas une valeur de l\'attribut « %label% ».', ['%value%' => $value, '%label%' => $this->label]),
             AttributeType::Number => 1 === preg_match('/^-?\d+(\.\d+)?$/', $value) ? $value
-                : throw new CatalogRuleViolation(\sprintf('L\'attribut « %s » attend un nombre.', $this->label)),
+                : throw new CatalogRuleViolation('L\'attribut « %label% » attend un nombre.', ['%label%' => $this->label]),
             AttributeType::Text => mb_strlen($value) <= self::TEXT_MAX_LENGTH ? $value
-                : throw new CatalogRuleViolation(\sprintf('L\'attribut « %s » a %d caractères au plus.', $this->label, self::TEXT_MAX_LENGTH)),
+                : throw new CatalogRuleViolation('L\'attribut « %label% » a %max% caractères au plus.', ['%label%' => $this->label, '%max%' => self::TEXT_MAX_LENGTH]),
         };
     }
 
     /**
      * Libellé d'une valeur portée par un produit : celui de la valeur pour une liste, la valeur elle-même sinon.
      */
-    public function valueLabel(string $value): string
+    public function valueLabel(string $value, ?string $locale = null): string
     {
-        return $this->choiceLabel($value) ?? $value;
+        $label = $this->choiceLabel($value);
+
+        return null === $label ? $value : $this->translated(self::CHOICE_LABEL.$value, $label, $locale);
     }
 
     /** Facette du catalogue : un attribut de type liste marqué filtrable. */
@@ -112,9 +120,9 @@ class ProductAttribute
         return $this->code;
     }
 
-    public function getLabel(): string
+    public function getLabel(?string $locale = null): string
     {
-        return $this->label;
+        return $this->translated('label', $this->label, $locale);
     }
 
     public function getType(): AttributeType
@@ -122,9 +130,11 @@ class ProductAttribute
         return $this->type;
     }
 
-    public function getUnit(): ?string
+    public function getUnit(?string $locale = null): ?string
     {
-        return $this->unit;
+        $unit = $this->translated('unit', $this->unit ?? '', $locale);
+
+        return '' === $unit ? null : $unit;
     }
 
     public function isFilterable(): bool
@@ -140,9 +150,28 @@ class ProductAttribute
     /**
      * @return list<AttributeChoice> dans l'ordre d'affichage
      */
-    public function getChoices(): array
+    public function getChoices(?string $locale = null): array
     {
-        return array_map(static fn (array $choice): AttributeChoice => new AttributeChoice($choice['value'], $choice['label']), $this->choices);
+        return array_map(fn (array $choice): AttributeChoice => new AttributeChoice($choice['value'], $this->translated(self::CHOICE_LABEL.$choice['value'], $choice['label'], $locale)), $this->choices);
+    }
+
+    private function defaultTexts(): array
+    {
+        $texts = ['label' => $this->label, 'unit' => $this->unit ?? ''];
+        foreach ($this->choices as $choice) {
+            $texts[self::CHOICE_LABEL.$choice['value']] = $choice['label'];
+        }
+
+        return $texts;
+    }
+
+    private function applyDefaultTexts(array $texts): void
+    {
+        $this->label = $texts['label'];
+        $this->unit = '' === $texts['unit'] ? null : $texts['unit'];
+        foreach ($this->choices as $index => $choice) {
+            $this->choices[$index]['label'] = $texts[self::CHOICE_LABEL.$choice['value']];
+        }
     }
 
     private function choiceLabel(string $value): ?string

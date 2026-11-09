@@ -14,16 +14,17 @@ use App\Media\Domain\Image;
 use App\Media\Domain\ImageUsage;
 use App\Media\Infrastructure\ApiPlatform\ImageView;
 use App\Media\Infrastructure\ApiPlatform\ImageViews;
+use App\Shared\Infrastructure\Locale\Alternate;
 
 #[ApiResource(
     shortName: 'ProductDetail',
-    description: 'Fiche d\'un produit : les champs de la liste, plus sa description, le chemin de sa catégorie, sa galerie et ses métadonnées.',
+    description: 'Fiche d\'un produit : les champs de la liste, plus sa description, le chemin de sa catégorie, sa galerie, ses métadonnées et ses versions dans les autres langues.',
     // image peut valoir null : sans cela, API Platform retire la clé alors que le schéma la déclare requise
     normalizationContext: ['skip_null_values' => false],
     operations: [
         new Get(
             uriTemplate: '/products/{slug}',
-            description: 'Lit un produit par son slug.',
+            description: 'Lit un produit par son slug dans la langue demandée (le sien, ou celui de la langue par défaut s\'il n\'est pas traduit). Slug d\'une autre langue : 404.',
             provider: ProductDetailProvider::class,
         ),
     ],
@@ -34,6 +35,7 @@ final readonly class ProductDetailResource
      * @param list<CategoryLink>   $categoryPath
      * @param list<AttributeValue> $attributes
      * @param list<ImageView>      $gallery
+     * @param list<Alternate>      $alternates
      */
     public function __construct(
         #[ApiProperty(identifier: false, required: true)]
@@ -66,30 +68,34 @@ final readonly class ProductDetailResource
         public string $metaTitle,
         #[ApiProperty(description: 'Description pour les moteurs de recherche, 160 caractères au plus ; chaîne vide si l\'admin n\'en a pas saisi.', required: true)]
         public string $metaDescription,
+        #[ApiProperty(description: 'Le produit dans chaque langue activée, langue demandée comprise, pour les hreflang et le sélecteur de langue ; tableau vide sur un site monolingue.', readableLink: true, required: true)]
+        public array $alternates,
     ) {
     }
 
     /**
      * @param list<ProductAttribute> $attributes définitions triées par position
+     * @param list<Alternate>        $alternates
      */
-    public static function fromModel(Product $product, ImageViews $images, array $attributes): self
+    public static function fromModel(Product $product, ImageViews $images, array $attributes, string $locale, array $alternates): self
     {
         return new self(
             (int) $product->getId(),
-            $product->getSlug(),
-            $product->getName(),
-            $product->getCategory()->getSlug(),
+            $product->getSlug($locale),
+            $product->getName($locale),
+            $product->getCategory()->getSlug($locale),
             $product->getPrice()->cents,
             $product->getExposure()->value,
             $product->getSize()->value,
             $product->isInStock(),
-            $images->view($product->getImage(), ImageUsage::Product),
-            CategoryLink::pathTo($product->getCategory()),
-            $product->getDescription(),
-            AttributeValue::listFor($product, $attributes),
-            array_map(static fn (Image $image): ImageView => $images->view($image, ImageUsage::Product), $product->getGallery()),
-            $product->getMetaTitle(),
-            $product->getMetaDescription(),
+            $images->view($product->getImage($locale), ImageUsage::Product),
+            CategoryLink::pathTo($product->getCategory(), $locale),
+            $product->getDescription($locale),
+            AttributeValue::listFor($product, $attributes, $locale),
+            array_map(static fn (Image $image): ImageView => $images->view($image, ImageUsage::Product), $product->getGallery($locale)),
+            $product->getMetaTitle($locale),
+            $product->getMetaDescription($locale),
+            $alternates,
         );
     }
 }

@@ -63,19 +63,19 @@ final readonly class ArticleResource
     ) {
     }
 
-    public static function fromModel(Article $article, ImageViews $images): self
+    public static function fromModel(Article $article, ImageViews $images, string $locale): self
     {
         return new self(
             (int) $article->getId(),
-            $article->getSlug(),
-            $article->getTitle(),
-            $article->getExcerpt(),
+            $article->getSlug($locale),
+            $article->getTitle($locale),
+            $article->getExcerpt($locale),
             $article->getPublishedAt()->format('Y-m-d'),
-            $images->view($article->getImage(), ImageUsage::Article),
-            ArticleTermLink::fromModel($article->getSection()),
-            ArticleTermLink::fromModel($article->getFormat()),
+            $images->view($article->getImage($locale), ImageUsage::Article),
+            ArticleTermLink::fromModel($article->getSection(), $locale),
+            ArticleTermLink::fromModel($article->getFormat(), $locale),
             $images->audio($article->getAudio()),
-            $article->getSpeaker(),
+            $article->getSpeaker($locale),
         );
     }
 }

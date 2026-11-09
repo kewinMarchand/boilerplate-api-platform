@@ -265,7 +265,7 @@ final class AdminTest extends WebTestCase
 
         $client->request('GET', '/api/legal_pages/mentions-legales', [], [], ['HTTP_ACCEPT' => 'application/json']);
         self::assertJsonStringEqualsJsonString(
-            (string) json_encode(['slug' => 'mentions-legales', 'title' => 'Mentions légales', 'introduction' => '', 'sections' => [['title' => 'Éditeur', 'html' => '<p>Nouvel éditeur.</p>']]]),
+            (string) json_encode(['slug' => 'mentions-legales', 'title' => 'Mentions légales', 'introduction' => '', 'sections' => [['title' => 'Éditeur', 'html' => '<p>Nouvel éditeur.</p>']], 'alternates' => []]),
             (string) $client->getResponse()->getContent(),
         );
 

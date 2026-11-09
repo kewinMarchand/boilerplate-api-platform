@@ -11,6 +11,7 @@ use App\Catalog\Domain\ProductAttributeRepository;
 use App\Catalog\Domain\ProductRepository;
 use App\Catalog\Infrastructure\ApiPlatform\Resource\ProductResource;
 use App\Media\Infrastructure\ApiPlatform\ImageViews;
+use App\Shared\Infrastructure\Locale\ContentLocale;
 
 /**
  * @implements ProviderInterface<ProductResource>
@@ -21,6 +22,7 @@ final readonly class FeaturedProductsProvider implements ProviderInterface
         private ProductRepository $products,
         private ProductAttributeRepository $attributes,
         private ImageViews $images,
+        private ContentLocale $contentLocale,
     ) {
     }
 
@@ -30,7 +32,9 @@ final readonly class FeaturedProductsProvider implements ProviderInterface
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): array
     {
         $attributes = $this->attributes->findAll();
+        $locale = $this->contentLocale->current();
 
-        return array_map(fn (Product $product): ProductResource => ProductResource::fromModel($product, $this->images, $attributes), $this->products->findFeatured());
+        // Ordre du nom dans la langue par défaut, quelle que soit la langue demandée
+        return array_map(fn (Product $product): ProductResource => ProductResource::fromModel($product, $this->images, $attributes, $locale), $this->products->findFeatured());
     }
 }

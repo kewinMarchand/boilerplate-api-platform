@@ -22,6 +22,8 @@ final class ProductAttributeData
     public int $position = 0;
     /** @var list<AttributeChoiceData> dans l'ordre d'affichage */
     public array $choices = [];
+    /** @var array<string, array<string, string|null>> traductions (ADR 0015), par langue puis par champ ; vide sur un site monolingue */
+    public array $translations = [];
 
     public static function fromAttribute(ProductAttribute $attribute): self
     {
@@ -36,10 +38,36 @@ final class ProductAttributeData
             $row = new AttributeChoiceData();
             $row->value = $choice->value;
             $row->label = $choice->label;
+            foreach ($attribute->getTranslations() as $locale => $fields) {
+                $row->labels[$locale] = $fields[ProductAttribute::CHOICE_LABEL.$choice->value] ?? '';
+            }
             $data->choices[] = $row;
         }
+        $data->translations = $attribute->getTranslations();
 
         return $data;
+    }
+
+    /**
+     * Traductions de l'attribut avec les libellés traduits de ses valeurs (clés choice.<valeur>), qui remplacent ceux
+     * d'avant.
+     *
+     * @return array<string, array<string, string|null>>
+     */
+    public function translationsWithChoices(): array
+    {
+        $translations = [];
+        foreach ($this->translations as $locale => $fields) {
+            $translations[$locale] = array_filter($fields, static fn (string $field): bool => !str_starts_with($field, ProductAttribute::CHOICE_LABEL), \ARRAY_FILTER_USE_KEY);
+        }
+        foreach ($this->choices as $row) {
+            $value = trim($row->value);
+            foreach ('' === $value ? [] : $row->labels as $locale => $label) {
+                $translations[$locale][ProductAttribute::CHOICE_LABEL.$value] = $label;
+            }
+        }
+
+        return $translations;
     }
 
     /**

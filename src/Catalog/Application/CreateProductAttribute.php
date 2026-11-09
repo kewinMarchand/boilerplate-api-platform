@@ -20,10 +20,11 @@ final readonly class CreateProductAttribute
     public function __invoke(ProductAttributeData $data): ProductAttribute
     {
         if (null !== $this->attributes->findByCode($data->code)) {
-            throw new CatalogRuleViolation(\sprintf('Le code « %s » est déjà pris par un autre attribut.', $data->code));
+            throw new CatalogRuleViolation('Le code « %code% » est déjà pris par un autre attribut.', ['%code%' => $data->code]);
         }
 
         $attribute = new ProductAttribute($data->code, $data->label, $data->type, $data->unit, $data->filterable, $data->position, $data->attributeChoices());
+        $attribute->changeTranslations($data->translationsWithChoices());
         $this->attributes->save($attribute);
 
         return $attribute;

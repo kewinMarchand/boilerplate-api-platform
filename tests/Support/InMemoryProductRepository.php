@@ -47,10 +47,10 @@ final class InMemoryProductRepository implements ProductRepository
         return null;
     }
 
-    public function findBySlug(string $slug): ?Product
+    public function findBySlug(string $slug, ?string $locale = null): ?Product
     {
         foreach ($this->products as $product) {
-            if ($product->getSlug() === $slug) {
+            if ($product->getSlug($locale) === $slug) {
                 return $product;
             }
         }

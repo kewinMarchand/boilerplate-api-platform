@@ -23,11 +23,11 @@ final readonly class CategoryLink
     /**
      * @return list<self> de la racine à la catégorie du produit
      */
-    public static function pathTo(Category $category): array
+    public static function pathTo(Category $category, string $locale): array
     {
         $path = [];
         for ($current = $category; null !== $current; $current = $current->getParent()) {
-            array_unshift($path, new self($current->getSlug(), $current->getName()));
+            array_unshift($path, new self($current->getSlug($locale), $current->getName($locale)));
         }
 
         return $path;

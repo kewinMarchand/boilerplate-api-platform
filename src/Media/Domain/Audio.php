@@ -17,7 +17,7 @@ final readonly class Audio
         public int $durationSeconds,
     ) {
         if (1 !== preg_match(self::KEY_PATTERN, $key)) {
-            throw new MediaRuleViolation(\sprintf('Empreinte de fichier audio invalide : « %s ».', $key));
+            throw new MediaRuleViolation('Empreinte de fichier audio invalide : « %key% ».', ['%key%' => $key]);
         }
         if ($durationSeconds < 0) {
             throw new MediaRuleViolation('La durée d\'un fichier audio ne peut pas être négative.');

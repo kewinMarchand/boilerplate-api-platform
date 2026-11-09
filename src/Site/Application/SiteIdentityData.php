@@ -37,6 +37,12 @@ final class SiteIdentityData
     public bool $removeIcon = false;
     public bool $salesEnabled = true;
     public string $contactRecipient = '';
+    /** Langue par défaut, celle des champs ci-dessus (ADR 0015). */
+    public string $defaultLocale = 'fr';
+    /** @var list<string> autres langues activées, dans l'ordre */
+    public array $otherLocales = [];
+    /** @var array<string, array<string, string|null>> traductions (ADR 0015), par langue puis par champ ; vide sur un site monolingue */
+    public array $translations = [];
 
     public static function fromSiteIdentity(SiteIdentity $identity): self
     {
@@ -52,6 +58,9 @@ final class SiteIdentityData
         $data->shareImageAlt = $identity->getShareImage()->alt ?? '';
         $data->salesEnabled = $identity->isSalesEnabled();
         $data->contactRecipient = $identity->getContactRecipient();
+        $data->defaultLocale = $identity->getDefaultLocale();
+        $data->otherLocales = \array_slice($identity->getLocales(), 1);
+        $data->translations = $identity->getTranslations();
 
         return $data;
     }

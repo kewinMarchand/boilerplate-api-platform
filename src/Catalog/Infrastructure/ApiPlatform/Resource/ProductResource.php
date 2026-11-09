@@ -122,19 +122,19 @@ final readonly class ProductResource
     /**
      * @param list<ProductAttribute> $attributes définitions triées par position
      */
-    public static function fromModel(Product $product, ImageViews $images, array $attributes): self
+    public static function fromModel(Product $product, ImageViews $images, array $attributes, string $locale): self
     {
         return new self(
             (int) $product->getId(),
-            $product->getSlug(),
-            $product->getName(),
-            $product->getCategory()->getSlug(),
+            $product->getSlug($locale),
+            $product->getName($locale),
+            $product->getCategory()->getSlug($locale),
             $product->getPrice()->cents,
             $product->getExposure()->value,
             $product->getSize()->value,
             $product->isInStock(),
-            $images->view($product->getImage(), ImageUsage::Product),
-            AttributeValue::listFor($product, $attributes),
+            $images->view($product->getImage($locale), ImageUsage::Product),
+            AttributeValue::listFor($product, $attributes, $locale),
         );
     }
 }

@@ -13,6 +13,7 @@ final readonly class ProductCriteria
      * @param list<Size>                  $sizes      valeurs combinées en OU
      * @param array<string, list<string>> $attributes valeurs demandées par code d'attribut, en OU dans un attribut ;
      *                                                codes et valeurs inconnus écartés par ProductSearch, qui voit les définitions
+     * @param string|null                 $locale     langue du slug de catégorie et du tri par nom ; null : la langue par défaut
      */
     public function __construct(
         public ?string $categorySlug = null,
@@ -25,6 +26,7 @@ final readonly class ProductCriteria
         public int $page = 1,
         public int $itemsPerPage = self::DEFAULT_ITEMS_PER_PAGE,
         public array $attributes = [],
+        public ?string $locale = null,
     ) {
     }
 }

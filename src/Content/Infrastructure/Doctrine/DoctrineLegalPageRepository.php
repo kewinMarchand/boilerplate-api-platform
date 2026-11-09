@@ -14,6 +14,11 @@ final readonly class DoctrineLegalPageRepository implements LegalPageRepository
     {
     }
 
+    public function findAll(): array
+    {
+        return $this->entityManager->getRepository(LegalPage::class)->findBy([], ['id' => 'ASC']);
+    }
+
     public function find(int $id): ?LegalPage
     {
         return $this->entityManager->find(LegalPage::class, $id);

@@ -15,6 +15,8 @@ final class CategoryData
     public string $name = '';
     public int $position = 0;
     public ?int $parentId = null;
+    /** @var array<string, array<string, string|null>> traductions (ADR 0015), par langue puis par champ ; vide sur un site monolingue */
+    public array $translations = [];
 
     public static function fromCategory(Category $category): self
     {
@@ -23,6 +25,7 @@ final class CategoryData
         $data->name = $category->getName();
         $data->position = $category->getPosition();
         $data->parentId = $category->getParent()?->getId();
+        $data->translations = $category->getTranslations();
 
         return $data;
     }

@@ -13,5 +13,6 @@
         <field name="slug" type="string" length="60"/>
         <field name="name" type="string" length="60"/>
         <field name="position" type="integer"/>
+        <field name="translations" type="json"/>
     </entity>
 </doctrine-mapping>

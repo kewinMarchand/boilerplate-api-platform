@@ -16,6 +16,8 @@ use Doctrine\Persistence\ObjectManager;
 final class PageMetaFixtures extends Fixture
 {
     public const string BLOG_DESCRIPTION = 'Conseils et actualités du modèle : rendu serveur, accessibilité, composants sans dépendance.';
+    /** Dormante tant que le site n'active que le français (ADR 0015). */
+    public const string BLOG_DESCRIPTION_EN = 'Tips and news from the template: server rendering, accessibility, dependency-free components.';
 
     public function load(ObjectManager $manager): void
     {
@@ -23,6 +25,7 @@ final class PageMetaFixtures extends Fixture
             $meta = new PageMeta($page);
             if (MetaPage::Blog === $page) {
                 $meta->update('', self::BLOG_DESCRIPTION);
+                $meta->changeTranslations(['en' => ['description' => self::BLOG_DESCRIPTION_EN]]);
             }
             $manager->persist($meta);
         }

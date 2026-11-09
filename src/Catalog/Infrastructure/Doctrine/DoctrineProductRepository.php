@@ -45,9 +45,18 @@ final readonly class DoctrineProductRepository implements ProductRepository
         return $this->entityManager->find(Product::class, $id);
     }
 
-    public function findBySlug(string $slug): ?Product
+    public function findBySlug(string $slug, ?string $locale = null): ?Product
     {
-        return $this->entityManager->getRepository(Product::class)->findOneBy(['slug' => $slug]);
+        if (null === $locale) {
+            return $this->entityManager->getRepository(Product::class)->findOneBy(['slug' => $slug]);
+        }
+        // Les traductions vides ne sont pas gardées : sans slug traduit, celui de la langue par défaut
+        $id = $this->entityManager->getConnection()->fetchOne(
+            "SELECT id FROM product WHERE COALESCE(translations -> CAST(:locale AS text) ->> 'slug', slug) = :slug ORDER BY id LIMIT 1",
+            ['locale' => $locale, 'slug' => $slug],
+        );
+
+        return is_numeric($id) ? $this->find((int) $id) : null;
     }
 
     public function countInCategory(Category $category): int

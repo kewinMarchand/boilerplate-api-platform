@@ -1,5 +1,5 @@
 # Règles de dépendance entre modules et couches (R12 de ARCHITECTURE-DDD.md).
-# Domain ne dépend que de lui-même (ni framework, ni autre couche), Application du Domain de son
+# Domain ne dépend que de lui-même et du noyau partagé (Shared\Domain), Application du Domain de son
 # module, Infrastructure de son module, de Shared et des frameworks. Aucun module n'en importe un autre.
 # make arch-selftest vérifie qu'une violation volontaire fait bien échouer l'analyse.
 deptrac:
@@ -86,6 +86,11 @@ deptrac:
           collectors:
             - type: classLike
               value: '^App\\Site\\Infrastructure\\'
+        # Noyau partagé (ADR 0015) : traductions des agrégats et violations de règles, sans framework
+        - name: SharedDomain
+          collectors:
+            - type: classLike
+              value: '^App\\Shared\\Domain\\'
         - name: SharedInfrastructure
           collectors:
             - type: classLike
@@ -101,26 +106,27 @@ deptrac:
             - type: classLike
               value: '^(Symfony|Doctrine|ApiPlatform|Psr|Sentry|EasyCorp|League\\CommonMark)\\'
     ruleset:
-        CatalogDomain: [MediaDomain]
-        CatalogApplication: [CatalogDomain, MediaDomain, MediaApplication]
-        CatalogInfrastructure: [CatalogDomain, CatalogApplication, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
-        BlogDomain: [MediaDomain]
-        BlogApplication: [BlogDomain, MediaDomain, MediaApplication]
-        BlogInfrastructure: [BlogDomain, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
-        ContentDomain: [MediaDomain]
-        ContentApplication: [ContentDomain, MediaDomain, MediaApplication]
-        ContentInfrastructure: [ContentDomain, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
-        ContactDomain: ~
-        ContactApplication: [ContactDomain]
+        CatalogDomain: [SharedDomain, MediaDomain]
+        CatalogApplication: [SharedDomain, CatalogDomain, MediaDomain, MediaApplication]
+        CatalogInfrastructure: [SharedDomain, CatalogDomain, CatalogApplication, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
+        BlogDomain: [SharedDomain, MediaDomain]
+        BlogApplication: [SharedDomain, BlogDomain, MediaDomain, MediaApplication]
+        BlogInfrastructure: [SharedDomain, BlogDomain, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
+        ContentDomain: [SharedDomain, MediaDomain]
+        ContentApplication: [SharedDomain, ContentDomain, MediaDomain, MediaApplication]
+        ContentInfrastructure: [SharedDomain, ContentDomain, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
+        ContactDomain: [SharedDomain]
+        ContactApplication: [SharedDomain, ContactDomain]
         # Adaptateurs du contact (ADR 0014) : produit lu dans le catalogue, destinataire dans l'identité du site
-        ContactInfrastructure: [ContactDomain, ContactApplication, CatalogDomain, SiteDomain, SiteApplication, SharedInfrastructure, Framework]
-        TaskDomain: ~
-        TaskInfrastructure: [TaskDomain, SharedInfrastructure, Framework]
-        MediaDomain: ~
-        MediaApplication: [MediaDomain]
-        MediaInfrastructure: [MediaDomain, MediaApplication, SharedInfrastructure, Framework]
-        SiteDomain: [MediaDomain]
-        SiteApplication: [SiteDomain, MediaDomain, MediaApplication]
-        SiteInfrastructure: [SiteDomain, SiteApplication, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
-        SharedInfrastructure: [Framework]
-        AdminInfrastructure: [CatalogDomain, CatalogApplication, BlogDomain, BlogApplication, ContentDomain, ContentApplication, ContactDomain, SiteDomain, SiteApplication, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
+        ContactInfrastructure: [SharedDomain, ContactDomain, ContactApplication, CatalogDomain, SiteDomain, SiteApplication, SharedInfrastructure, Framework]
+        TaskDomain: [SharedDomain]
+        TaskInfrastructure: [SharedDomain, TaskDomain, SharedInfrastructure, Framework]
+        MediaDomain: [SharedDomain]
+        MediaApplication: [SharedDomain, MediaDomain]
+        MediaInfrastructure: [SharedDomain, MediaDomain, MediaApplication, SharedInfrastructure, Framework]
+        SiteDomain: [SharedDomain, MediaDomain]
+        SiteApplication: [SharedDomain, SiteDomain, MediaDomain, MediaApplication]
+        SiteInfrastructure: [SharedDomain, SiteDomain, SiteApplication, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]
+        SharedDomain: ~
+        SharedInfrastructure: [SharedDomain, Framework]
+        AdminInfrastructure: [SharedDomain, CatalogDomain, CatalogApplication, BlogDomain, BlogApplication, ContentDomain, ContentApplication, ContactDomain, SiteDomain, SiteApplication, MediaDomain, MediaApplication, MediaInfrastructure, SharedInfrastructure, Framework]

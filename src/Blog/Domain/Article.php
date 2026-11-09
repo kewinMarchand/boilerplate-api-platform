@@ -7,13 +7,18 @@ namespace App\Blog\Domain;
 use App\Media\Domain\Audio;
 use App\Media\Domain\AudioFormat;
 use App\Media\Domain\Image;
+use App\Shared\Domain\Translatable;
 
 /**
  * Article du blog, avec son image envoyée par l'admin (ADR 0002), sa rubrique, son format, son fichier audio et son
- * intervenant (ADR 0010), ses métadonnées (SPEC-COMMUNE, section 26). L'unicité du slug se vérifie dans les cas d'usage.
+ * intervenant (ADR 0010), ses métadonnées (SPEC-COMMUNE, section 26). L'unicité du slug, dans chaque langue, se vérifie
+ * dans les cas d'usage. Traduisibles (ADR 0015) : slug, titre, chapô, texte, intervenant, métadonnées et texte de
+ * remplacement de l'image.
  */
 class Article
 {
+    use Translatable;
+
     public const int SPEAKER_MAX_LENGTH = 80;
 
     private ?int $id = null;
@@ -73,7 +78,7 @@ class Article
     {
         $speaker = trim($speaker);
         if (mb_strlen($speaker) > self::SPEAKER_MAX_LENGTH) {
-            throw new BlogRuleViolation(\sprintf('L\'intervenant compte %d caractères au plus.', self::SPEAKER_MAX_LENGTH));
+            throw new BlogRuleViolation('L\'intervenant compte %max% caractères au plus.', ['%max%' => self::SPEAKER_MAX_LENGTH]);
         }
         $this->audioKey = $audio?->key;
         $this->audioFormat = $audio?->format;
@@ -105,19 +110,19 @@ class Article
     }
 
     /** Vide sans intervenant. */
-    public function getSpeaker(): string
+    public function getSpeaker(?string $locale = null): string
     {
-        return $this->speaker;
+        return $this->translated('speaker', $this->speaker, $locale);
     }
 
-    public function getMetaTitle(): string
+    public function getMetaTitle(?string $locale = null): string
     {
-        return $this->metaTitle;
+        return $this->translated('metaTitle', $this->metaTitle, $locale);
     }
 
-    public function getMetaDescription(): string
+    public function getMetaDescription(?string $locale = null): string
     {
-        return $this->metaDescription;
+        return $this->translated('metaDescription', $this->metaDescription, $locale);
     }
 
     public function getId(): ?int
@@ -125,19 +130,19 @@ class Article
         return $this->id;
     }
 
-    public function getSlug(): string
+    public function getSlug(?string $locale = null): string
     {
-        return $this->slug;
+        return $this->translated('slug', $this->slug, $locale);
     }
 
-    public function getTitle(): string
+    public function getTitle(?string $locale = null): string
     {
-        return $this->title;
+        return $this->translated('title', $this->title, $locale);
     }
 
-    public function getExcerpt(): string
+    public function getExcerpt(?string $locale = null): string
     {
-        return $this->excerpt;
+        return $this->translated('excerpt', $this->excerpt, $locale);
     }
 
     public function getPublishedAt(): \DateTimeImmutable
@@ -148,16 +153,45 @@ class Article
     /**
      * Texte de la fiche, en Markdown saisi dans l'admin.
      */
-    public function getBody(): string
+    public function getBody(?string $locale = null): string
     {
-        return $this->body;
+        return $this->translated('body', $this->body, $locale);
     }
 
     /**
      * Null pour un article d'avant l'envoi des images (ligne migrée), jusqu'à ce que l'admin lui en donne une.
      */
-    public function getImage(): ?Image
+    public function getImage(?string $locale = null): ?Image
     {
-        return null === $this->imageKey ? null : new Image($this->imageKey, $this->imageAlt);
+        // Une image décorative le reste dans toutes les langues
+        $alt = '' === $this->imageAlt ? '' : $this->translated('imageAlt', $this->imageAlt, $locale);
+
+        return null === $this->imageKey ? null : new Image($this->imageKey, $alt);
+    }
+
+    private function defaultTexts(): array
+    {
+        return [
+            'slug' => $this->slug,
+            'title' => $this->title,
+            'excerpt' => $this->excerpt,
+            'body' => $this->body,
+            'speaker' => $this->speaker,
+            'metaTitle' => $this->metaTitle,
+            'metaDescription' => $this->metaDescription,
+            'imageAlt' => $this->imageAlt,
+        ];
+    }
+
+    private function applyDefaultTexts(array $texts): void
+    {
+        $this->slug = $texts['slug'];
+        $this->title = $texts['title'];
+        $this->excerpt = $texts['excerpt'];
+        $this->body = $texts['body'];
+        $this->speaker = $texts['speaker'];
+        $this->metaTitle = $texts['metaTitle'];
+        $this->metaDescription = $texts['metaDescription'];
+        $this->imageAlt = $texts['imageAlt'];
     }
 }

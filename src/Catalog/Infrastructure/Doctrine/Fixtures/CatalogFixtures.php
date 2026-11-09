@@ -21,7 +21,8 @@ use Doctrine\Persistence\ObjectManager;
 /**
  * Jardinerie tropicale fictive : arbre de catégories sur 3 niveaux, 24 produits répartis dans les feuilles,
  * deux attributs de démonstration renseignés sur quelques plantes (section 23 de la spec commune), deux galeries
- * (section 24).
+ * (section 24). Quelques traductions anglaises (ADR 0015), dormantes tant que le site n'active que le français :
+ * X-Scenario: bilingual les réveille pour les tests et make contract.
  */
 final class CatalogFixtures extends Fixture
 {
@@ -102,6 +103,18 @@ final class CatalogFixtures extends Fixture
         'strelitzia-reginae' => ['product-11', 'product-12', 'product-1'],
     ];
 
+    /**
+     * Traductions anglaises, par slug : partielles, pour exercer le repli champ par champ.
+     */
+    private const array CATEGORY_TRANSLATIONS = [
+        'plantes-interieur' => ['en' => ['name' => 'Indoor plants', 'slug' => 'indoor-plants']],
+        'feuillages' => ['en' => ['name' => 'Foliage plants', 'slug' => 'foliage-plants']],
+    ];
+
+    private const array PRODUCT_TRANSLATIONS = [
+        'monstera-deliciosa' => ['en' => ['name' => 'Swiss cheese plant', 'slug' => 'swiss-cheese-plant', 'metaTitle' => 'Swiss cheese plant (Monstera deliciosa)']],
+    ];
+
     /** Description de chaque produit, par slug. */
     private const array DESCRIPTIONS = [
         'monstera-deliciosa' => "Grandes feuilles vert profond, découpées et perforées avec l’âge : le monstera deliciosa habille une pièce à lui seul.\n\nLumière vive sans soleil direct, arrosage quand le terreau a séché sur deux centimètres. Un tuteur en mousse l’aide à grimper.",
@@ -137,14 +150,19 @@ final class CatalogFixtures extends Fixture
         $position = 0;
         foreach (self::CATEGORIES as $slug => [$name, $parentSlug]) {
             $categories[$slug] = new Category($slug, $name, ++$position, null === $parentSlug ? null : $categories[$parentSlug]);
+            $categories[$slug]->changeTranslations(self::CATEGORY_TRANSLATIONS[$slug] ?? []);
             $manager->persist($categories[$slug]);
         }
 
-        $manager->persist(new ProductAttribute('feuillage', 'Feuillage', AttributeType::Choice, null, true, 1, [
+        $foliage = new ProductAttribute('feuillage', 'Feuillage', AttributeType::Choice, null, true, 1, [
             new AttributeChoice('persistant', 'Persistant'),
             new AttributeChoice('caduc', 'Caduc'),
-        ]));
-        $manager->persist(new ProductAttribute('hauteur-adulte', 'Hauteur adulte', AttributeType::Number, 'cm', false, 2));
+        ]);
+        $foliage->changeTranslations(['en' => ['label' => 'Foliage', ProductAttribute::CHOICE_LABEL.'persistant' => 'Evergreen', ProductAttribute::CHOICE_LABEL.'caduc' => 'Deciduous']]);
+        $manager->persist($foliage);
+        $height = new ProductAttribute('hauteur-adulte', 'Hauteur adulte', AttributeType::Number, 'cm', false, 2);
+        $height->changeTranslations(['en' => ['label' => 'Mature height']]);
+        $manager->persist($height);
 
         foreach (self::PRODUCTS as $index => [$slug, $name, $categorySlug, $price, $exposure, $size, $inStock]) {
             $product = new Product(
@@ -160,6 +178,7 @@ final class CatalogFixtures extends Fixture
                 self::DESCRIPTIONS[$slug],
             );
             $product->changeAttributeValues(self::ATTRIBUTE_VALUES[$slug] ?? []);
+            $product->changeTranslations(self::PRODUCT_TRANSLATIONS[$slug] ?? []);
             $product->changeGallery(array_map(fn (string $photo): Image => $this->images->import($photo, ImageUsage::Product, $name), self::GALLERIES[$slug] ?? []));
             $manager->persist($product);
         }

@@ -15,23 +15,25 @@ enum ArticleTermKind: string
     /**
      * Refus de suppression, avec l'accord du genre : « La rubrique X est utilisée… », « Le format X est utilisé… ».
      */
-    public function usedBy(string $name, int $articles): string
+    public function usedBy(string $name, int $articles): BlogRuleViolation
     {
-        return \sprintf(
-            self::Section === $this ? 'La rubrique %s est utilisée par %d %s.' : 'Le format %s est utilisé par %d %s.',
-            $name,
-            $articles,
-            1 === $articles ? 'article' : 'articles',
-        );
+        $template = match (true) {
+            self::Section === $this && 1 === $articles => 'La rubrique %name% est utilisée par 1 article.',
+            self::Section === $this => 'La rubrique %name% est utilisée par %count% articles.',
+            1 === $articles => 'Le format %name% est utilisé par 1 article.',
+            default => 'Le format %name% est utilisé par %count% articles.',
+        };
+
+        return new BlogRuleViolation($template, ['%name%' => $name, '%count%' => $articles]);
     }
 
-    public function slugTaken(string $slug): string
+    public function slugTaken(string $slug): BlogRuleViolation
     {
-        return \sprintf(self::Section === $this ? 'Le slug « %s » est déjà pris par une autre rubrique.' : 'Le slug « %s » est déjà pris par un autre format.', $slug);
+        return new BlogRuleViolation(self::Section === $this ? 'Le slug « %slug% » est déjà pris par une autre rubrique.' : 'Le slug « %slug% » est déjà pris par un autre format.', ['%slug%' => $slug]);
     }
 
-    public function missing(): string
+    public function missing(): BlogRuleViolation
     {
-        return self::Section === $this ? 'Cette rubrique n\'existe plus.' : 'Ce format n\'existe plus.';
+        return new BlogRuleViolation(self::Section === $this ? 'Cette rubrique n\'existe plus.' : 'Ce format n\'existe plus.');
     }
 }

@@ -23,8 +23,8 @@ final readonly class ArticleTermLink
     /**
      * @return ($term is null ? null : self)
      */
-    public static function fromModel(?ArticleTerm $term): ?self
+    public static function fromModel(?ArticleTerm $term, string $locale): ?self
     {
-        return null === $term ? null : new self($term->getSlug(), $term->getName());
+        return null === $term ? null : new self($term->getSlug($locale), $term->getName($locale));
     }
 }

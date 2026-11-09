@@ -16,7 +16,7 @@ final class LegalPageFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-        $manager->persist(new LegalPage('mentions-legales', 'Mentions légales', <<<'MD'
+        $legalNotice = new LegalPage('mentions-legales', 'Mentions légales', <<<'MD'
             Les informations ci-dessous sont des valeurs d'exemple, fictives, à remplacer depuis l'administration.
 
             ## Éditeur
@@ -36,7 +36,10 @@ final class LegalPageFixtures extends Fixture
             ## Propriété intellectuelle
 
             L'ensemble des contenus de ce site (textes, images, code) est la propriété de Exemple SAS (société fictive), sauf mention contraire. Toute reproduction ou représentation, totale ou partielle, sans autorisation écrite préalable est interdite.
-            MD));
+            MD);
+        // Titre anglais dormant (ADR 0015), le corps reste en repli sur le français
+        $legalNotice->changeTranslations(['en' => ['title' => 'Legal notice']]);
+        $manager->persist($legalNotice);
         $manager->persist(new LegalPage('donnees-personnelles', 'Données personnelles', <<<'MD'
             ## Responsable de traitement
 

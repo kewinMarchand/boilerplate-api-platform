@@ -12,6 +12,7 @@ use App\Catalog\Domain\Product;
 use App\Catalog\Domain\ProductAttributeRepository;
 use App\Catalog\Infrastructure\ApiPlatform\Resource\ProductResource;
 use App\Media\Infrastructure\ApiPlatform\ImageViews;
+use App\Shared\Infrastructure\Locale\ContentLocale;
 
 /**
  * @implements ProviderInterface<ProductResource>
@@ -22,6 +23,7 @@ final readonly class ProductCollectionProvider implements ProviderInterface
         private SearchProducts $searchProducts,
         private ProductAttributeRepository $attributes,
         private ImageViews $images,
+        private ContentLocale $contentLocale,
     ) {
     }
 
@@ -32,12 +34,13 @@ final readonly class ProductCollectionProvider implements ProviderInterface
      */
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): TraversablePaginator
     {
-        $criteria = ProductQuery::criteria($operation);
+        $locale = $this->contentLocale->current();
+        $criteria = ProductQuery::criteria($operation, $locale);
         $result = ($this->searchProducts)($criteria);
         $attributes = $this->attributes->findAll();
 
         return new TraversablePaginator(
-            new \ArrayIterator(array_map(fn (Product $product): ProductResource => ProductResource::fromModel($product, $this->images, $attributes), $result->items)),
+            new \ArrayIterator(array_map(fn (Product $product): ProductResource => ProductResource::fromModel($product, $this->images, $attributes, $locale), $result->items)),
             $criteria->page,
             $criteria->itemsPerPage,
             $result->totalItems,

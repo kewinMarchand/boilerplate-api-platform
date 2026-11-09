@@ -43,6 +43,11 @@ final class ContentWritesTest extends TestCase
             {
             }
 
+            public function findAll(): array
+            {
+                return array_values($this->pages);
+            }
+
             public function find(int $id): ?LegalPage
             {
                 return array_find($this->pages, static fn (LegalPage $page): bool => $page->getId() === $id);

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Blog\Application;
 
+use App\Blog\Domain\ArticleTerm;
 use App\Blog\Domain\ArticleTermKind;
 use App\Blog\Domain\ArticleTermRepository;
 use App\Blog\Domain\BlogRuleViolation;
+use App\Shared\Domain\TranslatedSlugs;
 
 final readonly class UpdateArticleTerm
 {
@@ -21,13 +23,14 @@ final readonly class UpdateArticleTerm
     {
         $term = $this->terms->find($id);
         if (null === $term || $term->getKind() !== $kind) {
-            throw new BlogRuleViolation($kind->missing());
+            throw $kind->missing();
         }
-        $sameSlug = $this->terms->findBySlug($kind, $data->slug);
-        if (null !== $sameSlug && $sameSlug !== $term) {
-            throw new BlogRuleViolation($kind->slugTaken($data->slug));
+        $taken = TranslatedSlugs::taken($data->slug, $data->translations, fn (string $slug, ?string $locale): ?ArticleTerm => $this->terms->findBySlug($kind, $slug, $locale), $term);
+        if (null !== $taken) {
+            throw $kind->slugTaken($taken);
         }
         $term->update($data->slug, $data->name, $data->position);
+        $term->changeTranslations($data->translations);
         $this->terms->save($term);
     }
 }

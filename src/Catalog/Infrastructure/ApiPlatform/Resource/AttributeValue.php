@@ -34,13 +34,13 @@ final readonly class AttributeValue
      *
      * @return list<self> attributs renseignés sur le produit, par position
      */
-    public static function listFor(Product $product, array $attributes): array
+    public static function listFor(Product $product, array $attributes, string $locale): array
     {
         $values = [];
         foreach ($attributes as $attribute) {
             $value = $product->getAttributeValue($attribute->getCode());
             if (null !== $value) {
-                $values[] = new self($attribute->getCode(), $attribute->getLabel(), $attribute->getType()->value, $value, $attribute->valueLabel($value), $attribute->getUnit());
+                $values[] = new self($attribute->getCode(), $attribute->getLabel($locale), $attribute->getType()->value, $value, $attribute->valueLabel($value, $locale), $attribute->getUnit($locale));
             }
         }
 

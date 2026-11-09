@@ -9,5 +9,6 @@
         <field name="page" type="string" length="20" unique="true" enum-type="App\Content\Domain\MetaPage"/>
         <field name="title" type="string" length="60"/>
         <field name="description" type="string" length="160"/>
+        <field name="translations" type="json"/>
     </entity>
 </doctrine-mapping>

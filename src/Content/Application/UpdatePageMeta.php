@@ -20,6 +20,7 @@ final readonly class UpdatePageMeta
     {
         $meta = $this->metas->find($id) ?? throw new ContentRuleViolation('Cette page n\'existe plus.');
         $meta->update($data->title, $data->description);
+        $meta->changeTranslations($data->translations);
         $this->metas->save($meta);
     }
 }

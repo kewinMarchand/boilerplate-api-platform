@@ -18,7 +18,11 @@ interface ProductRepository
 
     public function find(int $id): ?Product;
 
-    public function findBySlug(string $slug): ?Product;
+    /**
+     * @param string|null $locale langue du slug (le sien, ou celui de la langue par défaut s'il n'est pas traduit) ;
+     *                            null : la langue par défaut
+     */
+    public function findBySlug(string $slug, ?string $locale = null): ?Product;
 
     public function countInCategory(Category $category): int;
 

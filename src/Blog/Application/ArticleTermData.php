@@ -14,6 +14,8 @@ final class ArticleTermData
     public string $slug = '';
     public string $name = '';
     public int $position = 0;
+    /** @var array<string, array<string, string|null>> traductions (ADR 0015), par langue puis par champ ; vide sur un site monolingue */
+    public array $translations = [];
 
     public static function fromTerm(ArticleTerm $term): self
     {
@@ -21,6 +23,7 @@ final class ArticleTermData
         $data->slug = $term->getSlug();
         $data->name = $term->getName();
         $data->position = $term->getPosition();
+        $data->translations = $term->getTranslations();
 
         return $data;
     }

@@ -38,10 +38,10 @@ final class InMemoryCategoryRepository implements CategoryRepository
         return null;
     }
 
-    public function findBySlug(string $slug): ?Category
+    public function findBySlug(string $slug, ?string $locale = null): ?Category
     {
         foreach ($this->categories as $category) {
-            if ($category->getSlug() === $slug) {
+            if ($category->getSlug($locale) === $slug) {
                 return $category;
             }
         }

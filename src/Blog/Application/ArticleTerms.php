@@ -31,6 +31,6 @@ final class ArticleTerms
         }
         $term = $terms->find($id);
 
-        return null !== $term && $term->getKind() === $kind ? $term : throw new BlogRuleViolation($kind->missing());
+        return null !== $term && $term->getKind() === $kind ? $term : throw $kind->missing();
     }
 }

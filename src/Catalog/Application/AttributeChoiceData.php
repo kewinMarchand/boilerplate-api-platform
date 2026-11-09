@@ -11,4 +11,6 @@ final class AttributeChoiceData
 {
     public string $value = '';
     public string $label = '';
+    /** @var array<string, string|null> libellé dans chaque langue traduite (ADR 0015) ; vide : celui de la langue par défaut */
+    public array $labels = [];
 }

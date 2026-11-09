@@ -28,14 +28,14 @@ final readonly class DeleteArticleTerm
     {
         $term = $this->terms->find($id);
         if (null === $term || $term->getKind() !== $kind) {
-            throw new BlogRuleViolation($kind->missing());
+            throw $kind->missing();
         }
         $used = \count(array_filter(
             $this->articles->findLatestFirst(),
             static fn (Article $article): bool => $article->getSection() === $term || $article->getFormat() === $term,
         ));
         if ($used > 0) {
-            throw new BlogRuleViolation($kind->usedBy($term->getName(), $used));
+            throw $kind->usedBy($term->getName(), $used);
         }
         $this->terms->remove($term);
     }

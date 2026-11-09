@@ -39,8 +39,8 @@ final readonly class ArticleTermResource
     ) {
     }
 
-    public static function fromModel(ArticleTerm $term): self
+    public static function fromModel(ArticleTerm $term, string $locale): self
     {
-        return new self($term->getSlug(), $term->getName());
+        return new self($term->getSlug($locale), $term->getName($locale));
     }
 }

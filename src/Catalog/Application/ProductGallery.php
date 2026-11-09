@@ -20,7 +20,7 @@ final class ProductGallery
     /**
      * @param list<GalleryImageData> $rows
      *
-     * @return list<Image>
+     * @return list<array{image: Image, alts: array<string, string|null>}> images dans l'ordre, avec leurs textes traduits
      *
      * @throws CatalogRuleViolation plus de 8 images
      * @throws MediaRuleViolation   image refusée
@@ -36,9 +36,32 @@ final class ProductGallery
             $alt = '' === trim($row->alt) ? $productName : $row->alt;
             $image = $changeImage($row->current, $row->content, $alt, false, ImageUsage::Product);
             \assert(null !== $image);
-            $images[] = $image;
+            $images[] = ['image' => $image, 'alts' => $row->alts];
         }
 
         return $images;
+    }
+
+    /**
+     * Traductions du produit avec les textes de remplacement de sa galerie (clés galleryAlt.<empreinte>), qui remplacent
+     * ceux des images d'avant.
+     *
+     * @param array<string, array<string, string|null>>                   $translations saisie, par langue puis par champ
+     * @param list<array{image: Image, alts: array<string, string|null>}> $gallery
+     *
+     * @return array<string, array<string, string|null>>
+     */
+    public static function translations(array $translations, array $gallery): array
+    {
+        foreach ($translations as $locale => $fields) {
+            $translations[$locale] = array_filter($fields, static fn (string $field): bool => !str_starts_with($field, Product::GALLERY_ALT), \ARRAY_FILTER_USE_KEY);
+        }
+        foreach ($gallery as $entry) {
+            foreach ($entry['alts'] as $locale => $alt) {
+                $translations[$locale][Product::GALLERY_ALT.$entry['image']->key] = $alt;
+            }
+        }
+
+        return $translations;
     }
 }

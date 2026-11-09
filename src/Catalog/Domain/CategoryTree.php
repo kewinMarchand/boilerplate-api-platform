@@ -17,10 +17,13 @@ final readonly class CategoryTree
     {
     }
 
-    public function find(string $slug): Category
+    /**
+     * @param string|null $locale langue du slug ; null : la langue par défaut
+     */
+    public function find(string $slug, ?string $locale = null): Category
     {
         foreach ($this->categories as $category) {
-            if ($category->getSlug() === $slug) {
+            if ($category->getSlug($locale) === $slug) {
                 return $category;
             }
         }

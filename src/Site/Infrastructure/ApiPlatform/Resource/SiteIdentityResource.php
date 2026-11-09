@@ -14,7 +14,7 @@ use App\Site\Infrastructure\ApiPlatform\State\SiteIdentityProvider;
 
 #[ApiResource(
     shortName: 'SiteIdentity',
-    description: 'Identité du site, saisie dans l\'admin : nom, accroche, logo, image de partage, favicons, couleurs de marque calculées (ou null), thème par défaut et vente en ligne.',
+    description: 'Identité du site, saisie dans l\'admin : nom, accroche, logo, image de partage, favicons, couleurs de marque calculées (ou null), thème par défaut, vente en ligne et langues.',
     // logo, shareImage, icon et theme peuvent valoir null : sans cela, API Platform retire la clé alors que le schéma la déclare requise
     normalizationContext: ['skip_null_values' => false],
     operations: [
@@ -27,6 +27,9 @@ use App\Site\Infrastructure\ApiPlatform\State\SiteIdentityProvider;
 )]
 final readonly class SiteIdentityResource implements EmptyScenarioResult
 {
+    /**
+     * @param non-empty-list<string> $locales
+     */
     public function __construct(
         #[ApiProperty(description: 'Nom du site, 1 à 60 caractères.', required: true)]
         public string $name,
@@ -44,25 +47,33 @@ final readonly class SiteIdentityResource implements EmptyScenarioResult
         public ?SiteTheme $theme,
         #[ApiProperty(description: 'Vente en ligne : false, les fronts n\'affichent ni prix ni panier et chaque produit propose une demande de renseignement.', required: true)]
         public bool $salesEnabled,
+        #[ApiProperty(description: 'Langues du site, codes BCP 47 courts, la langue par défaut en premier ; ["fr"] tant qu\'aucune autre n\'est activée.', required: true)]
+        public array $locales,
     ) {
     }
 
-    public static function fromModel(SiteIdentity $identity, ?ImageView $logo, ?ImageView $shareImage, ?SiteIcon $icon): self
+    /**
+     * @param non-empty-list<string> $locales langues activées, celle par défaut en premier
+     */
+    public static function fromModel(SiteIdentity $identity, ?ImageView $logo, ?ImageView $shareImage, ?SiteIcon $icon, string $locale, array $locales): self
     {
         return new self(
-            $identity->getName(),
-            $identity->getTagline(),
+            $identity->getName($locale),
+            $identity->getTagline($locale),
             $logo,
             $shareImage,
             $icon,
             $identity->getDefaultColorScheme()->value,
             SiteTheme::fromColors($identity->getColors()),
             $identity->isSalesEnabled(),
+            $locales,
         );
     }
 
     public static function emptyScenarioResult(): static
     {
-        return self::fromModel(SiteIdentity::byDefault(), null, null, null);
+        $identity = SiteIdentity::byDefault();
+
+        return self::fromModel($identity, null, null, null, $identity->getDefaultLocale(), $identity->getLocales());
     }
 }

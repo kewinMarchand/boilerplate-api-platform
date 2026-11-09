@@ -6,9 +6,11 @@ namespace App\Blog\Infrastructure\ApiPlatform\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use App\Blog\Domain\ArticleTerm;
 use App\Blog\Domain\ArticleTermKind;
 use App\Blog\Domain\ArticleTermRepository;
 use App\Blog\Infrastructure\ApiPlatform\Resource\ArticleTermResource;
+use App\Shared\Infrastructure\Locale\ContentLocale;
 
 /**
  * Rubriques ou formats, selon la liste que l'opération désigne (extraProperties.kind).
@@ -17,8 +19,10 @@ use App\Blog\Infrastructure\ApiPlatform\Resource\ArticleTermResource;
  */
 final readonly class ArticleTermCollectionProvider implements ProviderInterface
 {
-    public function __construct(private ArticleTermRepository $terms)
-    {
+    public function __construct(
+        private ArticleTermRepository $terms,
+        private ContentLocale $contentLocale,
+    ) {
     }
 
     /**
@@ -29,6 +33,8 @@ final readonly class ArticleTermCollectionProvider implements ProviderInterface
         $kind = $operation->getExtraProperties()['kind'] ?? null;
         $kind = \is_string($kind) ? ArticleTermKind::from($kind) : throw new \LogicException('Opération sans liste de termes.');
 
-        return array_map(ArticleTermResource::fromModel(...), $this->terms->findByKind($kind));
+        $locale = $this->contentLocale->current();
+
+        return array_map(static fn (ArticleTerm $term): ArticleTermResource => ArticleTermResource::fromModel($term, $locale), $this->terms->findByKind($kind));
     }
 }

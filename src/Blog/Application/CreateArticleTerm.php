@@ -8,6 +8,7 @@ use App\Blog\Domain\ArticleTerm;
 use App\Blog\Domain\ArticleTermKind;
 use App\Blog\Domain\ArticleTermRepository;
 use App\Blog\Domain\BlogRuleViolation;
+use App\Shared\Domain\TranslatedSlugs;
 
 final readonly class CreateArticleTerm
 {
@@ -20,10 +21,12 @@ final readonly class CreateArticleTerm
      */
     public function __invoke(ArticleTermKind $kind, ArticleTermData $data): ArticleTerm
     {
-        if (null !== $this->terms->findBySlug($kind, $data->slug)) {
-            throw new BlogRuleViolation($kind->slugTaken($data->slug));
+        $taken = TranslatedSlugs::taken($data->slug, $data->translations, fn (string $slug, ?string $locale): ?ArticleTerm => $this->terms->findBySlug($kind, $slug, $locale), null);
+        if (null !== $taken) {
+            throw $kind->slugTaken($taken);
         }
         $term = new ArticleTerm($kind, $data->slug, $data->name, $data->position);
+        $term->changeTranslations($data->translations);
         $this->terms->save($term);
 
         return $term;

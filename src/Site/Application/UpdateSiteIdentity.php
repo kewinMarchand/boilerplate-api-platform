@@ -23,7 +23,10 @@ final readonly class UpdateSiteIdentity
     /**
      * Les couleurs sont vérifiées avant l'encodage des images : une couleur refusée ne laisse aucun fichier.
      *
-     * @throws SiteRuleViolation  une seule couleur, couleur invalide ou illisible
+     * Textes saisis dans la langue par défaut actuelle ; si elle change, ils passent en traduction (switchDefaultLocale).
+     * Les autres modules changent la leur par leur propre cas d'usage, appelé par l'admin dans la même transaction.
+     *
+     * @throws SiteRuleViolation  une seule couleur, couleur invalide ou illisible, langue invalide
      * @throws MediaRuleViolation logo, image de partage ou icône refusé
      */
     public function __invoke(SiteIdentityData $data): void
@@ -36,6 +39,9 @@ final readonly class UpdateSiteIdentity
 
         $identity->update($data->name, $data->tagline, $logo, $colors, $data->defaultColorScheme, $shareImage, $icon);
         $identity->changeSales($data->salesEnabled, $data->contactRecipient);
+        $identity->changeTranslations($data->translations);
+        $identity->switchDefaultLocale($identity->getDefaultLocale(), $data->defaultLocale);
+        $identity->changeLocales(array_values(array_unique([$data->defaultLocale, ...$data->otherLocales])));
         $this->identities->save($identity);
     }
 

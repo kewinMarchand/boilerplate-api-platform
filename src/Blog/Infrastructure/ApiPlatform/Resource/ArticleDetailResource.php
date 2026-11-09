@@ -13,6 +13,7 @@ use App\Media\Domain\ImageUsage;
 use App\Media\Infrastructure\ApiPlatform\AudioView;
 use App\Media\Infrastructure\ApiPlatform\ImageView;
 use App\Media\Infrastructure\ApiPlatform\ImageViews;
+use App\Shared\Infrastructure\Locale\Alternate;
 
 #[ApiResource(
     shortName: 'ArticleDetail',
@@ -22,13 +23,16 @@ use App\Media\Infrastructure\ApiPlatform\ImageViews;
     operations: [
         new Get(
             uriTemplate: '/articles/{slug}',
-            description: 'Lit un article par son slug.',
+            description: 'Lit un article par son slug dans la langue demandée (le sien, ou celui de la langue par défaut s\'il n\'est pas traduit). Slug d\'une autre langue : 404.',
             provider: ArticleDetailProvider::class,
         ),
     ],
 )]
 final readonly class ArticleDetailResource
 {
+    /**
+     * @param list<Alternate> $alternates
+     */
     public function __construct(
         #[ApiProperty(identifier: false, required: true)]
         public int $id,
@@ -56,25 +60,31 @@ final readonly class ArticleDetailResource
         public string $metaTitle,
         #[ApiProperty(description: 'Description pour les moteurs de recherche, 160 caractères au plus ; chaîne vide si l\'admin n\'en a pas saisi.', required: true)]
         public string $metaDescription,
+        #[ApiProperty(description: 'L\'article dans chaque langue activée, langue demandée comprise, pour les hreflang et le sélecteur de langue ; tableau vide sur un site monolingue.', readableLink: true, required: true)]
+        public array $alternates,
     ) {
     }
 
-    public static function fromModel(Article $article, ImageViews $images, string $html): self
+    /**
+     * @param list<Alternate> $alternates
+     */
+    public static function fromModel(Article $article, ImageViews $images, string $html, string $locale, array $alternates): self
     {
         return new self(
             (int) $article->getId(),
-            $article->getSlug(),
-            $article->getTitle(),
-            $article->getExcerpt(),
+            $article->getSlug($locale),
+            $article->getTitle($locale),
+            $article->getExcerpt($locale),
             $article->getPublishedAt()->format('Y-m-d'),
-            $images->view($article->getImage(), ImageUsage::Article),
+            $images->view($article->getImage($locale), ImageUsage::Article),
             $html,
-            ArticleTermLink::fromModel($article->getSection()),
-            ArticleTermLink::fromModel($article->getFormat()),
+            ArticleTermLink::fromModel($article->getSection(), $locale),
+            ArticleTermLink::fromModel($article->getFormat(), $locale),
             $images->audio($article->getAudio()),
-            $article->getSpeaker(),
-            $article->getMetaTitle(),
-            $article->getMetaDescription(),
+            $article->getSpeaker($locale),
+            $article->getMetaTitle($locale),
+            $article->getMetaDescription($locale),
+            $alternates,
         );
     }
 }

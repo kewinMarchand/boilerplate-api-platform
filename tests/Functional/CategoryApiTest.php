@@ -53,6 +53,6 @@ final class CategoryApiTest extends ApiTestCase
      */
     private static function node(string $slug, string $name, ?string $parent, array $children = []): array
     {
-        return ['slug' => $slug, 'name' => $name, 'parent' => $parent, 'children' => $children];
+        return ['slug' => $slug, 'name' => $name, 'parent' => $parent, 'children' => $children, 'alternates' => []];
     }
 }
