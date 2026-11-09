@@ -30,6 +30,22 @@ final class CorsTest extends ApiTestCase
         self::assertResponseHeaderSame('access-control-allow-origin', 'http://localhost:5173');
     }
 
+    public function testTestBlockAndLoopbackOriginsAreAllowed(): void
+    {
+        foreach (['http://localhost:4002', 'http://127.0.0.1:4002', 'http://127.0.0.1:3010'] as $origin) {
+            static::createClient()->request('GET', '/api/tasks', ['headers' => ['Origin' => $origin]]);
+
+            self::assertResponseHeaderSame('access-control-allow-origin', $origin);
+        }
+    }
+
+    public function testPortOutsideRegistryIsNotAllowed(): void
+    {
+        static::createClient()->request('GET', '/api/tasks', ['headers' => ['Origin' => 'http://localhost:3130']]);
+
+        self::assertResponseNotHasHeader('access-control-allow-origin');
+    }
+
     public function testUnknownOriginIsNotAllowed(): void
     {
         static::createClient()->request('OPTIONS', '/api/tasks', ['headers' => [
