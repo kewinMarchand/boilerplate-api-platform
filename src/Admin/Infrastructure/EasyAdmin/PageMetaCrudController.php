@@ -33,6 +33,7 @@ final class PageMetaCrudController extends AbstractCrudController
         private readonly UpdatePageMeta $updatePageMeta,
         private readonly AdminUrlGenerator $urls,
         private readonly AdminMessages $messages,
+        private readonly FormLocales $formLocales,
     ) {
     }
 
@@ -73,7 +74,7 @@ final class PageMetaCrudController extends AbstractCrudController
         \assert($meta instanceof PageMeta);
 
         $data = PageMetaData::fromPageMeta($meta);
-        $form = $this->createForm(PageMetaType::class, $data);
+        $form = $this->createForm(PageMetaType::class, $data, $this->formLocales->options());
         $form->handleRequest($context->getRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {

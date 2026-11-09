@@ -1,0 +1,44 @@
+{# Onglets de langue d'une fiche traduisible (ADR 0015) : la langue par défaut en premier, avec les champs obligatoires,
+   puis une langue traduite par onglet. Un onglet qui porte une erreur est marqué. #}
+{% trans_default_domain 'admin' %}
+{% set names = constant('App\\Admin\\Infrastructure\\Form\\ContentLanguages::NAMES') %}
+{% set default_locale = translations.vars.attr['data-default-locale'] %}
+{% set default_invalid = false %}
+{% for name in translatable %}
+    {% if form.children[name] is defined and not form.children[name].vars.valid %}
+        {% set default_invalid = true %}
+    {% endif %}
+{% endfor %}
+<div class="mb-4" data-language-tabs>
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button type="button" class="nav-link active" id="language-tab-{{ default_locale }}" data-bs-toggle="tab" data-bs-target="#language-panel-{{ default_locale }}" role="tab" aria-controls="language-panel-{{ default_locale }}" aria-selected="true" lang="{{ default_locale }}">
+                {{ names[default_locale] ?? default_locale }}
+                {% if default_invalid %}<span class="badge text-bg-danger ms-1">!<span class="visually-hidden">{{ 'tabs.has_errors'|trans }}</span></span>{% endif %}
+            </button>
+        </li>
+        {% for locale, group in translations %}
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link" id="language-tab-{{ locale }}" data-bs-toggle="tab" data-bs-target="#language-panel-{{ locale }}" role="tab" aria-controls="language-panel-{{ locale }}" aria-selected="false" lang="{{ locale }}">
+                    {{ names[locale] ?? locale }}
+                    {% if not group.vars.valid %}<span class="badge text-bg-danger ms-1">!<span class="visually-hidden">{{ 'tabs.has_errors'|trans }}</span></span>{% endif %}
+                </button>
+            </li>
+        {% endfor %}
+    </ul>
+    <div class="tab-content border border-top-0 rounded-bottom p-3">
+        <div class="tab-pane fade show active" id="language-panel-{{ default_locale }}" role="tabpanel" aria-labelledby="language-tab-{{ default_locale }}">
+            {% for name in translatable %}
+                {% if form.children[name] is defined %}{{ form_row(form.children[name]) }}{% endif %}
+            {% endfor %}
+        </div>
+        {% for locale, group in translations %}
+            <div class="tab-pane fade" id="language-panel-{{ locale }}" role="tabpanel" aria-labelledby="language-tab-{{ locale }}">
+                <p class="form-text">{{ 'tabs.fallback'|trans({'%language%': names[default_locale] ?? default_locale}) }}</p>
+                {{ form_errors(group) }}
+                {% for field in group %}{{ form_row(field) }}{% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% do translations.setRendered %}

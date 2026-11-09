@@ -43,6 +43,7 @@ abstract class ArticleTermCrudController extends AbstractCrudController
         private readonly DeleteArticleTerm $deleteTerm,
         private readonly AdminUrlGenerator $urls,
         private readonly AdminMessages $messages,
+        private readonly FormLocales $formLocales,
     ) {
     }
 
@@ -107,7 +108,7 @@ abstract class ArticleTermCrudController extends AbstractCrudController
      */
     private function form(AdminContext $context, ArticleTermData $data, ?int $id, string $title): Response
     {
-        $form = $this->createForm(ArticleTermType::class, $data);
+        $form = $this->createForm(ArticleTermType::class, $data, $this->formLocales->options());
         $form->handleRequest($context->getRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {

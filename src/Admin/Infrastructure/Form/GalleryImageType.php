@@ -9,6 +9,7 @@ use App\Catalog\Application\GalleryImageData;
 use App\Media\Domain\ImageUsage;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -39,6 +40,22 @@ final class GalleryImageType extends AbstractType
                 'constraints' => [new Assert\Length(max: 255)],
             ])
             ->add('position', IntegerType::class, ['label' => 'field.position', 'empty_data' => '0', 'constraints' => [new Assert\PositiveOrZero()]]);
+        // Langues traduites (ADR 0015) : un texte par langue, dans la ligne ; vide, celui de la langue par défaut
+        /** @var list<string> $locales */
+        $locales = $options['locales'];
+        if ([] !== $locales) {
+            $texts = $builder->create('alts', FormType::class, ['label' => false, 'required' => false]);
+            foreach ($locales as $locale) {
+                $texts->add($locale, TextType::class, [
+                    'label' => 'field.alt_in',
+                    'label_translation_parameters' => ['%language%' => ContentLanguages::name($locale)],
+                    'required' => false,
+                    'empty_data' => '',
+                    'constraints' => [new Assert\Length(max: 255)],
+                ]);
+            }
+            $builder->add($texts);
+        }
         $builder->addEventListener(FormEvents::PRE_SET_DATA, static function (FormEvent $event): void {
             $data = $event->getData();
             if ($data instanceof GalleryImageData && null !== $data->current) {
@@ -65,5 +82,7 @@ final class GalleryImageType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults(['data_class' => GalleryImageData::class, 'label' => false]);
+        $resolver->setDefault('locales', []);
+        $resolver->setAllowedTypes('locales', 'string[]');
     }
 }

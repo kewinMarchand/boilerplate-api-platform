@@ -6,6 +6,7 @@ namespace App\Admin\Infrastructure\Form;
 
 use App\Catalog\Application\AttributeChoiceData;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -35,10 +36,28 @@ final class AttributeChoiceType extends AbstractType
                 'empty_data' => '',
                 'constraints' => [new Assert\Length(max: 60)],
             ]);
+        // Langues traduites (ADR 0015) : un texte par langue, dans la ligne ; vide, celui de la langue par défaut
+        /** @var list<string> $locales */
+        $locales = $options['locales'];
+        if ([] !== $locales) {
+            $texts = $builder->create('labels', FormType::class, ['label' => false, 'required' => false]);
+            foreach ($locales as $locale) {
+                $texts->add($locale, TextType::class, [
+                    'label' => 'field.label_in',
+                    'label_translation_parameters' => ['%language%' => ContentLanguages::name($locale)],
+                    'required' => false,
+                    'empty_data' => '',
+                    'constraints' => [new Assert\Length(max: 60)],
+                ]);
+            }
+            $builder->add($texts);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults(['data_class' => AttributeChoiceData::class]);
+        $resolver->setDefault('locales', []);
+        $resolver->setAllowedTypes('locales', 'string[]');
     }
 }

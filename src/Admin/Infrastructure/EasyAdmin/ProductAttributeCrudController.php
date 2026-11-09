@@ -46,6 +46,7 @@ final class ProductAttributeCrudController extends AbstractCrudController
         private readonly DeleteProductAttribute $deleteAttribute,
         private readonly AdminUrlGenerator $urls,
         private readonly AdminMessages $messages,
+        private readonly FormLocales $formLocales,
     ) {
     }
 
@@ -119,7 +120,7 @@ final class ProductAttributeCrudController extends AbstractCrudController
         for ($row = 0; $row < self::EMPTY_CHOICE_ROWS; ++$row) {
             $data->choices[] = new AttributeChoiceData();
         }
-        $form = $this->createForm(ProductAttributeType::class, $data, ['code_locked' => null !== $id]);
+        $form = $this->createForm(ProductAttributeType::class, $data, ['code_locked' => null !== $id, ...$this->formLocales->options()]);
         $form->handleRequest($context->getRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {

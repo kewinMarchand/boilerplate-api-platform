@@ -10,6 +10,7 @@ use App\Site\Application\SiteIdentityData;
 use App\Site\Domain\DefaultColorScheme;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\ColorType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
@@ -91,11 +92,32 @@ final class SiteIdentityType extends AbstractType
                 'empty_data' => '',
                 'help' => 'help.contact_recipient',
                 'constraints' => [new Assert\NotBlank(), new Assert\Email(mode: Assert\Email::VALIDATION_MODE_STRICT), new Assert\Length(max: 255)],
+            ])
+            ->add('defaultLocale', ChoiceType::class, [
+                'label' => 'field.default_locale',
+                'help' => 'help.default_locale',
+                'choices' => array_flip(ContentLanguages::NAMES),
+                'choice_translation_domain' => false,
+            ])
+            ->add('otherLocales', ChoiceType::class, [
+                'label' => 'field.other_locales',
+                'help' => 'help.other_locales',
+                'choices' => array_flip(ContentLanguages::NAMES),
+                'choice_translation_domain' => false,
+                'multiple' => true,
+                'expanded' => true,
+                'required' => false,
             ]);
+        TranslationFields::add($builder, $options, static function (FormBuilderInterface $group): void {
+            $group
+                ->add('name', TextType::class, ['label' => 'field.site_name', 'required' => false, 'empty_data' => '', 'constraints' => [new Assert\Length(max: 60)]])
+                ->add('tagline', TextType::class, ['label' => 'field.tagline', 'required' => false, 'empty_data' => '', 'constraints' => [new Assert\Length(max: 160)]]);
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults(['translation_domain' => AdminMessages::DOMAIN, 'data_class' => SiteIdentityData::class]);
+        TranslationFields::configure($resolver);
     }
 }

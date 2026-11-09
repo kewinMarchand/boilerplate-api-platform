@@ -83,10 +83,19 @@ final class ProductType extends AbstractType
             'help' => 'help.gallery',
             'help_translation_parameters' => ['%max%' => Product::MAX_GALLERY_IMAGES],
             'entry_type' => GalleryImageType::class,
+            'entry_options' => ['locales' => $options['locales']],
             'allow_add' => true,
             'allow_delete' => true,
         ]);
         MetaFields::add($builder);
+        TranslationFields::add($builder, $options, static function (FormBuilderInterface $group): void {
+            $group
+                ->add('name', TextType::class, ['label' => 'field.name', 'required' => false, 'empty_data' => '', 'constraints' => [new Assert\Length(max: 255)]])
+                ->add('slug', TextType::class, ['label' => 'field.slug', 'required' => false, 'empty_data' => '', 'help' => 'help.translated_slug', 'constraints' => [new Assert\Length(max: 255), new Assert\Regex(CategoryType::SLUG_PATTERN, 'constraint.slug')]])
+                ->add('description', TextareaType::class, ['label' => 'field.description', 'required' => false, 'empty_data' => '', 'attr' => ['rows' => 6], 'constraints' => [new Assert\Length(max: 2000)]])
+                ->add('imageAlt', TextType::class, ['label' => 'field.alt', 'required' => false, 'empty_data' => '', 'constraints' => [new Assert\Length(max: 255)]]);
+            MetaFields::add($group);
+        });
         /** @var list<ProductAttribute> $attributes */
         $attributes = $options['attributes'];
         $this->addAttributeFields($builder, $attributes);
@@ -143,5 +152,6 @@ final class ProductType extends AbstractType
         $resolver->setDefaults(['translation_domain' => AdminMessages::DOMAIN, 'data_class' => ProductData::class, 'categories' => [], 'attributes' => []]);
         $resolver->setAllowedTypes('categories', 'array');
         $resolver->setAllowedTypes('attributes', 'array');
+        TranslationFields::configure($resolver);
     }
 }

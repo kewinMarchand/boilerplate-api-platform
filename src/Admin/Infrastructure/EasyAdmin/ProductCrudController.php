@@ -45,6 +45,7 @@ final class ProductCrudController extends AbstractCrudController
         private readonly DeleteProduct $deleteProduct,
         private readonly AdminUrlGenerator $urls,
         private readonly AdminMessages $messages,
+        private readonly FormLocales $formLocales,
     ) {
     }
 
@@ -137,7 +138,7 @@ final class ProductCrudController extends AbstractCrudController
             $empty->position = \count($data->gallery) + 1;
             $data->gallery[] = $empty;
         }
-        $form = $this->createForm(ProductType::class, $data, ['categories' => $categories, 'attributes' => $this->attributes->findAll()]);
+        $form = $this->createForm(ProductType::class, $data, ['categories' => $categories, 'attributes' => $this->attributes->findAll(), ...$this->formLocales->options()]);
         $form->handleRequest($context->getRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {

@@ -6,10 +6,12 @@ namespace App\Tests\Functional;
 
 use App\Admin\Infrastructure\Security\AdminUser;
 use App\Content\Domain\LegalPage;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\DomCrawler\Field\ChoiceFormField;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Yaml\Yaml;
 
@@ -60,6 +62,8 @@ final class AdminLanguageTest extends WebTestCase
     public function testTheWholeInterfaceIsInEnglish(): void
     {
         $client = $this->loggedIn('admin-langue-en@example.fr');
+        // Site bilingue : les onglets de langue et leurs textes sont vérifiés aussi
+        $client->setServerParameter('HTTP_X_SCENARIO', 'bilingual');
         $client->request('GET', '/admin/product?_locale=en');
 
         $this->assertNoLabelOf('fr', $client, 'en');
@@ -76,6 +80,92 @@ final class AdminLanguageTest extends WebTestCase
         $client->submitForm('Save', ['product_attribute[code]' => 'Pas un code', 'product_attribute[label]' => 'Libellé', 'product_attribute[position]' => '-1']);
         self::assertSelectorTextContains('#main form', 'Lowercase letters, digits and hyphens, 40 characters at most, starting with a letter.');
         self::assertSelectorTextContains('#main form', 'This value should be either positive or zero.');
+    }
+
+    public function testAMonolingualSiteHasNoLanguageTab(): void
+    {
+        $client = $this->loggedIn('admin-onglets-aucun@example.fr');
+        foreach (['product', 'category', 'article', 'legal-page'] as $section) {
+            $crawler = $client->request('GET', '/admin/'.$section);
+            $client->click($crawler->filter('a.action-edit')->first()->link());
+            self::assertSelectorNotExists('[data-language-tabs]', $section);
+            self::assertSelectorNotExists('[name*="[translations]"]', $section);
+        }
+        $client->request('GET', '/admin/site-identity');
+        self::assertSelectorNotExists('[data-language-tabs]');
+    }
+
+    public function testATranslatableRecordHasOneTabPerLanguage(): void
+    {
+        $client = $this->loggedIn('admin-onglets@example.fr');
+        $client->setServerParameter('HTTP_X_SCENARIO', 'bilingual');
+        $crawler = $client->request('GET', $this->editUrl($client, 'product', 'Monstera deliciosa'));
+
+        self::assertSame(['Français', 'English'], $crawler->filter('[data-language-tabs] [role="tab"]')->each(static fn (Crawler $tab): string => trim($tab->text())));
+        self::assertSame('Monstera deliciosa', $crawler->filter('#language-panel-fr [name="product[name]"]')->attr('value'));
+        self::assertSame('Swiss cheese plant', $crawler->filter('#language-panel-en [name="product[translations][en][name]"]')->attr('value'));
+        self::assertSame('required', $crawler->filter('[name="product[name]"]')->attr('required'));
+        self::assertNull($crawler->filter('[name="product[translations][en][name]"]')->attr('required'));
+        self::assertCount(1, $crawler->filter('[name^="product[gallery][0][alts][en]"]'), 'texte de remplacement anglais de la galerie');
+    }
+
+    public function testSavesTheTranslationsAndRefusesASlugTakenInTheLanguage(): void
+    {
+        [$client, $connection] = $this->isolated('admin-onglets-ecriture@example.fr');
+        $client->setServerParameter('HTTP_X_SCENARIO', 'bilingual');
+        try {
+            $client->request('GET', $this->editUrl($client, 'product', 'Monstera adansonii'));
+            $client->submitForm('Enregistrer', ['product[translations][en][slug]' => 'swiss-cheese-plant']);
+            self::assertResponseStatusCodeSame(422);
+            self::assertSelectorTextContains('#main form .alert-danger', 'Le slug « swiss-cheese-plant » est déjà pris par un autre produit.');
+
+            $client->submitForm('Enregistrer', ['product[translations][en][name]' => 'Five holes plant', 'product[translations][en][slug]' => 'five-holes-plant']);
+            self::assertResponseRedirects();
+            $client->request('GET', '/api/products/five-holes-plant?locale=en', [], [], ['HTTP_ACCEPT' => 'application/json']);
+            self::assertResponseIsSuccessful();
+            self::assertStringContainsString('"name":"Five holes plant"', (string) $client->getResponse()->getContent());
+        } finally {
+            $connection->rollBack();
+        }
+    }
+
+    public function testEnablingALanguageInTheIdentityAddsTheTabs(): void
+    {
+        [$client, $connection] = $this->isolated('admin-langues-site@example.fr');
+        try {
+            $this->submitIdentity($client, 'fr', ['en']);
+            self::assertResponseRedirects();
+            $crawler = $client->followRedirect();
+            self::assertSelectorExists('[data-language-tabs]');
+            self::assertSame('Website template with boilerplates-ui, equipped for QA and end-to-end testing.', $crawler->filter('[name="site_identity[translations][en][tagline]"]')->attr('value'));
+
+            $client->request('GET', $this->editUrl($client, 'category', 'Feuillages'));
+            self::assertSelectorExists('#language-panel-en [name="category[translations][en][name]"]');
+            $client->request('GET', '/api/site-identity', [], [], ['HTTP_ACCEPT' => 'application/json']);
+            self::assertStringContainsString('"locales":["fr","en"]', (string) $client->getResponse()->getContent());
+        } finally {
+            $connection->rollBack();
+        }
+    }
+
+    public function testAnotherDefaultLanguageMovesTheTexts(): void
+    {
+        [$client, $connection] = $this->isolated('admin-langue-defaut@example.fr');
+        try {
+            $this->submitIdentity($client, 'en', ['fr']);
+            self::assertResponseRedirects();
+
+            $client->request('GET', '/api/products/swiss-cheese-plant', [], [], ['HTTP_ACCEPT' => 'application/json', 'HTTP_ACCEPT_LANGUAGE' => '']);
+            self::assertResponseIsSuccessful();
+            self::assertResponseHeaderSame('Content-Language', 'en');
+            $client->request('GET', '/api/products/monstera-deliciosa?locale=fr', [], [], ['HTTP_ACCEPT' => 'application/json']);
+            self::assertResponseIsSuccessful();
+            self::assertStringContainsString('"name":"Monstera deliciosa"', (string) $client->getResponse()->getContent());
+            $crawler = $client->request('GET', $this->editUrl($client, 'product', 'Swiss cheese plant'));
+            self::assertSame(['English', 'Français'], $crawler->filter('[data-language-tabs] [role="tab"]')->each(static fn (Crawler $tab): string => trim($tab->text())));
+        } finally {
+            $connection->rollBack();
+        }
     }
 
     public function testTheLoginPageFollowsTheChosenLanguage(): void
@@ -183,6 +273,48 @@ final class AdminLanguageTest extends WebTestCase
         }
 
         return $text;
+    }
+
+    /**
+     * Client sans redémarrage du noyau, dans une transaction que le test annule : la base de test est partagée.
+     *
+     * @return array{KernelBrowser, Connection}
+     */
+    private function isolated(string $email): array
+    {
+        $client = $this->loggedIn($email);
+        $client->disableReboot();
+        $client->request('GET', '/admin/product');
+        $entityManager = $client->getContainer()->get(EntityManagerInterface::class);
+        self::assertInstanceOf(EntityManagerInterface::class, $entityManager);
+        $connection = $entityManager->getConnection();
+        $connection->beginTransaction();
+
+        return [$client, $connection];
+    }
+
+    /**
+     * @param list<string> $otherLocales
+     */
+    private function submitIdentity(KernelBrowser $client, string $defaultLocale, array $otherLocales): void
+    {
+        $form = $client->request('GET', '/admin/site-identity')->selectButton('Enregistrer')->form(['site_identity[defaultLocale]' => $defaultLocale]);
+        $boxes = $form->get('site_identity[otherLocales]');
+        self::assertIsArray($boxes);
+        foreach ($boxes as $box) {
+            self::assertInstanceOf(ChoiceFormField::class, $box);
+            \in_array($box->availableOptionValues()[0] ?? null, $otherLocales, true) ? $box->tick() : $box->untick();
+        }
+        $client->submit($form);
+    }
+
+    private function editUrl(KernelBrowser $client, string $section, string $name): string
+    {
+        $crawler = $client->request('GET', '/admin/'.$section.'?query='.rawurlencode($name));
+        $edit = $crawler->filter('a.action-edit');
+        self::assertGreaterThan(0, $edit->count(), $name);
+
+        return (string) $edit->first()->attr('href');
     }
 
     private function loggedIn(string $email): KernelBrowser

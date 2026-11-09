@@ -28,10 +28,16 @@ final class LegalPageType extends AbstractType
                 'attr' => ['rows' => 24],
                 'constraints' => [new Assert\NotBlank()],
             ]);
+        TranslationFields::add($builder, $options, static function (FormBuilderInterface $group): void {
+            $group
+                ->add('title', TextType::class, ['label' => 'field.title', 'required' => false, 'empty_data' => '', 'constraints' => [new Assert\Length(max: 255)]])
+                ->add('body', TextareaType::class, ['label' => 'field.markdown_body', 'required' => false, 'empty_data' => '', 'attr' => ['rows' => 24]]);
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults(['translation_domain' => AdminMessages::DOMAIN, 'data_class' => LegalPageData::class]);
+        TranslationFields::configure($resolver);
     }
 }

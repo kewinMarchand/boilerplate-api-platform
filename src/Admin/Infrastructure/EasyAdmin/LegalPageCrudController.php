@@ -30,6 +30,7 @@ final class LegalPageCrudController extends AbstractCrudController
         private readonly UpdateLegalPage $updateLegalPage,
         private readonly AdminUrlGenerator $urls,
         private readonly AdminMessages $messages,
+        private readonly FormLocales $formLocales,
     ) {
     }
 
@@ -66,7 +67,7 @@ final class LegalPageCrudController extends AbstractCrudController
         \assert($page instanceof LegalPage);
 
         $data = LegalPageData::fromLegalPage($page);
-        $form = $this->createForm(LegalPageType::class, $data);
+        $form = $this->createForm(LegalPageType::class, $data, $this->formLocales->options());
         $form->handleRequest($context->getRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {

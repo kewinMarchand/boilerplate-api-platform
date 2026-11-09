@@ -7,22 +7,36 @@
 {% block main %}
     {# Aperçus par champ d'envoi : image actuelle et texte de remplacement, sur un damier qui montre la transparence #}
     {% set previews = image_previews|default({}) %}
+    {# Site multilingue (ADR 0015) : les champs traduisibles vont dans des onglets de langue, ouverts à la place du premier
+       d'entre eux ; leurs noms sont ceux des champs d'une langue traduite #}
+    {% set translations = form.children.translations ?? null %}
+    {% set translatable = translations ? (translations.children|first).children|keys : [] %}
+    {% set tabs_rendered = false %}
     {{ form_start(form) }}
         {{ form_errors(form) }}
         {% for child in form %}
-            {% if child.vars.name in previews|keys %}
-                {% set preview = previews[child.vars.name] %}
-                <figure class="mb-3" data-image-preview="{{ child.vars.id }}" {% if not preview %}hidden{% endif %}>
-                    {{ include('admin/field/image_figure.html.twig', {src: preview.src|default(''), caption: preview.caption|default('')}) }}
-                </figure>
+            {% if child.vars.name == 'translations' %}
+                {# rendu dans les onglets #}
+            {% elseif child.vars.name in translatable %}
+                {% if not tabs_rendered %}
+                    {{ include('admin/language_tabs.html.twig', {form: form, translations: translations, translatable: translatable}) }}
+                    {% set tabs_rendered = true %}
+                {% endif %}
+            {% else %}
+                {% if child.vars.name in previews|keys %}
+                    {% set preview = previews[child.vars.name] %}
+                    <figure class="mb-3" data-image-preview="{{ child.vars.id }}" {% if not preview %}hidden{% endif %}>
+                        {{ include('admin/field/image_figure.html.twig', {src: preview.src|default(''), caption: preview.caption|default('')}) }}
+                    </figure>
+                {% endif %}
+                {% if child.vars.name == 'audioPath' and audio_preview|default(null) %}
+                    <figure class="mb-3" data-audio-preview>
+                        <audio controls preload="none" src="{{ audio_preview.src }}"></audio>
+                        <figcaption class="form-text">{{ audio_preview.caption }}</figcaption>
+                    </figure>
+                {% endif %}
+                {{ form_row(child) }}
             {% endif %}
-            {% if child.vars.name == 'audioPath' and audio_preview|default(null) %}
-                <figure class="mb-3" data-audio-preview>
-                    <audio controls preload="none" src="{{ audio_preview.src }}"></audio>
-                    <figcaption class="form-text">{{ audio_preview.caption }}</figcaption>
-                </figure>
-            {% endif %}
-            {{ form_row(child) }}
         {% endfor %}
         <button type="submit" class="btn btn-primary">{{ 'form.save'|trans }}</button>
         <a href="{{ cancel_url }}" class="btn btn-secondary">{{ 'form.cancel'|trans }}</a>

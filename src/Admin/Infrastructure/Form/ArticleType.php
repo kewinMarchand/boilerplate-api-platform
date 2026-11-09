@@ -101,6 +101,16 @@ final class ArticleType extends AbstractType
             },
         ));
         MetaFields::add($builder);
+        TranslationFields::add($builder, $options, static function (FormBuilderInterface $group): void {
+            $group
+                ->add('title', TextType::class, ['label' => 'field.title', 'required' => false, 'empty_data' => '', 'constraints' => [new Assert\Length(max: 255)]])
+                ->add('slug', TextType::class, ['label' => 'field.slug', 'required' => false, 'empty_data' => '', 'help' => 'help.translated_slug', 'constraints' => [new Assert\Length(max: 255), new Assert\Regex(CategoryType::SLUG_PATTERN, 'constraint.slug')]])
+                ->add('excerpt', TextareaType::class, ['label' => 'field.excerpt', 'required' => false, 'empty_data' => ''])
+                ->add('body', TextareaType::class, ['label' => 'field.body', 'required' => false, 'empty_data' => '', 'attr' => ['rows' => 16]])
+                ->add('imageAlt', TextType::class, ['label' => 'field.alt', 'required' => false, 'empty_data' => '', 'constraints' => [new Assert\Length(max: 255)]])
+                ->add('speaker', TextType::class, ['label' => 'field.speaker', 'required' => false, 'empty_data' => '', 'attr' => ['maxlength' => Article::SPEAKER_MAX_LENGTH], 'constraints' => [new Assert\Length(max: Article::SPEAKER_MAX_LENGTH)]]);
+            MetaFields::add($group);
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -108,5 +118,6 @@ final class ArticleType extends AbstractType
         $resolver->setDefaults(['translation_domain' => AdminMessages::DOMAIN, 'data_class' => ArticleData::class, 'sections' => [], 'formats' => []]);
         $resolver->setAllowedTypes('sections', 'array');
         $resolver->setAllowedTypes('formats', 'array');
+        TranslationFields::configure($resolver);
     }
 }

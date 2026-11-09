@@ -44,6 +44,7 @@ final class ArticleCrudController extends AbstractCrudController
         private readonly ArticleTermRepository $terms,
         private readonly AdminUrlGenerator $urls,
         private readonly AdminMessages $messages,
+        private readonly FormLocales $formLocales,
     ) {
     }
 
@@ -110,7 +111,7 @@ final class ArticleCrudController extends AbstractCrudController
     private function form(AdminContext $context, ArticleData $data, ?int $id, string $title, ?Image $image = null): Response
     {
         $choices = fn (ArticleTermKind $kind): array => array_column(array_map(static fn (ArticleTerm $term): array => [$term->getName(), $term->getId()], $this->terms->findByKind($kind)), 1, 0);
-        $form = $this->createForm(ArticleType::class, $data, ['sections' => $choices(ArticleTermKind::Section), 'formats' => $choices(ArticleTermKind::Format)]);
+        $form = $this->createForm(ArticleType::class, $data, ['sections' => $choices(ArticleTermKind::Section), 'formats' => $choices(ArticleTermKind::Format), ...$this->formLocales->options()]);
         $form->handleRequest($context->getRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {

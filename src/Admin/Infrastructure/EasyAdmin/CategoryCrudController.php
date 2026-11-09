@@ -38,6 +38,7 @@ final class CategoryCrudController extends AbstractCrudController
         private readonly DeleteCategory $deleteCategory,
         private readonly AdminUrlGenerator $urls,
         private readonly AdminMessages $messages,
+        private readonly FormLocales $formLocales,
     ) {
     }
 
@@ -107,7 +108,7 @@ final class CategoryCrudController extends AbstractCrudController
                 $parents[str_repeat('— ', $category->depth() - 1).$category->getName()] = $category->getId();
             }
         }
-        $form = $this->createForm(CategoryType::class, $data, ['parents' => $parents]);
+        $form = $this->createForm(CategoryType::class, $data, ['parents' => $parents, ...$this->formLocales->options()]);
         $form->handleRequest($context->getRequest());
 
         if ($form->isSubmitted() && $form->isValid()) {

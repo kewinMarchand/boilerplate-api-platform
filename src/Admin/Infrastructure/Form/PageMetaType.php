@@ -18,10 +18,12 @@ final class PageMetaType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         MetaFields::add($builder, 'title', 'description');
+        TranslationFields::add($builder, $options, static fn (FormBuilderInterface $group) => MetaFields::add($group, 'title', 'description'));
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults(['translation_domain' => AdminMessages::DOMAIN, 'data_class' => PageMetaData::class]);
+        TranslationFields::configure($resolver);
     }
 }

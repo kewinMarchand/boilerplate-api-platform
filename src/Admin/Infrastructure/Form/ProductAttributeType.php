@@ -55,16 +55,22 @@ final class ProductAttributeType extends AbstractType
                 'label' => 'field.choices',
                 'help' => 'help.choices',
                 'entry_type' => AttributeChoiceType::class,
-                'entry_options' => ['label' => false],
+                'entry_options' => ['label' => false, 'locales' => $options['locales']],
                 'allow_add' => true,
                 'allow_delete' => true,
             ]);
+        TranslationFields::add($builder, $options, static function (FormBuilderInterface $group): void {
+            $group
+                ->add('label', TextType::class, ['label' => 'field.label', 'required' => false, 'empty_data' => '', 'constraints' => [new Assert\Length(max: 60)]])
+                ->add('unit', TextType::class, ['label' => 'field.unit', 'required' => false, 'empty_data' => '', 'constraints' => [new Assert\Length(max: 10)]]);
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults(['translation_domain' => AdminMessages::DOMAIN, 'data_class' => ProductAttributeData::class, 'code_locked' => false]);
         $resolver->setAllowedTypes('code_locked', 'bool');
+        TranslationFields::configure($resolver);
     }
 
     /**

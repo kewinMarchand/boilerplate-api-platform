@@ -40,11 +40,17 @@ final class CategoryType extends AbstractType
                 'required' => false,
                 'placeholder' => 'category.no_parent',
             ]);
+        TranslationFields::add($builder, $options, static function (FormBuilderInterface $group): void {
+            $group
+                ->add('name', TextType::class, ['label' => 'field.name', 'required' => false, 'empty_data' => '', 'constraints' => [new Assert\Length(max: 255)]])
+                ->add('slug', TextType::class, ['label' => 'field.slug', 'required' => false, 'empty_data' => '', 'help' => 'help.translated_slug', 'constraints' => [new Assert\Length(max: 255), new Assert\Regex(self::SLUG_PATTERN, 'constraint.slug')]]);
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults(['translation_domain' => AdminMessages::DOMAIN, 'data_class' => CategoryData::class, 'parents' => []]);
         $resolver->setAllowedTypes('parents', 'array');
+        TranslationFields::configure($resolver);
     }
 }
