@@ -212,7 +212,7 @@ curl -i http://localhost:8090/api/tasks -H 'X-Scenario: empty'
 
 ### CORS
 
-Les origines autorisées sont une expression régulière dans `CORS_ALLOW_ORIGIN` (`.env`, surchargeable dans `.env.local` ou par variable d'environnement). Par défaut : `http://localhost` sur les ports 3000, 3010, 3100, 3102, 3110, 3111, 3112, 3120, 3121, 3122, 3130, 3133, 3150, 3151, 3200, 3210, 3220, 3230, 3250, 5173 et 8095 (développement, tests et Lighthouse des fronts). En-têtes autorisés : `Content-Type`, `Accept`, `X-Scenario`.
+Les origines autorisées sont une expression régulière dans `CORS_ALLOW_ORIGIN` (`.env`, surchargeable dans `.env.local` ou par variable d'environnement). Par défaut : `http://localhost` sur les ports 3000, 3010, 3100, 3102, 3106, 3110, 3111, 3112, 3118, 3119, 3120, 3121, 3122, 3128, 3129, 3130, 3133, 3134, 3150, 3151, 3160, 3161, 3170, 3171, 3200, 3210, 3220, 3230, 3250, 3270, 4321, 5173 et 8095 (développement, tests et Lighthouse des fronts). Sites bilingues des e2e : 3106 (next), 3118 et 3119 (nuxt), 3128 et 3129 (svelte), 3134 (html), 3160 et 3161 (astro) ; symfony sert le sien sur 8095, celui de sa suite principale. En-têtes autorisés : `Content-Type`, `Accept`, `X-Scenario`.
 
 ### Générer les types TypeScript
 
