@@ -55,7 +55,8 @@ final class ProductType extends AbstractType
                 'currency' => 'EUR',
                 'divisor' => 100,
                 'input' => 'integer',
-                'constraints' => [new Assert\PositiveOrZero(message: 'constraint.price')],
+                'setter' => static function (ProductData $data, ?int $price): void { $data->price = $price ?? $data->price; },
+                'constraints' => [new Assert\NotBlank(), new Assert\PositiveOrZero(message: 'constraint.price')],
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'field.description',

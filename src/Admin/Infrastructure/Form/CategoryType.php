@@ -33,7 +33,11 @@ final class CategoryType extends AbstractType
                 'empty_data' => '',
                 'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 255), new Assert\Regex(self::SLUG_PATTERN, 'constraint.slug')],
             ])
-            ->add('position', IntegerType::class, ['label' => 'field.position', 'constraints' => [new Assert\PositiveOrZero()]])
+            ->add('position', IntegerType::class, [
+                'label' => 'field.position',
+                'setter' => static function (CategoryData $data, ?int $position): void { $data->position = $position ?? $data->position; },
+                'constraints' => [new Assert\NotBlank(), new Assert\PositiveOrZero()],
+            ])
             ->add('parentId', ChoiceType::class, [
                 'label' => 'field.parent',
                 'choices' => $options['parents'],

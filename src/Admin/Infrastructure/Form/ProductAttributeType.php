@@ -51,7 +51,11 @@ final class ProductAttributeType extends AbstractType
                 'constraints' => [new Assert\Length(max: 10)],
             ])
             ->add('filterable', CheckboxType::class, ['label' => 'field.filterable', 'help' => 'help.filterable', 'required' => false])
-            ->add('position', IntegerType::class, ['label' => 'field.position', 'constraints' => [new Assert\PositiveOrZero()]])
+            ->add('position', IntegerType::class, [
+                'label' => 'field.position',
+                'setter' => static function (ProductAttributeData $data, ?int $position): void { $data->position = $position ?? $data->position; },
+                'constraints' => [new Assert\NotBlank(), new Assert\PositiveOrZero()],
+            ])
             ->add('choices', CollectionType::class, [
                 'label' => 'field.choices',
                 'help' => 'help.choices',

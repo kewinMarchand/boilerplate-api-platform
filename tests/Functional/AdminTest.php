@@ -204,12 +204,12 @@ final class AdminTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(422);
         $fieldId = str_replace(['][', '[', ']'], ['_', '_', ''], $field);
-        self::assertSelectorTextContains(\sprintf('#%s ~ .invalid-feedback, #%s + .invalid-feedback', $fieldId, $fieldId), 'Cette valeur ne doit pas être vide.');
+        self::assertSelectorTextContains(\sprintf('#%s_error1', $fieldId), 'Cette valeur ne doit pas être vide.');
     }
 
     /**
-     * Un champ texte vidé, ou rempli d'espaces que le formulaire retire, arrive à null sans `empty_data` : la propriété
-     * typée `string` de l'objet de saisie le refuse (500) avant toute validation.
+     * Un champ vidé arrive à null (texte vidé ou rempli d'espaces que le formulaire retire, sans `empty_data` ; nombre,
+     * prix ou date vides) : la propriété typée de l'objet de saisie le refuse (500) avant toute validation.
      *
      * @return iterable<string, array{0: string, 1: class-string|null, 2: array<string, mixed>, 3: string, 4?: string}>
      */
@@ -230,6 +230,12 @@ final class AdminTest extends WebTestCase
         yield 'texte de la page légale' => ['legal-page', LegalPage::class, [], 'legal_page[body]'];
         yield 'nom du site' => ['site-identity', null, [], 'site_identity[name]'];
         yield 'adresse des messages' => ['site-identity', null, [], 'site_identity[contactRecipient]'];
+        yield 'position de la catégorie' => ['category', Category::class, [], 'category[position]'];
+        yield 'position de l\'attribut' => ['product-attribute', ProductAttribute::class, [], 'product_attribute[position]'];
+        yield 'position de la rubrique' => ['article-section', ArticleTerm::class, ['kind' => ArticleTermKind::Section], 'article_term[position]'];
+        yield 'position du format' => ['article-format', ArticleTerm::class, ['kind' => ArticleTermKind::Format], 'article_term[position]'];
+        yield 'prix du produit' => ['product', Product::class, [], 'product[price]'];
+        yield 'date de l\'article' => ['article', Article::class, [], 'article[publishedAt]'];
     }
 
     public function testRefusesToRemoveAnAttributeValueCarriedByProducts(): void

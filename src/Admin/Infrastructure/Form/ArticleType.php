@@ -47,7 +47,13 @@ final class ArticleType extends AbstractType
                 'attr' => ['rows' => 16],
                 'help' => 'help.article_body',
             ])
-            ->add('publishedAt', DateType::class, ['label' => 'field.published_at', 'input' => 'datetime_immutable', 'widget' => 'single_text']);
+            ->add('publishedAt', DateType::class, [
+                'label' => 'field.published_at',
+                'input' => 'datetime_immutable',
+                'widget' => 'single_text',
+                'setter' => static function (ArticleData $data, ?\DateTimeImmutable $publishedAt): void { $data->publishedAt = $publishedAt ?? $data->publishedAt; },
+                'constraints' => [new Assert\NotBlank()],
+            ]);
         ImageFields::add($builder, ImageUsage::Article, 'help.article_alt');
         $builder
             ->add('sectionId', ChoiceType::class, [

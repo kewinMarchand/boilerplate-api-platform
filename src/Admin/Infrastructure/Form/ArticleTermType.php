@@ -33,7 +33,11 @@ final class ArticleTermType extends AbstractType
                 'empty_data' => '',
                 'constraints' => [new Assert\NotBlank(), new Assert\Regex(self::SLUG_PATTERN, 'constraint.term_slug')],
             ])
-            ->add('position', IntegerType::class, ['label' => 'field.position', 'constraints' => [new Assert\PositiveOrZero()]]);
+            ->add('position', IntegerType::class, [
+                'label' => 'field.position',
+                'setter' => static function (ArticleTermData $data, ?int $position): void { $data->position = $position ?? $data->position; },
+                'constraints' => [new Assert\NotBlank(), new Assert\PositiveOrZero()],
+            ]);
         TranslationFields::add($builder, $options, static function (FormBuilderInterface $group): void {
             $group
                 ->add('name', TextType::class, ['label' => 'field.name', 'required' => false, 'empty_data' => '', 'constraints' => [new Assert\Length(max: 60)]])
