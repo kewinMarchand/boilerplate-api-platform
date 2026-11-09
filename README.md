@@ -1,21 +1,21 @@
 # boilerplate-api-platform
 
-API de test commune aux cinq boilerplates front (Next, Nuxt, SvelteKit, Symfony Twig, HTML vanilla). Elle sert des tâches, des articles, un formulaire de contact, un catalogue à facettes avec ses fiches produit et ses produits à la une (le carrousel de l'accueil, [ADR 0004](doc/adr/0004-carrousel-de-produits-a-la-une.md)), les pages légales, l'identité du site (nom, accroche, logo, favicons, image de partage, couleurs) et le référencement des pages fixes, avec des données réalistes, en JSON simple ou en JSON-LD, et sait simuler une erreur serveur ou une liste vide pour tester les trois états des fronts.
+API de test commune aux cinq boilerplates front (Next, Nuxt, SvelteKit, Symfony Twig, HTML vanilla). Elle sert des tâches, des articles, un formulaire de contact, un catalogue à facettes avec ses fiches produit et ses produits à la une (le carrousel de l'accueil, [ADR 0004](doc/adr/0004-carrousel-de-produits-a-la-une.md)), les pages légales, l'identité du site (nom, accroche, logo, favicons, image de partage, couleurs) et le référencement des pages fixes, dans une ou plusieurs langues (section « Langues du contenu »), avec des données réalistes, en JSON simple ou en JSON-LD, et sait simuler une erreur serveur ou une liste vide pour tester les trois états des fronts.
 
 | Ressource        | Opération                    | Ce qu'elle renvoie                                                 |
 | ---------------- | ---------------------------- | ------------------------------------------------------------------ |
 | `Task`           | `GET /api/tasks`             | Les 3 tâches de démonstration (`id`, `title`, `done`)              |
 | `Article`        | `GET /api/articles`          | 3 articles (`id`, `slug`, `title`, `excerpt`, `publishedAt`, `image`, `section`, `format`, `audio`, `speaker`), du plus récent au plus ancien ; filtres `section` et `format` (slug, inconnu : liste vide) |
-| `ArticleDetail`  | `GET /api/articles/{slug}`   | fiche d'un article : les mêmes champs, plus `html` (texte saisi en Markdown dans l'admin, converti en HTML), `metaTitle` et `metaDescription` ; 404 sinon |
+| `ArticleDetail`  | `GET /api/articles/{slug}`   | fiche d'un article : les mêmes champs, plus `html` (texte saisi en Markdown dans l'admin, converti en HTML), `metaTitle`, `metaDescription` et `alternates` (versions dans les langues activées) ; 404 sinon |
 | `ArticleTerm`    | `GET /api/article-sections`, `GET /api/article-formats` | Rubriques et formats d'article (`slug`, `name`), par position, même sans article ([ADR 0010](doc/adr/0010-rubriques-formats-et-audio-des-articles.md)) |
 | `ContactMessage` | `POST /api/contact_messages` | 201 et le message enregistré puis envoyé par mail, ou 422 avec les violations en français ; `product` facultatif (slug) pour une demande de renseignement ([ADR 0014](doc/adr/0014-demande-de-renseignement-envoyee-par-mail.md)) |
-| `Category`       | `GET /api/categories`        | L'arbre des 14 catégories du catalogue (`slug`, `name`, `parent`, `children`) |
+| `Category`       | `GET /api/categories`        | L'arbre des 14 catégories du catalogue (`slug`, `name`, `parent`, `children`, `alternates`) |
 | `Product`        | `GET /api/products`          | Une page des 24 produits, filtrée et triée (tableau) |
 | `ProductFacets`  | `GET /api/product-facets`    | Le total des produits filtrés et les compteurs de facettes (dont les attributs filtrables), avec les mêmes filtres |
-| `ProductDetail`  | `GET /api/products/{slug}`   | fiche d'un produit : les champs de la liste, plus `categoryPath` (catégories de la racine à la sienne, `slug` et `name`), `description` (texte brut, paragraphes séparés par une ligne vide, chaîne vide si aucune), `gallery` (8 images au plus, dans l'ordre, [ADR 0009](doc/adr/0009-galerie-et-sources-plus-petites-des-produits.md)), `metaTitle` et `metaDescription` ; 404 sinon |
+| `ProductDetail`  | `GET /api/products/{slug}`   | fiche d'un produit : les champs de la liste, plus `categoryPath` (catégories de la racine à la sienne, `slug` et `name`), `description` (texte brut, paragraphes séparés par une ligne vide, chaîne vide si aucune), `gallery` (8 images au plus, dans l'ordre, [ADR 0009](doc/adr/0009-galerie-et-sources-plus-petites-des-produits.md)), `metaTitle`, `metaDescription` et `alternates` ; 404 sinon |
 | `Product`        | `GET /api/featured-products` | Les produits « À la une » (case de l'admin), par nom : le carrousel de l'accueil |
-| `LegalPage`      | `GET /api/legal_pages/{slug}` | `mentions-legales`, `donnees-personnelles` ou `accessibilite` : `title`, `introduction` et `sections` (`title`, `html`) ; 404 sinon |
-| `SiteIdentity`   | `GET /api/site-identity`     | L'identité du site saisie dans l'admin ([ADR 0006](doc/adr/0006-identite-du-site-administree-dans-l-api.md)) : `name`, `tagline`, `logo` (image ou `null`), `shareImage` (image 1200 × 630 ou `null`, [ADR 0011](doc/adr/0011-metadonnees-administrables.md)), `icon` (`null` ou `png32`, `png180`, `png192`, `png512`, [ADR 0012](doc/adr/0012-favicons-administrables.md)), `defaultColorScheme` (`auto`, `light`, `dark`) , `theme` (`null` sans couleurs saisies, sinon `light` et `dark` : les douze jetons de couleur de marque de boilerplates-ui, calculés par l'API ; en sombre, couleur éclaircie jusqu'à 4,5:1, [ADR 0008](doc/adr/0008-couleur-de-marque-sombre-a-4-5.md)) et `salesEnabled` (vente en ligne ; `false` : ni prix ni panier dans les fronts, ADR 0014) |
+| `LegalPage`      | `GET /api/legal_pages/{slug}` | `mentions-legales`, `donnees-personnelles` ou `accessibilite` : `title`, `introduction`, `sections` (`title`, `html`) et `alternates` ; 404 sinon |
+| `SiteIdentity`   | `GET /api/site-identity`     | L'identité du site saisie dans l'admin ([ADR 0006](doc/adr/0006-identite-du-site-administree-dans-l-api.md)) : `name`, `tagline`, `logo` (image ou `null`), `shareImage` (image 1200 × 630 ou `null`, [ADR 0011](doc/adr/0011-metadonnees-administrables.md)), `icon` (`null` ou `png32`, `png180`, `png192`, `png512`, [ADR 0012](doc/adr/0012-favicons-administrables.md)), `defaultColorScheme` (`auto`, `light`, `dark`) , `theme` (`null` sans couleurs saisies, sinon `light` et `dark` : les douze jetons de couleur de marque de boilerplates-ui, calculés par l'API ; en sombre, couleur éclaircie jusqu'à 4,5:1, [ADR 0008](doc/adr/0008-couleur-de-marque-sombre-a-4-5.md)) `salesEnabled` (vente en ligne ; `false` : ni prix ni panier dans les fronts, ADR 0014) et `locales` (langues du site, la langue par défaut en premier, `["fr"]` par défaut) |
 | `PageMeta`       | `GET /api/page-metas`        | Titre et description du référencement des pages fixes (`home`, `catalog`, `blog`, `contact`, `sitemap`, `legal-notice`, `privacy`, `accessibility`), toutes les clés, chaînes vides si non saisies (ADR 0011) |
 
 Tout est en lecture seule sauf le contact (un `POST` répond 405). Les collections ne sont pas paginées, sauf les produits qui ont leur propre pagination.
@@ -178,6 +178,22 @@ Articles des fixtures : deux rubriques (« Conseils », 2 articles ; « Actualit
 
 Le référencement est facultatif partout (section 26 de `SPEC-COMMUNE.md`, ADR 0011) : chaîne vide, le front garde sa valeur. Section « Référencement » de l'admin : une fiche par page fixe (titre de 60 caractères, description de 160). Produits et articles ont les mêmes champs dans leur formulaire. Fixtures : seule la description de la page `blog` est saisie.
 
+### Langues du contenu
+
+Section 29 de `SPEC-COMMUNE.md`, [ADR 0015](doc/adr/0015-contenu-multilingue-et-admin-bilingue.md). Un site n'a qu'une langue, le français, tant que l'admin n'en active pas d'autre (fiche « Identité du site » : langue par défaut et autres langues). Un site monolingue garde exactement le contrat d'avant, avec `locales: ["fr"]` et `alternates: []` en plus.
+
+- **Langue demandée** : le paramètre `locale` (`?locale=en`) s'il désigne une langue activée, sinon la première langue activée d'`Accept-Language` (par poids, région ignorée : `en-GB` vaut `en`), sinon la langue par défaut. Toute réponse sous `/api/` porte `Content-Language` et `Vary: Accept-Language`.
+- **Repli champ par champ** : un champ non traduit prend la valeur de la langue par défaut. Champs traduisibles : nom et accroche du site ; nom, slug, description, métadonnées et textes de remplacement des produits ; nom et slug des catégories ; libellé, unité et libellés des valeurs des attributs ; slug, titre, chapô, texte, intervenant, métadonnées et texte de remplacement des articles ; nom et slug des rubriques et formats ; titre et texte des pages légales ; titre et description des pages fixes. Prix, stock, images, dates et valeurs numériques sont communs.
+- **Slug par langue** : celui de la langue, ou celui de la langue par défaut s'il n'est pas traduit. Un slug d'une autre langue répond 404 (`/api/products/monstera-deliciosa?locale=en` quand le produit a le slug anglais `swiss-cheese-plant`). Les filtres `category`, `section` et `format` prennent aussi le slug de la langue. Le slug des pages légales est commun à toutes les langues.
+- **`alternates`** : `[{locale, slug}]`, une entrée par langue activée, langue demandée comprise, pour les `hreflang` et le sélecteur de langue des fronts.
+- **Cas bilingue de test** : `X-Scenario: bilingual` (dev et test) active aussi l'anglais. Les fixtures portent alors leurs traductions anglaises : accroche du site ; catégories `plantes-interieur` (`indoor-plants`, « Indoor plants ») et `feuillages` (`foliage-plants`, « Foliage plants ») ; produit `monstera-deliciosa` (`swiss-cheese-plant`, « Swiss cheese plant », titre de référencement) ; attributs `feuillage` (« Foliage », « Evergreen », « Deciduous ») et `hauteur-adulte` (« Mature height ») ; article `le-mode-accessibilite-renforcee` (`enhanced-accessibility-mode`, titre et chapô) ; rubrique `conseils` (`tips`, « Tips ») ; titre de `mentions-legales` (« Legal notice ») ; description de la page fixe `blog`. Le reste est en repli sur le français.
+
+```sh
+curl -i 'http://localhost:8090/api/products/swiss-cheese-plant' -H 'X-Scenario: bilingual' -H 'Accept-Language: en'
+```
+
+L'interface de l'admin est en français ou en anglais (sélecteur dans le menu des réglages, choix gardé pour la session), indépendamment des langues du contenu. Sur un site de plusieurs langues, les fiches traduisibles ont un onglet par langue.
+
 ### Simuler un état : en-tête `X-Scenario`
 
 En dev et en test uniquement. En prod, la classe n'est pas enregistrée et l'en-tête n'a aucun effet.
@@ -185,6 +201,7 @@ En dev et en test uniquement. En prod, la classe n'est pas enregistrée et l'en-
 | Valeur  | Effet                                                                |
 | ------- | -------------------------------------------------------------------- |
 | `error` | 500 en `application/problem+json`, sur toutes les opérations         |
+| `bilingual` | Le site active aussi l'anglais pour la requête : les traductions anglaises des fixtures servent (section « Langues du contenu ») |
 | `empty` | Collection vide (`[]`) sur les tâches, articles, rubriques, formats, référencement des pages fixes, catégories et produits. Sur `/api/product-facets` : total et compteurs à 0, `attributes` vide. Sur `/api/site-identity` : l'identité par défaut (celle des fixtures) |
 
 Toute autre valeur est ignorée.
@@ -254,7 +271,11 @@ src/
   Content/                  pages légales, référencement des pages fixes (PageMeta, ADR 0011)
   Media/                    images (variantes AVIF, WebP, PNG des favicons) et fichiers audio
                             (HeaderAudioInspector : format et durée lus dans les en-têtes, PHP seul)
-  Shared/Infrastructure/ApiPlatform/Scenario/   en-tête X-Scenario
+  Shared/
+    Domain/                 Translatable (traductions d'un agrégat, repli champ par champ), TranslatedSlugs,
+                            RuleViolation (règle enfreinte, modèle de message traduit par l'admin)
+    Infrastructure/Locale/  langue demandée (ContentLocale), Content-Language, X-Scenario: bilingual (ADR 0015)
+    Infrastructure/ApiPlatform/Scenario/   en-tête X-Scenario
 tests/
   Unit/                     value objects et cas d'utilisation du catalogue, sans framework
   Functional/               un fichier par ressource, plus X-Scenario et CORS
